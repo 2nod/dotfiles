@@ -5,39 +5,93 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    brew-nix = {
+      url = "github:BatteredBunny/brew-nix";
+      inputs.brew-api.follows = "brew-api";
+      inputs.nix-darwin.follows = "nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    brew-api = {
+      url = "github:BatteredBunny/brew-api";
+      flake = false;
+    };
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs }:
+  outputs = inputs@{ self, nix-darwin, nixpkgs, brew-nix, home-manager, ... }:
   let
-    configuration = { pkgs, ... }: {
-      # List packages installed in system profile. To search by name, run:
-      # $ nix-env -qaP | grep wget
-      environment.systemPackages =
-        [ pkgs.vim
-        ];
-
-      # Necessary for using flakes on this system.
-      nix.settings.experimental-features = "nix-command flakes";
-
-      # Enable alternative shell support in nix-darwin.
-      # programs.fish.enable = true;
-
-      # Set Git commit hash for darwin-version.
-      system.configurationRevision = self.rev or self.dirtyRev or null;
-
-      # Used for backwards compatibility, please read the changelog before changing.
-      # $ darwin-rebuild changelog
-      system.stateVersion = 6;
-
-      # The platform the configuration will be used on.
-      nixpkgs.hostPlatform = "aarch64-darwin";
-    };
+    user = "tsuno";
+    hostname = "yuheis-MacBook-Air";
+    darwinSystem = "aarch64-darwin";
+    pkgs = import nixpkgs { system = darwinSystem; };
   in
   {
     # Build darwin flake using:
     # $ darwin-rebuild build --flake .#yuheis-MacBook-Air
-    darwinConfigurations."yuheis-MacBook-Air" = nix-darwin.lib.darwinSystem {
-      modules = [ configuration ];
+    darwinConfigurations."${hostname}" = nix-darwin.lib.darwinSystem {
+      system = darwinSystem;
+      specialArgs = { inherit self user; };
+      modules =
+        [
+          brew-nix.darwinModules.default
+          ./nix/modules/darwin/system.nix
+          home-manager.darwinModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              extraSpecialArgs = { inherit user; };
+              users.${user} = {
+                imports = [
+                  ./nix/modules/home
+                  ./nix/modules/darwin
+                ];
+                home.username = user;
+                home.homeDirectory = "/Users/${user}";
+              };
+            };
+          }
+        ];
+    };
+
+    apps.${darwinSystem} = {
+      build = {
+        type = "app";
+        program = toString (
+          pkgs.writeShellScript "darwin-build" ''
+            set -e
+            echo "Building darwin configuration..."
+            nix build .#darwinConfigurations.${hostname}.system
+            echo "Build successful! Run 'nix run .#switch' to apply."
+          ''
+        );
+      };
+
+      switch = {
+        type = "app";
+        program = toString (
+          pkgs.writeShellScript "darwin-switch" ''
+            set -e
+            echo "Building and switching darwin configuration..."
+            sudo nix run nix-darwin -- switch --flake .#${hostname}
+          ''
+        );
+      };
+
+      update = {
+        type = "app";
+        program = toString (
+          pkgs.writeShellScript "flake-update" ''
+            set -e
+            echo "Updating flake.lock..."
+            nix flake update
+            echo "Done! Run 'nix run .#switch' to apply changes."
+          ''
+        );
+      };
     };
   };
 }

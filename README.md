@@ -1,48 +1,86 @@
 # nix-darwin dotfiles
 
 ## 概要
-このリポジトリは macOS を nix-darwin + flakes で管理するための最小構成です。`flake.nix` だけで構成されており、`nixpkgs-unstable` と `nix-darwin/master` を入力として読み込み、`yuheis-MacBook-Air` ホスト向けのシステム構成 ( `darwinConfigurations` ) をエクスポートします。
+このリポジトリは macOS を nix-darwin + flakes で管理するための最小構成です。`flake.nix` を起点に `nix/modules/...` を読み込み、`nixpkgs-unstable` / `nix-darwin/master` / `home-manager` / `brew-nix` / `brew-api` を入力として、`yuheis-MacBook-Air` ホスト向けのシステム構成 ( `darwinConfigurations` ) をエクスポートします。
+
+## 役割分担
+- nix-darwin: macOS のシステム設定、brew-nix の有効化。
+- home-manager: ユーザー単位の CLI パッケージと brew-nix cask。
+- brew-nix: Homebrew cask を Nix パッケージとして扱う仕組み。
+
+## 参考
+- https://github.com/breuerfelix/dotfiles/tree/main
+- https://github.com/ryoppippi/dotfiles
+- https://apribase.net/2025/03/24/brew-nix/
 
 ## ディレクトリ構成
-- `flake.nix`: すべての設定を定義しているフレーク。`environment.systemPackages` にインストールするパッケージ、`nix.settings` や `system.stateVersion` などのベース設定を記述。
-- `darwin/`: 将来的にモジュールを分割配置したい場合の配置先 (現状は空)。
-- `home-manager/`: home-manager 用のモジュールを置く想定のディレクトリ (現状は空)。
-- `shell/`: 補助的なスクリプトやシェル設定を置くためのディレクトリ (現状は空)。
+- `flake.nix`: すべての設定を定義しているフレーク。入力やモジュールの結線、`darwinConfigurations` を定義。
+- `nix/`: Nix 設定をまとめるディレクトリ。
+- `nix/modules/darwin/`: macOS 固有のモジュール。brew-nix cask 設定 ( `default.nix`, `packages.nix` ) とシステム設定 ( `system.nix` )。
+- `nix/modules/home/`: home-manager のユーザー設定 ( `default.nix`, `packages.nix` )。OS 非依存の設定はここにまとめる。
 
 ## 前提条件
 1. [Nix](https://nixos.org/download.html) を macOS にインストールしておく。
-2. `nix-command` と `flakes` を有効化 (本フレークでは `nix.settings.experimental-features = "nix-command flakes";` を設定済み)。
-3. `nix run nix-darwin -- switch --flake .#yuheis-MacBook-Air` を初回に実行できるよう、`darwin-rebuild` を利用可能にしておく。
+2. `nix-command` と `flakes` を有効化しておく (初回実行の前に必要)。
+3. 初回は `darwin-rebuild` が PATH に無いので、`nix run .#build` / `nix run .#switch` を使う。`switch` は途中で sudo を求められる。
 
-## 初回セットアップ
+### `nix-command` / `flakes` の有効化
+`/etc/nix/nix.conf` に追記してデーモンを再起動します。
+```bash
+sudo mkdir -p /etc/nix
+echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
+sudo launchctl kickstart -k system/org.nixos.nix-daemon
+```
+
+一時的に使うだけなら、実行時に付ける方法もあります。
+```bash
+nix --extra-experimental-features "nix-command flakes" <command>
+```
+
+Determinate Nix を使う場合は、nix-darwin の Nix 管理を無効化する必要があります。
+このリポジトリは `nix.enable = false;` を設定済みなので、Nix の設定は `/etc/nix/nix.conf` 側で行います。
+
+## 最短の手順
 ```bash
 # dotfiles を手元に取得
-mkdir -p ~/src && cd ~/src
 git clone git@github.com:<your-account>/dotfiles.git
 cd dotfiles
 
-# 初めて適用する場合
-nix run nix-darwin -- switch --flake .#yuheis-MacBook-Air
+# 反映なしでビルド（任意）
+nix run .#build
+
+# 本適用（途中で sudo を求められる）
+nix run .#switch
 ```
 
-`yuheis-MacBook-Air` の部分は `flake.nix` 内の `darwinConfigurations` 名に合わせて変更してください。ホスト名を変えたい場合は `flake.nix` を編集し、`darwinConfigurations."<hostname>" = ...` を追加・変更します。
+`hostname` が現在のホスト名と一致している必要があります。違う場合は `flake.nix` の `hostname` と `darwinConfigurations` を変更してください。
+ホスト名は `scutil --get LocalHostName` で確認できます。
+
+## よく使うコマンド
+- `nix run .#build`: 反映なしでビルドのみ行う。
+- `nix run .#switch`: 反映（途中で sudo を求められる）。
+- `nix run .#update`: `flake.lock` を更新する。
 
 ## 変更と反映の流れ
 1. `flake.nix` を編集してパッケージや設定を追加する。
-2. 影響を確認したい場合は `darwin-rebuild test --flake .#yuheis-MacBook-Air` を実行して sandboxed な適用を行う。
-3. 問題なければ `darwin-rebuild switch --flake .#yuheis-MacBook-Air` で本適用。
+2. 影響を確認したい場合は `nix run .#build` でビルドのみ行う。
+3. 問題なければ `nix run .#switch` で本適用。
 
-依存するチャネルを更新したい場合は `nix flake update` を実行し、ロックファイル ( `flake.lock` ) が生成されたらコミットしてください。
+依存するチャネルを更新したい場合は `nix run .#update` (または `nix flake update`) を実行し、ロックファイル ( `flake.lock` ) が生成されたらコミットしてください。
 
 ## よく編集する箇所
-- `environment.systemPackages`: `pkgs.vim` のようにインストールしたいパッケージを並べます。
+- `nix/modules/darwin/system.nix`: システム設定と brew-nix の有効化。
+- `nix/modules/darwin/packages.nix`: brew-nix cask の追加場所 (home-manager 側)。
+- `nix/modules/home/packages.nix`: CLI パッケージの追加場所 (例: `pkgs.neovim`, `pkgs.gh`)。
 - `programs.*`: 例として `programs.fish.enable = true;` をアンコメントすれば fish シェルを有効化できます。
-- `nixpkgs.hostPlatform`: ARM Mac (Apple Silicon) 以外で使う場合はここを変更します。
+- `darwinSystem` / `nixpkgs.hostPlatform`: ARM Mac (Apple Silicon) 以外で使う場合は両方を変更します (例: `x86_64-darwin`)。
 - `system.stateVersion`: nix-darwin の互換性のため、更新時はリリースノートを確認してください。
 
 ## ヒント
 - `system.configurationRevision = self.rev or self.dirtyRev or null;` により `darwin-version` で現在のコミットが確認できます。Git 管理下で作業することで、構成の再現性を保てます。
-- モジュールが増えてきたら `darwin/` や `home-manager/` ディレクトリに `.nix` ファイルを作成し、`modules = [ configuration ];` のリストに追加する形で整理できます。
-- shell の便利スクリプト類は `shell/` 以下に置き、`environment.shells` や `programs.zsh` 等から読み込むようにすると管理しやすくなります。
+- モジュールが増えてきたら `nix/modules/darwin/default.nix` や `nix/modules/home/default.nix` に `imports = [ ./foo.nix ];` を追加して分割できます。
+- brew-nix cask は形式ごとに `unpackPhase` や `installPhase`、`hash` の上書きが必要な場合があり、`nix/modules/darwin/packages.nix` に例を置いてあります。
+- 一部のアプリは初回起動時に `App is damaged` が出るので、`Privacy & Security` の `Open Anyway` で許可します。
+- Nix の更新は新規インストール扱いになるため、アプリによっては設定やプロファイルがリセットされることがあります。
 
 不明点があれば Issue や Pull Request でメモを残しておくと、次回セットアップ時の手間を減らせます。
