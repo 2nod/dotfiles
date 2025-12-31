@@ -4,6 +4,7 @@
   home.packages = [
     pkgs.bun
     pkgs.codex
+    pkgs.deno
     pkgs.gh
     pkgs.git
     pkgs.neovim

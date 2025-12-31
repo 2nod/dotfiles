@@ -2,6 +2,7 @@
 {
   imports = [
     ./packages.nix
+    ./dotfiles.nix
   ];
 
   home.stateVersion = "24.11";
