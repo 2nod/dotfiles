@@ -2,7 +2,13 @@
 {
   # CLI packages live here (home-manager).
   home.packages = [
-    pkgs.neovim
+    pkgs.bun
+    pkgs.codex
     pkgs.gh
+    pkgs.git
+    pkgs.neovim
+    pkgs.pnpm
+    pkgs.uv
+    pkgs.wezterm
   ];
 }

@@ -7,7 +7,17 @@ in
   home.packages =
     [
       # Add Homebrew casks via brew-nix, for example:
-      # brewCasks.google-chrome
+      brewCasks.arc
+      brewCasks.bitwarden
+      brewCasks.cursor
+      brewCasks.discord
+      brewCasks.nani
+      brewCasks.notion
+      brewCasks.obsidian
+      brewCasks.raycast
+      brewCasks.slack
+      brewCasks.visual-studio-code
+      brewCasks.zoom
     ]
     ++ [
       # Examples from brew-nix notes:
