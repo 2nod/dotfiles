@@ -63,3 +63,22 @@
 ### telescopeとoilの使い分け
 - Telescope: ファイル名/内容で素早く検索して開く
 - oil: ディレクトリを見ながら移動・操作（作成/移動/削除/リネーム）
+
+### Git (gitsigns)
+- `md`: diffビュー（右分割）
+- `mh` / `mp`: hunkプレビュー
+- `ms`: hunkステージ / `mS`: バッファ全体ステージ
+- `mu`: hunkステージ取り消し / `mr`: hunkリセット / `mR`: バッファリセット
+- `mb`: 行blame / `mB`: blame一覧
+- 現在行blameは常時表示
+- diffビュー終了: `:diffoff`（全体解除） / ウィンドウを閉じるなら `:q`
+- stageの使い方: 変更箇所にカーソル → `ms`（hunk）/ `mS`（バッファ）
+- diffビュー移動: `]c`（次） / `[c`（前） / `sh/sj/sk/sl`（ウィンドウ移動）
+
+### Satellite
+- 右端のスクロールバーに差分位置が表示される
+
+### Window操作
+- `ss`: split（上下）
+- `sv`: vsplit（左右）
+- `sh` / `sj` / `sk` / `sl`: ウィンドウ移動
