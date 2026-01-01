@@ -1,4 +1,4 @@
-{ self, user, ... }:
+{ self, user, pkgs, ... }:
 {
   brew-nix.enable = true;
 
@@ -6,6 +6,7 @@
   # Homebrew is managed here for casks that are fragile under brew-nix.
   homebrew = {
     enable = true;
+    onActivation.cleanup = "uninstall";
     casks = [
       "karabiner-elements"
     ];
@@ -20,6 +21,11 @@
 
   # Apply user-scoped defaults for the primary login user.
   system.primaryUser = user;
+
+  fonts.packages = with pkgs; [
+    udev-gothic
+    udev-gothic-nf
+  ];
 
   # macOS defaults (based on ryoppippi/dotfiles)
   system.defaults = {
