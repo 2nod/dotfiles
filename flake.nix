@@ -44,14 +44,23 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               extraSpecialArgs = { inherit user; };
-              users.${user} = {
-                imports = [
-                  ./nix/modules/home
-                  ./nix/modules/darwin
-                ];
-                home.username = user;
-                home.homeDirectory = "/Users/${user}";
-              };
+              users.${user} =
+                { pkgs, config, lib, ... }:
+                {
+                  imports = [
+                    (import ./nix/modules/home {
+                      inherit
+                        pkgs
+                        config
+                        lib
+                        ;
+                      dotfilesDir = "/Users/${user}/dotfiles";
+                    })
+                    ./nix/modules/darwin
+                  ];
+                  home.username = user;
+                  home.homeDirectory = "/Users/${user}";
+                };
             };
           }
         ];

@@ -1,19 +1,15 @@
-{ ... }:
+{ lib, config, dotfilesDir ? "${config.home.homeDirectory}/dotfiles", helpers, ... }:
+let
+  configHome = config.xdg.configHome;
+in
 {
   xdg.enable = true;
 
-  xdg.configFile."wezterm" = {
-    source = ../../../wezterm;
-    recursive = true;
-  };
+  home.activation.linkDotfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    ${helpers.activation.mkLinkForce}
 
-  xdg.configFile."nvim" = {
-    source = ../../../nvim;
-    recursive = true;
-  };
-
-  xdg.configFile."karabiner" = {
-    source = ../../../karabiner;
-    recursive = true;
-  };
+    link_force "${dotfilesDir}/wezterm" "${configHome}/wezterm"
+    link_force "${dotfilesDir}/nvim" "${configHome}/nvim"
+    link_force "${dotfilesDir}/karabiner" "${configHome}/karabiner"
+  '';
 }
