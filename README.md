@@ -9,9 +9,9 @@
 - brew-nix: Homebrew cask を Nix パッケージとして扱う仕組み。
 
 ## 参考
-- https://github.com/breuerfelix/dotfiles/tree/main
 - https://github.com/ryoppippi/dotfiles
 - https://apribase.net/2025/03/24/brew-nix/
+- https://dev.classmethod.jp/articles/shuntaka-claude-code-terminal-life/
 
 ## ディレクトリ構成
 - `flake.nix`: すべての設定を定義しているフレーク。入力やモジュールの結線、`darwinConfigurations` を定義。

@@ -2,6 +2,7 @@
 {
   # CLI packages live here (home-manager).
   home.packages = [
+    pkgs.bat
     pkgs.bun
     pkgs.claude-code
     pkgs.codex

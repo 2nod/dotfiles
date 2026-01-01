@@ -30,3 +30,36 @@
 - `yazi`: ファイルマネージャ
 - `gh` + `fzf`: PR/Issue一覧
 - `top` / `htop` / `bottom`: 監視
+
+## Neovimメモ
+### ファイルマネージャ（oil）
+- 開く: `<leader>e`（leaderはSpace）
+- 開く/分割: `<CR>` / `<C-s>`(vsplit) / `<C-h>`(split) / `<C-t>`(tab)
+- 移動: `-`(親) / `_`(cwd) / `g.`(隠し)
+- プレビュー: `<C-p>` / `gp`(WezTermプレビュー) / `g<leader>`(QuickLook)
+
+### Lazy
+- 未インストールは起動時に自動インストール（`install.missing = true`）
+- 更新/削除反映は手動: `:Lazy sync` / `:Lazy update` / `:Lazy clean`
+
+### LSP
+- `gd`: 定義へ
+- `gr`: 参照一覧
+- `K`: ホバー
+- `<leader>rn`: リネーム
+- `<leader>ca`: コードアクション
+- `<leader>f`: フォーマット
+
+### Diagnostics
+- `<leader>de`: 浮動ウィンドウ
+- `[d` / `]d`: 前/次
+
+### Telescope
+- `<leader>ff`: ファイル
+- `<leader>fg`: grep
+- `<leader>fb`: バッファ
+- `<leader>fh`: ヘルプ
+
+### telescopeとoilの使い分け
+- Telescope: ファイル名/内容で素早く検索して開く
+- oil: ディレクトリを見ながら移動・操作（作成/移動/削除/リネーム）

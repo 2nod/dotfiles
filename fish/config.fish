@@ -29,3 +29,7 @@ set -l theme_file "$FISH_CONFIG_DIR/themes/kanagawa.fish"
 if test -f $theme_file
   source $theme_file
 end
+
+set -gx EDITOR nvim
+set -gx GIT_EDITOR nvim
+set -gx VISUAL nvim

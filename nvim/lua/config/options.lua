@@ -1,5 +1,8 @@
 local opt = vim.opt
 
+vim.g.mapleader = t("<Space>")
+vim.g.maplocalleader = t("<Space>")
+
 opt.termguicolors = true
 opt.number = true
 opt.relativenumber = true
