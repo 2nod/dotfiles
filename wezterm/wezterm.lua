@@ -1,6 +1,7 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
 
+-- Runtime toggles for UI effects.
 wezterm.on("toggle-opacity", function(window, _)
   local overrides = window:get_config_overrides() or {}
   if overrides.window_background_opacity then
@@ -11,6 +12,7 @@ wezterm.on("toggle-opacity", function(window, _)
   window:set_config_overrides(overrides)
 end)
 
+-- Blur toggle for macOS backgrounds.
 wezterm.on("toggle-blur", function(window, _)
   local overrides = window:get_config_overrides() or {}
   if overrides.macos_window_background_blur then
@@ -21,11 +23,41 @@ wezterm.on("toggle-blur", function(window, _)
   window:set_config_overrides(overrides)
 end)
 
+-- Start maximized on launch.
 wezterm.on("gui-startup", function(cmd)
   local _, _, window = wezterm.mux.spawn_window(cmd or {})
   window:gui_window():maximize()
 end)
 
+-- Nerd Font glyphs for custom tab shapes.
+local SOLID_LEFT_ARROW = wezterm.nerdfonts.ple_lower_right_triangle
+local SOLID_RIGHT_ARROW = wezterm.nerdfonts.ple_upper_left_triangle
+
+-- Custom tab rendering to highlight the active tab.
+wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+  local background = "#5c6d74"
+  local foreground = "#FFFFFF"
+  local edge_background = "none"
+  if tab.is_active then
+    background = "#ae8b2d"
+    foreground = "#FFFFFF"
+  end
+  local edge_foreground = background
+  local title = "   " .. wezterm.truncate_right(tab.active_pane.title, max_width - 1) .. "   "
+  return {
+    { Background = { Color = edge_background } },
+    { Foreground = { Color = edge_foreground } },
+    { Text = SOLID_LEFT_ARROW },
+    { Background = { Color = background } },
+    { Foreground = { Color = foreground } },
+    { Text = title },
+    { Background = { Color = edge_background } },
+    { Foreground = { Color = edge_foreground } },
+    { Text = SOLID_RIGHT_ARROW },
+  }
+end)
+
+-- Keybindings layered on top of defaults.
 local keys = {
   { key = "a", mods = "LEADER|CTRL", action = act.SendString("\x01") },
   { key = "d", mods = "CMD", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
@@ -50,6 +82,7 @@ local keys = {
   { key = "Enter", mods = "SHIFT", action = act.SendString("\x1b\r") },
 }
 
+-- Leader + number to jump to tabs.
 for i = 1, 9 do
   table.insert(keys, {
     key = tostring(i),
@@ -59,11 +92,13 @@ for i = 1, 9 do
 end
 
 return {
+  -- Typography.
   font = wezterm.font_with_fallback({ "UDEV Gothic 35LG", "JetBrains Mono", "Menlo" }),
   font_size = 13.0,
   force_reverse_video_cursor = true,
   adjust_window_size_when_changing_font_size = false,
 
+  -- Window spacing.
   window_padding = {
     left = 1,
     right = 0,
@@ -71,25 +106,41 @@ return {
     bottom = 0,
   },
 
-  window_background_opacity = 0.75,
+  -- Background effects.
+  window_background_opacity = 0.85,
   macos_window_background_blur = 20,
   window_decorations = "RESIZE",
+  -- Keep the titlebar transparent to match the background.
+  window_frame = {
+    inactive_titlebar_bg = "none",
+    active_titlebar_bg = "none",
+  },
+  -- Match the tab bar background to the window background.
+  window_background_gradient = {
+    colors = { "#181616" },
+  },
 
+  -- IME/input behavior.
   use_ime = true,
   send_composed_key_when_left_alt_is_pressed = false,
   send_composed_key_when_right_alt_is_pressed = false,
   macos_forward_to_ime_modifier_mask = "SHIFT|CTRL",
   audible_bell = "SystemBeep",
 
+  -- Leader and keybindings.
   leader = { key = ";", mods = "CTRL" },
   enable_csi_u_key_encoding = true,
   keys = keys,
 
+  -- Tab bar layout.
   tab_bar_at_bottom = false,
-  use_fancy_tab_bar = false,
+  use_fancy_tab_bar = true,
   hide_tab_bar_if_only_one_tab = true,
   show_new_tab_button_in_tab_bar = false,
+  -- Nightly-only setting; safe to remove on stable.
+  show_close_tab_button_in_tabs = false,
 
+  -- Color palette and tab styling.
   colors = {
     foreground = "#c5c9c5",
     background = "#181616",

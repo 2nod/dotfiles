@@ -16,5 +16,21 @@
         dotfilesDir
         ;
     })
+    (import ./vscode {
+      inherit
+        pkgs
+        lib
+        config
+        dotfilesDir
+        ;
+    })
+    (import ./cursor {
+      inherit
+        pkgs
+        lib
+        config
+        dotfilesDir
+        ;
+    })
   ];
 }

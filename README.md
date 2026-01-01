@@ -77,7 +77,7 @@ nix run .#switch
 Home Manager が生成する `~/.config/git/config` や `~/.local/state/home-manager/...` も作成されます。
 
 ## home-manager と link_force の使い分け
-- パターンA（home-managerのみ）: `programs.*` / `xdg.configFile` で表現でき、設定量も無理なく Nix 化できるもの。例: `git`
+- パターンA（home-managerのみ）: `programs.*` で表現でき、設定量も無理なく Nix 化できるもの。例: `git`
 - パターンB（home-manager + link_force）: モジュールは使いたいが、設定は既存ディレクトリをそのまま使いたいもの。例: `nvim`
 - パターンC（link_forceのみ）: モジュールが無い、またはそのまま運用したい設定。例: `wezterm`/`karabiner`/`bash`/`zsh`
 - 判断フロー: 「モジュールがある？」→ Yes: Nix 化できるならA / 既存設定を残すならB、No: C
