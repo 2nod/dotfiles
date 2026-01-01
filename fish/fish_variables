@@ -1,9 +1,0 @@
-# This file contains fish universal variable definitions.
-# VERSION: 3.0
-SETUVAR __fish_initialized:4300
-SETUVAR _hydro_git_12745:main\u2022\x20\u21911\x20
-SETUVAR _hydro_git_13347:main\u2022\x20\u21911\x20
-SETUVAR _hydro_git_16107:main\u2022\x20\u21911\x20
-SETUVAR _hydro_git_24632:main\u2022\x20\u21911\x20
-SETUVAR _hydro_git_28456:\x1d
-SETUVAR fish_user_paths:/run/current\x2dsystem/sw/bin\x1e/Users/tsuno/Library/pnpm\x1e/Users/tsuno/\x2ebun/bin\x1e/Users/tsuno/\x2ecargo/bin\x1e/Users/tsuno/\x2edetaspace/bin
