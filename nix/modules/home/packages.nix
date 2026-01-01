@@ -8,6 +8,7 @@
     pkgs.deno
     pkgs.gh
     pkgs.git
+    pkgs.lazygit
     pkgs.pnpm
     pkgs.uv
     pkgs.wezterm

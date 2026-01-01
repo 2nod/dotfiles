@@ -16,6 +16,12 @@
         dotfilesDir
         ;
     })
+    (import ./fish {
+      inherit
+        pkgs
+        lib
+        ;
+    })
     (import ./vscode {
       inherit
         pkgs
@@ -25,6 +31,14 @@
         ;
     })
     (import ./cursor {
+      inherit
+        pkgs
+        lib
+        config
+        dotfilesDir
+        ;
+    })
+    (import ./codex {
       inherit
         pkgs
         lib
