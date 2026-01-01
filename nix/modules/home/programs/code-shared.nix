@@ -25,6 +25,13 @@ in
     "workbench.editor.tabSizing" = "shrink";
     "workbench.startupEditor" = "none";
     "terminal.integrated.copyOnSelection" = true;
+    "terminal.integrated.defaultProfile.osx" = "fish";
+    "terminal.integrated.profiles.osx" = {
+      "fish" = {
+        "path" = "/run/current-system/sw/bin/fish";
+        "args" = [ "-l" ];
+      };
+    };
     "window.restoreWindows" = "none";
     "terminal.integrated.allowChords" = false;
     "security.workspace.trust.untrustedFiles" = "open";

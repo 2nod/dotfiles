@@ -15,8 +15,12 @@
   # Determinate Nix manages the daemon; disable nix-darwin's Nix management.
   nix.enable = false;
 
+  nixpkgs.config.allowUnfree = true;
+
   users.users.${user} = {
     home = "/Users/${user}";
+    shell = pkgs.fish;
+    ignoreShellProgramCheck = true;
   };
 
   # Apply user-scoped defaults for the primary login user.
@@ -95,7 +99,13 @@
   # With nix.enable = false, configure Nix settings in /etc/nix/nix.conf.
 
   # Enable alternative shell support in nix-darwin.
-  # programs.fish.enable = true;
+  programs.fish.enable = true;
+  environment.shells = [ pkgs.fish ];
+
+  system.activationScripts.postActivation.text = ''
+    echo "Setting login shell to fish..."
+    chsh -s ${pkgs.fish}/bin/fish ${user} || true
+  '';
 
   # Set Git commit hash for darwin-version.
   system.configurationRevision = self.rev or self.dirtyRev or null;
