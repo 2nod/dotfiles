@@ -7,7 +7,6 @@
     pkgs.deno
     pkgs.gh
     pkgs.git
-    pkgs.neovim
     pkgs.pnpm
     pkgs.uv
     pkgs.wezterm

@@ -1,4 +1,4 @@
-{ config, lib, dotfilesDir ? "${config.home.homeDirectory}/dotfiles", ... }:
+{ config, lib, pkgs, dotfilesDir ? "${config.home.homeDirectory}/dotfiles", ... }:
 let
   helpers = import ../lib/helpers { inherit lib; };
 in
@@ -10,6 +10,14 @@ in
         lib
         config
         helpers
+        dotfilesDir
+        ;
+    })
+    (import ./programs {
+      inherit
+        pkgs
+        lib
+        config
         dotfilesDir
         ;
     })

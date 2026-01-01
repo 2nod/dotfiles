@@ -1,4 +1,3 @@
-local lspconfig = require("lspconfig")
 local mason = require("mason")
 local mason_lspconfig = require("mason-lspconfig")
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
@@ -20,29 +19,21 @@ local function on_attach(_, bufnr)
   end, "Format")
 end
 
-mason.setup()
-
-mason_lspconfig.setup()
-
-mason_lspconfig.setup_handlers({
-  function(server_name)
-    lspconfig[server_name].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-  end,
-  ["lua_ls"] = function()
-    lspconfig.lua_ls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = {
-        Lua = {
-          runtime = { version = "LuaJIT" },
-          diagnostics = { globals = { "vim" } },
-          workspace = { checkThirdParty = false },
-          telemetry = { enable = false },
-        },
-      },
-    })
-  end,
+vim.lsp.config("*", {
+  capabilities = capabilities,
+  on_attach = on_attach,
 })
+
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      runtime = { version = "LuaJIT" },
+      diagnostics = { globals = { "vim" } },
+      workspace = { checkThirdParty = false },
+      telemetry = { enable = false },
+    },
+  },
+})
+
+mason.setup()
+mason_lspconfig.setup()

@@ -68,10 +68,26 @@ nix run .#switch
 
 依存するチャネルを更新したい場合は `nix run .#update` (または `nix flake update`) を実行し、ロックファイル ( `flake.lock` ) が生成されたらコミットしてください。
 
+## リンクの挙動
+`link_force` は、既存のファイル/ディレクトリを削除してからシンボリックリンクを張ります。
+この repo では `nix/modules/home/dotfiles.nix` と `nix/modules/home/programs/neovim` で使っています。
+手動で削除する必要はありませんが、必要なら `nix run .#switch` の前にバックアップを取っておくのがおすすめです。
+
+例: `~/.bashrc`, `~/.bash_profile`, `~/.zshrc`, `~/.zshenv`, `~/.config/nvim`, `~/.config/wezterm`, `~/.config/karabiner` などが置き換わります。
+Home Manager が生成する `~/.config/git/config` や `~/.local/state/home-manager/...` も作成されます。
+
+## home-manager と link_force の使い分け
+- パターンA（home-managerのみ）: `programs.*` / `xdg.configFile` で表現でき、設定量も無理なく Nix 化できるもの。例: `git`
+- パターンB（home-manager + link_force）: モジュールは使いたいが、設定は既存ディレクトリをそのまま使いたいもの。例: `nvim`
+- パターンC（link_forceのみ）: モジュールが無い、またはそのまま運用したい設定。例: `wezterm`/`karabiner`/`bash`/`zsh`
+- 判断フロー: 「モジュールがある？」→ Yes: Nix 化できるならA / 既存設定を残すならB、No: C
+- 置き場所: `nix/modules/home/programs/` はA/B、repo直下の `wezterm/` などはCの設定置き場
+- 引数方針: `dotfilesDir` などのカスタム引数は `import` で明示的に渡す（依存関係を見える化し、`_module.args` の暗黙依存を避けるため）
+
 ## よく編集する箇所
 - `nix/modules/darwin/system.nix`: システム設定と brew-nix の有効化。
 - `nix/modules/darwin/packages.nix`: brew-nix cask の追加場所 (home-manager 側)。
-- `nix/modules/home/packages.nix`: CLI パッケージの追加場所 (例: `pkgs.neovim`, `pkgs.gh`)。
+- `nix/modules/home/packages.nix`: CLI パッケージの追加場所 (例: `pkgs.gh`, `pkgs.pnpm`)。
 - `programs.*`: 例として `programs.fish.enable = true;` をアンコメントすれば fish シェルを有効化できます。
 - `darwinSystem` / `nixpkgs.hostPlatform`: ARM Mac (Apple Silicon) 以外で使う場合は両方を変更します (例: `x86_64-darwin`)。
 - `system.stateVersion`: nix-darwin の互換性のため、更新時はリリースノートを確認してください。
