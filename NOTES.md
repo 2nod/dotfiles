@@ -32,17 +32,45 @@
 - `top` / `htop` / `bottom`: 監視
 
 ## Neovimメモ
-### ファイルマネージャ（oil）
+### プラグイン
+#### 使い方
+- which-key.nvim: `<leader>` を押して少し待つとキーマップ候補が表示（`timeoutlen=400`）
+- dropbar.nvim: winbar にパンくず表示、`<leader>;` でパンくず選択
+
+#### 候補
+- Comment.nvim + nvim-ts-context-commentstring: コメント切替＋言語別コメント自動判定
+- nvim-insx: 括弧/クォートの自動補完
+- mini.surround: surround の追加/変更/削除
+- nvim-treesitter-textobjects: 関数/引数などのテキストオブジェクト拡張
+- todo-comments.nvim: TODO/FIXME の強調と検索
+- vim-illuminate: 同一語ハイライト
+- inc-rename.nvim: LSP リネームのプレビュー
+- diffview.nvim（or vim-gin）: Git の差分/履歴ビュー
+- nvim-navic: パンくず表示（ステータスライン等）
+
+### プラグイン管理（Lazy）
+- 未インストールは起動時に自動インストール（`install.missing = true`）
+- 更新/削除反映は手動: `:Lazy sync` / `:Lazy update` / `:Lazy clean`
+
+### ファイル/検索
+#### oil（ファイルマネージャ）
 - 開く: `<leader>e`（leaderはSpace）
 - 開く/分割: `<CR>` / `<C-s>`(vsplit) / `<C-h>`(split) / `<C-t>`(tab)
 - 移動: `-`(親) / `_`(cwd) / `g.`(隠し)
 - プレビュー: `<C-p>` / `gp`(WezTermプレビュー) / `g<leader>`(QuickLook)
 
-### Lazy
-- 未インストールは起動時に自動インストール（`install.missing = true`）
-- 更新/削除反映は手動: `:Lazy sync` / `:Lazy update` / `:Lazy clean`
+#### Telescope
+- `<leader>ff`: ファイル
+- `<leader>fg`: grep
+- `<leader>fb`: バッファ
+- `<leader>fh`: ヘルプ
 
-### LSP
+#### 使い分け
+- Telescope: ファイル名/内容で素早く検索して開く
+- oil: ディレクトリを見ながら移動・操作（作成/移動/削除/リネーム）
+
+### 開発支援
+#### LSP
 - `gd`: 定義へ
 - `gr`: 参照一覧
 - `K`: ホバー
@@ -50,21 +78,11 @@
 - `<leader>ca`: コードアクション
 - `<leader>f`: フォーマット
 
-### Diagnostics
+#### Diagnostics
 - `<leader>de`: 浮動ウィンドウ
 - `[d` / `]d`: 前/次
 
-### Telescope
-- `<leader>ff`: ファイル
-- `<leader>fg`: grep
-- `<leader>fb`: バッファ
-- `<leader>fh`: ヘルプ
-
-### telescopeとoilの使い分け
-- Telescope: ファイル名/内容で素早く検索して開く
-- oil: ディレクトリを見ながら移動・操作（作成/移動/削除/リネーム）
-
-### Git (gitsigns)
+#### Git (gitsigns)
 - `md`: diffビュー（右分割）
 - `mh` / `mp`: hunkプレビュー
 - `ms`: hunkステージ / `mS`: バッファ全体ステージ
@@ -75,10 +93,10 @@
 - stageの使い方: 変更箇所にカーソル → `ms`（hunk）/ `mS`（バッファ）
 - diffビュー移動: `]c`（次） / `[c`（前） / `sh/sj/sk/sl`（ウィンドウ移動）
 
-### Satellite
+#### Satellite
 - 右端のスクロールバーに差分位置が表示される
 
-### Window操作
+### ウィンドウ
 - `ss`: split（上下）
 - `sv`: vsplit（左右）
 - `sh` / `sj` / `sk` / `sl`: ウィンドウ移動

@@ -1,1 +1,1 @@
-/nix/store/05p9rdh3xcbhv4284wjvgxm3g0ldcwfi-home-manager-files/.config/fish/conf.d/00-nix-plugins.fish
+/nix/store/i1bl9gv8nb71a9p3975kc6xj3npismhp-home-manager-files/.config/fish/conf.d/00-nix-plugins.fish
