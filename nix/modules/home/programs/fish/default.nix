@@ -5,6 +5,15 @@ let
       name = "hydro";
       src = pkgs.fishPlugins.hydro.src;
     }
+    {
+      name = "fish-abbreviation-tips";
+      src = pkgs.fetchFromGitHub {
+        owner = "gazorby";
+        repo = "fish-abbreviation-tips";
+        rev = "v0.7.0";
+        sha256 = "05b5qp7yly7mwsqykjlb79gl24bs6mbqzaj5b3xfn3v2b7apqnqp";
+      };
+    }
   ];
 
   pluginPaths = lib.concatMapStringsSep "\n" (plugin: ''

@@ -1,1 +1,0 @@
-/nix/store/i1bl9gv8nb71a9p3975kc6xj3npismhp-home-manager-files/.config/fish/conf.d/01-nix-darwin-path.fish

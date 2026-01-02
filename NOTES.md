@@ -48,6 +48,18 @@
 - diffview.nvim（or vim-gin）: Git の差分/履歴ビュー
 - nvim-navic: パンくず表示（ステータスライン等）
 
+#### treesitter 候補
+- nvim-treesitter-textobjects: TSベースのテキストオブジェクト（選択/移動/入れ替え）
+- nvim-treesitter-textsubjects: 文脈を見て賢く選択
+- treesitter-unit: TSノード単位の選択
+- nvim-treesitter-context: 画面上部に現在の文脈を固定表示
+- nvim_context_vt: 文脈を行末に仮想テキスト表示
+- nvim-treesitter-clipping + vim-partedit: TSノード単位の部分編集
+- nvim-ts-autotag: HTML/JSXのタグ自動閉じ/リネーム
+- nvim-ts-context-commentstring: 言語別コメント判定（Comment.nvim連携）
+- rainbow-delimiters.nvim: 括弧ネストの色分け
+- cmp-treesitter: 補完にTS情報を利用
+
 ### プラグイン管理（Lazy）
 - 未インストールは起動時に自動インストール（`install.missing = true`）
 - 更新/削除反映は手動: `:Lazy sync` / `:Lazy update` / `:Lazy clean`
