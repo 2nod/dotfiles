@@ -15,6 +15,11 @@ in
     ];
   };
 
+  home.packages = [
+    pkgs.efm-langserver
+    pkgs.hadolint
+  ];
+
   home.activation.linkNvimConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     ${helpers.activation.mkLinkForce}
     link_force "${nvimDotfilesDir}" "${nvimConfigDir}"

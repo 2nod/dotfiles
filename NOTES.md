@@ -13,6 +13,11 @@
 - autopair-fish: 括弧やクォートの自動ペア入力
 - fish-bd: 上位ディレクトリへ素早く戻る
 
+## Nixメモ
+### packagesの分け方
+- 汎用CLIは `nix/modules/home/packages.nix`（シェルから使うもの）
+- エディタ専用のLSP/formatter/linterは `nix/modules/home/programs/neovim/default.nix`
+
 ## WezTermキーと開発コマンド
 ### WezTermキー
 - Leader: Ctrl-;

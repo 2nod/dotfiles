@@ -23,9 +23,8 @@ abbr -a src source
 abbr -a o open
 abbr -a bunb 'bun --bun'
 abbr -a bunbx 'bunx --bun'
-# abbr -a cda conda
 abbr -a lzg lazygit
-# abbr -a lzd lazydocker
+abbr -a lzd lazydocker
 # abbr -a ech envchain
 abbr -a y yazi
 # abbr -a vc 'code (pwd)'
@@ -49,9 +48,7 @@ abbr -a dcd "docker compose down"
 abbr -a dcr "docker compose restart"
 
 # nix
-abbr -a ns nix-shell
 abbr -a ngc nix-collect-garbage
-abbr -a nrn --set-cursor nix run nixpkgs#\%
 
 # abbr -a dv devenv
 

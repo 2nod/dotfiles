@@ -9,6 +9,7 @@
     onActivation.cleanup = "uninstall";
     casks = [
       "karabiner-elements"
+      "orbstack"
     ];
   };
 

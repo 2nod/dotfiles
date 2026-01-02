@@ -11,6 +11,7 @@
     pkgs.gh
     pkgs.git
     pkgs.lazygit
+    pkgs.lazydocker
     pkgs.pnpm
     pkgs.uv
     pkgs.wezterm

@@ -9,6 +9,7 @@ in
 
     link_force "${dotfilesDir}/wezterm" "${configHome}/wezterm"
     link_force "${dotfilesDir}/karabiner" "${configHome}/karabiner"
+    link_force "${dotfilesDir}/efm-langserver" "${configHome}/efm-langserver"
     link_force "${dotfilesDir}/fish" "${configHome}/fish"
     link_force "${dotfilesDir}/zsh/zshenv" "${homeDir}/.zshenv"
     link_force "${dotfilesDir}/zsh/zshrc" "${homeDir}/.zshrc"

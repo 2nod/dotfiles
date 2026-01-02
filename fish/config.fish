@@ -36,6 +36,10 @@ if test -f $theme_file
   source $theme_file
 end
 
+if test -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish
+  source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.fish
+end
+
 # PATH
 fish_add_path "/etc/profiles/per-user/$USER/bin"
 fish_add_path "$HOME/.local/bin"
