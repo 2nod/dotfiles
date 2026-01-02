@@ -7,6 +7,7 @@
     pkgs.claude-code
     pkgs.codex
     pkgs.deno
+    pkgs.eza
     pkgs.gh
     pkgs.git
     pkgs.lazygit

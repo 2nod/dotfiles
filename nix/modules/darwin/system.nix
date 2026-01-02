@@ -98,8 +98,7 @@
 
   # With nix.enable = false, configure Nix settings in /etc/nix/nix.conf.
 
-  # Enable alternative shell support in nix-darwin.
-  programs.fish.enable = true;
+  # Add fish to system shells; fish config lives in dotfiles.
   environment.shells = [ pkgs.fish ];
 
   system.activationScripts.postActivation.text = ''

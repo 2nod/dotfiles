@@ -1,4 +1,9 @@
 # Fish メモ
+## 方針
+- nix-darwin 側はログインシェル指定のみで、`programs.fish.*` は使わない（`nix/modules/darwin/system.nix`）
+- 環境変数/パス/初期化は `config.fish` に直書きで管理（`fish/config.fish`）
+- プラグインは Home Manager が `conf.d` を生成して読み込む方式（`nix/modules/home/programs/fish/default.nix`）
+- alias/abbr は `abbrs_aliases.fish` に集約（`fish/config/abbrs_aliases.fish`）
 
 ## プラグイン候補
 - fzf: 履歴やファイル検索などのファジー検索を強化
