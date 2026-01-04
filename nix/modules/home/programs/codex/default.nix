@@ -6,7 +6,9 @@ let
   tomlFormat = pkgs.formats.toml { };
   settings = {
     model = "gpt-5.2-codex";
-    approval_policy = "on-request";
+    approval_policy = "never";
+    sandbox_mode = "danger-full-access";
+    network_access = "restricted";
     model_reasoning_effort = "xhigh";
     web_search_request = true;
 
