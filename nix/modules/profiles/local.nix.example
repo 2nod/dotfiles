@@ -1,0 +1,40 @@
+# 個人固有のプロファイル定義
+# このファイルをコピーして `local.nix` として保存してください
+# `local.nix` は .gitignore に含まれているため、リポジトリにコミットされません
+
+{
+  "PC-2111" = {
+    user = "yuhei.tsunoda";
+    hostname = "PC-2111";
+    # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
+    # dotfilesDir = "/Users/yuhei.tsunoda/dotfiles";
+    
+    # プロファイル固有の設定オーバーライド（オプション）
+    configOverrides = { pkgs, ... }: {
+      # このプロファイル専用のパッケージを追加
+      # home.packages = [ pkgs.some-package ];
+      
+      # このプロファイル専用の設定を追加
+      # programs.git.userEmail = "work@example.com";
+    };
+  };
+  "yuheis-MacBook-Air" = {
+    user = "tsuno";
+    hostname = "yuheis-MacBook-Air";
+    # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
+    # dotfilesDir = "/Users/tsuno/dotfiles";
+    
+    # プロファイル固有の設定オーバーライド（オプション）
+    configOverrides = { pkgs, ... }: {
+      # このプロファイル専用の設定
+    };
+  };
+  # 新しい環境を追加する場合は、ここに追加してください
+  # "新しいマシン名" = {
+  #   user = "ユーザー名";
+  #   hostname = "ホスト名";
+  #   # dotfilesDir = "/path/to/dotfiles";  # オプション
+  #   configOverrides = { pkgs, ... }: { ... };
+  # };
+}
+

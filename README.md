@@ -46,19 +46,125 @@ Determinate Nix を使う場合は、nix-darwin の Nix 管理を無効化する
 git clone git@github.com:<your-account>/dotfiles.git
 cd dotfiles
 
-# 反映なしでビルド（任意）
-nix run .#build
+# プロファイル一覧を確認
+nix run .#list-profiles
 
-# 本適用（途中で sudo を求められる）
-nix run .#switch
+# プロファイルを指定してビルド（任意）
+nix run .#build -- <profile>
+
+# プロファイルを指定して本適用（途中で sudo を求められる）
+nix run .#switch -- <profile>
 ```
 
-`hostname` が現在のホスト名と一致している必要があります。違う場合は `flake.nix` の `hostname` と `darwinConfigurations` を変更してください。
-ホスト名は `scutil --get LocalHostName` で確認できます。
+### プロファイルの使い方
+
+このリポジトリは複数の環境（異なるuser/hostname）に対応するため、プロファイルベースの管理を採用しています。
+
+**プロファイルの指定方法:**
+
+1. **コマンドライン引数で指定（推奨）:**
+   ```bash
+   nix run .#switch -- PC-2111
+   nix run .#build -- yuheis-MacBook-Air
+   ```
+
+2. **環境変数で指定:**
+   ```bash
+   NIX_DARWIN_PROFILE=PC-2111 nix run .#switch
+   ```
+
+3. **自動検出:**
+   プロファイルが指定されていない場合、現在のホスト名に基づいて自動選択を試みます。
+
+**初回セットアップ:**
+
+個人固有のプロファイル定義は`local.nix`に記述します（`.gitignore`に含まれるため、リポジトリにコミットされません）:
+
+```bash
+# local.nix.exampleをコピーしてlocal.nixを作成
+cp nix/modules/profiles/local.nix.example nix/modules/profiles/local.nix
+```
+
+`local.nix`に自分の環境情報を記述:
+
+```nix
+{
+  "PC-2111" = {
+    user = "your-username";
+    hostname = "your-hostname";
+    # オプション: dotfilesディレクトリのパス（デフォルト: /Users/${user}/dotfiles）
+    # dotfilesDir = "/path/to/dotfiles";
+    configOverrides = { pkgs, ... }: {
+      # このプロファイル専用の設定
+      home.packages = [ pkgs.some-package ];
+    };
+  };
+}
+```
+
+**新しい環境を追加する場合:**
+
+`local.nix`に新しいプロファイルを追加:
+
+```nix
+{
+  "PC-2111" = { ... };
+  "新しいマシン名" = {
+    user = "ユーザー名";
+    hostname = "ホスト名";
+    configOverrides = { pkgs, ... }: { ... };
+  };
+}
+```
+
+**プロファイルごとに設定を変更する場合:**
+
+`local.nix`の各プロファイルに`configOverrides`で設定を追加:
+
+```nix
+{
+  "PC-2111" = {
+    user = "your-username";
+    hostname = "your-hostname";
+    configOverrides = { pkgs, ... }: {
+      # パッケージを追加
+      home.packages = [ pkgs.docker-compose ];
+      
+      # Git設定を変更
+      programs.git.userEmail = "work@example.com";
+    };
+  };
+}
+```
+
+設定が大きい場合は、`extraModules`で別ファイルに分離することもできます。
+
+**プロファイルの自動選択:**
+
+プロファイルが1つだけ定義されている場合、自動的にそのプロファイルが選択されます:
+
+```bash
+# プロファイルが1つだけの場合
+$ nix run .#build
+Auto-selected profile: PC-2111 (only profile available)
+```
+
+複数のプロファイルがある場合は、明示的に指定する必要があります:
+
+```bash
+$ nix run .#build -- PC-2111
+```
+
+**注意**: `local.nix`は`.gitignore`に含まれているため、個人固有の設定を安全に管理できます。詳細は`nix/modules/profiles/README.md`を参照してください。
+
+詳細は `nix/modules/profiles/README.md` を参照してください。
+
+ホスト名は `scutil --get LocalHostName` または `hostname` で確認できます。
 
 ## よく使うコマンド
-- `nix run .#build`: 反映なしでビルドのみ行う。
-- `nix run .#switch`: 反映（途中で sudo を求められる）。
+- `nix run .#list-profiles`: 利用可能なプロファイル一覧を表示。
+- `nix run .#build -- <profile>`: 指定したプロファイルで反映なしでビルドのみ行う。
+- `nix run .#switch -- <profile>`: 指定したプロファイルで反映（途中で sudo を求められる）。
 - `nix run .#update`: `flake.lock` を更新する。
 
 ## 変更と反映の流れ
