@@ -27,7 +27,6 @@
     pkgs = import nixpkgs { system = darwinSystem; };
     
     # プロファイル定義を別ファイルから読み込む
-    # local.nix: 個人固有の設定（.gitignoreに含まれる）
     localProfilesPath = ./nix/modules/profiles/local.nix;
     profiles = if builtins.pathExists localProfilesPath
       then import localProfilesPath
@@ -51,10 +50,10 @@
     profileNamesStr = builtins.concatStringsSep " " availableProfileNames;
     
     # プロファイルからdarwinConfigurationを生成するヘルパー関数
-    mkDarwinConfig = { user, hostname, dotfilesDir ? "/Users/${user}/dotfiles", extraModules ? [], configOverrides ? null }:
+    mkDarwinConfig = profileName: { user, dotfilesDir ? "/Users/${user}/dotfiles", extraModules ? [], configOverrides ? null }:
       nix-darwin.lib.darwinSystem {
         system = darwinSystem;
-        specialArgs = { inherit self user; };
+        specialArgs = { inherit self user; profile = profileName; };
         modules = [
           brew-nix.darwinModules.default
           ./nix/modules/darwin/system.nix
@@ -63,20 +62,21 @@
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              extraSpecialArgs = { inherit user; };
-              users.${user} = { pkgs, config, lib, ... }: {
-                imports = [
-                  (import ./nix/modules/home {
-                    inherit pkgs config lib;
-                    inherit dotfilesDir;
-                  })
-                  ./nix/modules/darwin
-                ]
-                # プロファイル固有の設定オーバーライドをモジュールとして追加
-                ++ (if configOverrides != null then [ (configOverrides { inherit pkgs config lib; }) ] else []);
-                home.username = user;
-                home.homeDirectory = "/Users/${user}";
-              };
+              extraSpecialArgs = { inherit user; profile = profileName; };
+              users.${user} = { pkgs, config, lib, ... }:
+                {
+                  imports = [
+                    (import ./nix/modules/home {
+                      inherit pkgs config lib;
+                      inherit dotfilesDir;
+                    })
+                    ./nix/modules/darwin
+                  ]
+                  # プロファイル固有の設定オーバーライドをモジュールとして追加
+                  ++ (if configOverrides != null then [ (configOverrides { inherit pkgs config lib; }) ] else []);
+                  home.username = user;
+                  home.homeDirectory = "/Users/${user}";
+                };
             };
           }
         ]
@@ -86,8 +86,33 @@
     
     # すべてのプロファイルからdarwinConfigurationsを生成
     darwinConfigs = builtins.mapAttrs
-      (name: profile: mkDarwinConfig profile)
+      (name: profile: mkDarwinConfig name profile)
       profiles;
+
+    listProfilesApp = {
+      type = "app";
+      program = toString (
+        pkgs.writeShellScript "list-profiles" ''
+          set -e
+          AVAILABLE_PROFILES="${profileNamesStr}"
+          
+          if [ -z "$AVAILABLE_PROFILES" ]; then
+            echo "No profiles found."
+            echo "Please create a profile file in nix/modules/profiles/"
+            exit 1
+          fi
+          
+          echo "Available profiles:"
+          for p in $AVAILABLE_PROFILES; do
+            echo "  $p"
+          done
+          echo ""
+          echo "Usage:"
+          echo "  nix run .#switch -- <profile>"
+          echo "  NIX_DARWIN_PROFILE=<profile> nix run .#switch"
+        ''
+      );
+    };
   in
   {
     # プロファイルごとのdarwinConfigurations
@@ -214,30 +239,8 @@
       };
       
       # プロファイル一覧を表示
-      list-profiles = {
-        type = "app";
-        program = toString (
-          pkgs.writeShellScript "list-profiles" ''
-            set -e
-            AVAILABLE_PROFILES="${profileNamesStr}"
-            
-            if [ -z "$AVAILABLE_PROFILES" ]; then
-              echo "No profiles found."
-              echo "Please create a profile file in nix/modules/profiles/"
-              exit 1
-            fi
-            
-            echo "Available profiles:"
-            for p in $AVAILABLE_PROFILES; do
-              echo "  $p"
-            done
-            echo ""
-            echo "Usage:"
-            echo "  nix run .#switch -- <profile>"
-            echo "  NIX_DARWIN_PROFILE=<profile> nix run .#switch"
-          ''
-        );
-      };
+      list-profiles = listProfilesApp;
+      list = listProfilesApp;
     };
   };
 }

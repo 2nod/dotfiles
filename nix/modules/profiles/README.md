@@ -6,25 +6,25 @@
 
 ### 初回セットアップ
 
-1. `local.nix.example`をコピーして`local.nix`を作成:
+1. `local.nix`を編集（必要なら`local.nix.example`を参照）:
    ```bash
-   cp nix/modules/profiles/local.nix.example nix/modules/profiles/local.nix
+   $EDITOR nix/modules/profiles/local.nix
    ```
 
-2. `local.nix`に自分の環境情報を記述:
+2. `local.nix`に personal/work を分けて記述:
    ```nix
    {
-     "PC-2111" = {
-       user = "your-username";
-       hostname = "your-hostname";
-       configOverrides = { pkgs, ... }: {
-         # このプロファイル専用の設定
-       };
-     };
-   }
+    "personal" = {
+      user = "your-username";
+    };
+
+    "work" = {
+      user = "your-username";
+    };
+  }
    ```
 
-**注意**: `local.nix`は`.gitignore`に含まれているため、リポジトリにコミットされません。個人固有の設定はここに記述してください。
+**注意**: `local.nix`はリポジトリ管理のため、変更はコミット対象です。秘密情報は入れない運用にしてください。
 
 ## 使い方
 
@@ -34,42 +34,39 @@
 
 ```nix
 {
-  "プロファイル名" = {
+  "personal" = {
     user = "your-username";           # 必須: ユーザー名
-    hostname = "your-hostname";       # 必須: ホスト名
     
     # オプション: dotfilesディレクトリのパス（デフォルト: /Users/${user}/dotfiles）
     dotfilesDir = "/path/to/dotfiles";
     
     # オプション: 追加モジュール
     extraModules = [ ./some-module.nix ];
-    
-    # オプション: 設定オーバーライド
-    configOverrides = { pkgs, ... }: {
-      # このプロファイル専用の設定
-      home.packages = [ pkgs.some-package ];
-      programs.git.userEmail = "work@example.com";
-    };
+
+    # オプション: 設定オーバーライド（local.nix だけに閉じたい時に使用）
+    # configOverrides = { pkgs, ... }: { ... };
   };
 }
 ```
 
 ### プロファイルごとに設定を変更
 
-#### 方法1: configOverridesで直接記述（推奨）
+このリポジトリでは、home-manager のプロファイル別設定は `local.nix` の `configOverrides` に集約します。
+
+#### 方法1: local.nix の configOverrides に記述（推奨）
 
 ```nix
+# local.nix
 {
-  "PC-2111" = {
+  "work" = {
     user = "your-username";
-    hostname = "your-hostname";
     configOverrides = { pkgs, ... }: {
       # パッケージを追加
       home.packages = [ pkgs.docker-compose pkgs.terraform ];
-      
+
       # Git設定を変更
       programs.git.userEmail = "work@example.com";
-      
+
       # シェル設定を追加
       programs.fish.shellAliases = {
         work = "cd ~/work";
@@ -79,21 +76,52 @@
 }
 ```
 
-#### 方法2: 別ファイルに分離（設定が大きい場合）
+#### nix-darwin側の設定を追加/上書きする場合
+
+`configOverrides` は home-manager のユーザー設定向けです。`system.*` や `environment.*` などの nix-darwin 側を触る場合は `extraModules` を使います。
 
 ```nix
 # local.nix
 {
-  "PC-2111" = {
+  "work" = {
     user = "your-username";
-    hostname = "your-hostname";
-    extraModules = [ ./PC-2111-config.nix ];
+    # local.nix からの相対パスなので ../../profiles を参照
+    extraModules = [ ../../profiles/work-darwin.nix ];
   };
 }
 ```
 
 ```nix
-# PC-2111-config.nix
+# nix/profiles/work-darwin.nix
+{ pkgs, lib, ... }:
+{
+  environment.systemPackages = [ pkgs.git pkgs.gnupg ];
+  system.defaults.dock.autohide = true;
+
+  # 値を強制的に上書きしたい場合
+  # system.defaults.NSGlobalDomain.KeyRepeat = lib.mkForce 2;
+}
+```
+
+補足:
+- `extraModules` は nix-darwin のモジュールとして読み込まれます（`nix/modules/darwin/*` と同じ扱い）。
+- 追記/上書きの挙動は Nix モジュールの型に依存します（リストは連結、属性セットはマージ、同一キーは後勝ち）。
+
+#### 設定が大きい場合は分割
+
+```nix
+# local.nix
+{
+  "work" = {
+    user = "your-username";
+    # local.nix と同じディレクトリなので ./work-home.nix を参照
+    configOverrides = { ... }: import ./work-home.nix;
+  };
+}
+```
+
+```nix
+# nix/modules/profiles/work-home.nix
 { pkgs, ... }:
 {
   home.packages = [ pkgs.docker-compose ];
@@ -108,32 +136,36 @@
 ```bash
 # プロファイルが1つだけの場合
 $ nix run .#build
-Auto-selected profile: PC-2111 (only profile available)
-Building darwin configuration for profile: PC-2111
+Auto-selected profile: personal (only profile available)
+Building darwin configuration for profile: personal
 ```
 
 複数のプロファイルがある場合は、明示的に指定する必要があります:
 
 ```bash
 # 複数のプロファイルがある場合
-$ nix run .#build -- PC-2111
+$ nix run .#build -- work
 ```
 
 ## 設定の優先順位
 
-1. ベース設定（`nix/modules/home/`, `nix/modules/darwin/`）
-2. `extraModules`で追加されたモジュール
-3. `configOverrides`で定義された設定（最優先）
+home-manager 側:
+1. ベース設定（`nix/modules/home/`）
+2. `configOverrides`で定義された設定（最優先）
+
+nix-darwin 側:
+1. ベース設定（`nix/modules/darwin/`）
+2. `extraModules`で追加されたモジュール（最優先）
 
 ## 例
 
 ### プロファイルごとに異なるパッケージをインストール
 
 ```nix
+# local.nix
 {
-  "PC-2111" = {
+  "work" = {
     user = "your-username";
-    hostname = "PC-2111";
     configOverrides = { pkgs, ... }: {
       home.packages = [
         pkgs.docker-compose
@@ -147,10 +179,10 @@ $ nix run .#build -- PC-2111
 ### プロファイルごとに異なるGit設定
 
 ```nix
+# local.nix
 {
-  "PC-2111" = {
+  "work" = {
     user = "your-username";
-    hostname = "PC-2111";
     configOverrides = { ... }: {
       programs.git = {
         userEmail = "work@example.com";
@@ -164,10 +196,10 @@ $ nix run .#build -- PC-2111
 ### プロファイルごとに異なるシェル設定
 
 ```nix
+# local.nix
 {
-  "PC-2111" = {
+  "work" = {
     user = "your-username";
-    hostname = "PC-2111";
     configOverrides = { ... }: {
       programs.fish = {
         shellAliases = {

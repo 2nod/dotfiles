@@ -1,13 +1,12 @@
 # 個人固有のプロファイル定義
-# このファイルはテンプレートです。`local.nix` を編集してください
 # このファイルはリポジトリ管理のため、秘密情報は入れないでください
 
 {
   "personal" = {
-    user = "your-username";
+    user = "tsuno";
     # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
-    # dotfilesDir = "/Users/your-username/dotfiles";
-
+    dotfilesDir = "/Users/tsuno/dotfiles";
+    
     # home-manager側の設定を追加/上書きする場合（オプション）
     # configOverrides = { pkgs, ... }: { ... };
 
@@ -16,10 +15,10 @@
   };
 
   "work" = {
-    user = "your-username";
+    user = "tsuno";
     # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
-    # dotfilesDir = "/Users/your-username/dotfiles";
-
+    dotfilesDir = "/Users/tsuno/dotfiles";
+    
     # home-manager側の設定を追加/上書きする場合（オプション）
     # configOverrides = { pkgs, ... }: { ... };
 

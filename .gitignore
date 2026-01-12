@@ -29,9 +29,3 @@ result-*
 
 # Fish
 fish/fish_variables
-
-# 個人固有のプロファイル設定
-nix/modules/profiles/local.nix
-nix/modules/profiles/*.nix
-!nix/modules/profiles/*.example
-!nix/modules/profiles/README.md
