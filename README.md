@@ -20,9 +20,24 @@
 - `nix/modules/home/`: home-manager のユーザー設定 ( `default.nix`, `packages.nix` )。OS 非依存の設定はここにまとめる。
 
 ## 前提条件
-1. [Nix](https://nixos.org/download.html) を macOS にインストールしておく。
+1. [Nix](https://nixos.org/download.html) を macOS にインストールしておく（未導入なら下記の手順）。
 2. `nix-command` と `flakes` を有効化しておく (初回実行の前に必要)。
 3. 初回は `darwin-rebuild` が PATH に無いので、`nix run .#build` / `nix run .#switch` を使う。`switch` は途中で sudo を求められる。
+
+### Nixのインストール
+Nixがインストールされていない場合は、以下のコマンドでインストールします：
+```bash
+# Determinate Nix Installerを使用（推奨）
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+
+# または、公式インストーラーを使用
+sh <(curl -L https://nixos.org/nix/install) --daemon
+```
+
+インストール後、新しいターミナルを開くか、以下を実行して環境を読み込みます：
+```bash
+source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+```
 
 ### `nix-command` / `flakes` の有効化
 `/etc/nix/nix.conf` に追記してデーモンを再起動します。
@@ -70,6 +85,24 @@ nix run .#switch -- <profile>
 3. 問題なければ `nix run .#switch` で本適用。
 
 依存するチャネルを更新したい場合は `nix run .#update` (または `nix flake update`) を実行し、ロックファイル ( `flake.lock` ) が生成されたらコミットしてください。
+
+## トラブルシューティング
+### Nixが見つからない場合
+新しいターミナルを開くか、シェル設定ファイル（`.zshrc`など）に以下を追加：
+```bash
+if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+  . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+fi
+```
+
+### ビルドエラーが発生した場合
+```bash
+# flake.lockを更新
+nix run .#update
+
+# 再度ビルド
+nix run .#build -- <profile>
+```
 
 ## リンクの挙動
 `link_force` は、既存のファイル/ディレクトリを削除してからシンボリックリンクを張ります。
