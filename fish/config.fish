@@ -14,6 +14,10 @@ if test -f $HM_SESSION_VARS
   end
 end
 
+if type -q direnv
+  direnv hook fish | source
+end
+
 set -g FISH_CONFIG_DIR "$XDG_CONFIG_HOME/fish"
 set -g FISH_CONFIG "$FISH_CONFIG_DIR/config.fish"
 set -g FISH_CACHE_DIR "/tmp/fish-cache"
