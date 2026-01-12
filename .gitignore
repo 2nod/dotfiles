@@ -29,3 +29,8 @@ result-*
 
 # Fish
 fish/fish_variables
+
+# direnv / local env
+.direnv/
+.envrc.local
+.env

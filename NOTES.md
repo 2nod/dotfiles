@@ -18,6 +18,13 @@
 - 汎用CLIは `nix/modules/home/packages.nix`（シェルから使うもの）
 - エディタ専用のLSP/formatter/linterは `nix/modules/home/programs/neovim/default.nix`
 
+## direnvメモ
+- 初回は `direnv allow` が必要（`.envrc` を変更したら再度実行、または `direnv reload`）
+- このrepoの `.envrc` は `.envrc.local` があれば読み込む
+- `NIX_DARWIN_PROFILE` は `.envrc.local` に置く
+- 秘密情報は `.envrc.local` / `.env` に分離して gitignore
+- 無効化したい時は `direnv deny` か `.envrc` を削除
+
 ## WezTermキーと開発コマンド
 ### WezTermキー
 - Leader: Ctrl-;

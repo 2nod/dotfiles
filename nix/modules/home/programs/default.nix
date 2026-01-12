@@ -8,6 +8,13 @@
         config
         ;
     })
+    (import ./direnv {
+      inherit
+        pkgs
+        lib
+        config
+        ;
+    })
     (import ./neovim {
       inherit
         pkgs

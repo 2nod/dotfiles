@@ -29,3 +29,8 @@ esac
 # home-manager session variables
 HM_SESSION_VARS="$HOME/.local/state/home-manager/gcroots/current-home/home-path/etc/profile.d/hm-session-vars.sh"
 . "$HM_SESSION_VARS"
+
+# direnv
+if [ -n "$BASH_VERSION" ] && command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook bash)"
+fi
