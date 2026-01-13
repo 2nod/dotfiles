@@ -27,6 +27,42 @@
   # Apply user-scoped defaults for the primary login user.
   system.primaryUser = user;
 
+  # Launch apps at login for the primary user.
+  launchd.user.agents = {
+    raycast = {
+      serviceConfig = {
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-g"
+          "${pkgs.brewCasks.raycast}/Applications/Raycast.app"
+        ];
+        LimitLoadToSessionType = [ "Aqua" ];
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+      };
+    };
+    karabiner-elements = {
+      serviceConfig = {
+        ProgramArguments = [ "/usr/bin/open" "-g" "-a" "Karabiner-Elements" ];
+        LimitLoadToSessionType = [ "Aqua" ];
+        RunAtLoad = true;
+      };
+    };
+    bitwarden = {
+      serviceConfig = {
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-g"
+          "${pkgs.brewCasks.bitwarden}/Applications/Bitwarden.app"
+        ];
+        LimitLoadToSessionType = [ "Aqua" ];
+        RunAtLoad = true;
+      };
+    };
+  };
+
   fonts.packages = with pkgs; [
     udev-gothic
     udev-gothic-nf
