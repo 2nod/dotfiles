@@ -4,6 +4,7 @@
   home.packages = [
     pkgs.bat
     pkgs.bun
+    pkgs.nodejs_24
     pkgs.claude-code
     pkgs.codex
     pkgs.deno

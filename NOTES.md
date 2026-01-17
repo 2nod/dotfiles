@@ -17,6 +17,17 @@
 ### packagesの分け方
 - 汎用CLIは `nix/modules/home/packages.nix`（シェルから使うもの）
 - エディタ専用のLSP/formatter/linterは `nix/modules/home/programs/neovim/default.nix`
+### バージョン確認（構造）
+- Nixパッケージ一覧: `nix/modules/home/packages.nix` / `nix/modules/darwin/packages.nix`
+- Nixの固定元: `flake.lock` の `nixpkgs.locked.rev`
+- brew-nix cask一覧: `nix/modules/darwin/packages.nix` の `pkgs.brewCasks.*`
+- brew-nixの固定元: `flake.lock` の `brew-api.locked.rev`
+- Homebrew直管理: `nix/modules/darwin/system.nix` の `homebrew.*`（固定なし）
+### バージョン確認（コマンド）
+- Nixパッケージ: `nix eval --raw ".#darwinConfigurations.<profile>.pkgs.<name>.version"`
+- brew-nix cask: `nix eval --raw ".#darwinConfigurations.<profile>.pkgs.brewCasks.<cask>.version"`
+- Homebrew直管理: `brew info <brew>` / `brew info --cask <name>`
+- snapshot確認: `git log --oneline -- flake.lock` / `git show <commit>:flake.lock`
 
 ## direnvメモ
 - 初回は `direnv allow` が必要（`.envrc` を変更したら再度実行、または `direnv reload`）
