@@ -15,6 +15,13 @@ local function on_attach(_, bufnr)
   map("n", "<leader>rn", vim.lsp.buf.rename, "Rename")
   map("n", "<leader>ca", vim.lsp.buf.code_action, "Code action")
   map("n", "<leader>f", function()
+    local clients = vim.lsp.get_clients({ bufnr = bufnr })
+    for _, client in ipairs(clients) do
+      if client.name == "oxfmt" then
+        vim.lsp.buf.format({ async = true, name = "oxfmt" })
+        return
+      end
+    end
     vim.lsp.buf.format({ async = true })
   end, "Format")
 end
