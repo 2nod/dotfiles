@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   helpers = import ../../../lib/helpers { inherit lib; };
   jsonFormat = pkgs.formats.json { };

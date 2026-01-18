@@ -1,4 +1,10 @@
-{ lib, config, dotfilesDir ? "${config.home.homeDirectory}/dotfiles", helpers, ... }:
+{
+  lib,
+  config,
+  dotfilesDir ? "${config.home.homeDirectory}/dotfiles",
+  helpers,
+  ...
+}:
 let
   configHome = config.xdg.configHome;
   homeDir = config.home.homeDirectory;
