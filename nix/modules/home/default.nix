@@ -1,4 +1,10 @@
-{ config, lib, pkgs, dotfilesDir ? "${config.home.homeDirectory}/dotfiles", ... }:
+{
+  config,
+  lib,
+  pkgs,
+  dotfilesDir ? "${config.home.homeDirectory}/dotfiles",
+  ...
+}:
 let
   helpers = import ../lib/helpers { inherit lib; };
 in

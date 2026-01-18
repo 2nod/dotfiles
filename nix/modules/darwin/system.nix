@@ -1,4 +1,9 @@
-{ self, user, pkgs, ... }:
+{
+  self,
+  user,
+  pkgs,
+  ...
+}:
 {
   brew-nix.enable = true;
 
@@ -45,7 +50,12 @@
     };
     karabiner-elements = {
       serviceConfig = {
-        ProgramArguments = [ "/usr/bin/open" "-g" "-a" "Karabiner-Elements" ];
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-g"
+          "-a"
+          "Karabiner-Elements"
+        ];
         LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;
       };

@@ -1,4 +1,10 @@
-{ pkgs, lib, config, dotfilesDir, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  dotfilesDir,
+  ...
+}:
 {
   imports = [
     (import ./git {

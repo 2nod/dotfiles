@@ -18,6 +18,9 @@ in
   home.packages = [
     pkgs.efm-langserver
     pkgs.hadolint
+    pkgs.oxfmt
+    pkgs.oxlint
+    pkgs.typescript-go
   ];
 
   home.activation.linkNvimConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''

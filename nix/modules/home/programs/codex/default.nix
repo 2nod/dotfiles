@@ -1,4 +1,9 @@
-{ config, pkgs, dotfilesDir, ... }:
+{
+  config,
+  pkgs,
+  dotfilesDir,
+  ...
+}:
 let
   homeDir = config.home.homeDirectory;
   codexConfigDir = "${config.xdg.configHome}/codex";

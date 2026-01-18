@@ -6,7 +6,7 @@
     user = "tsuno";
     # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
     dotfilesDir = "/Users/tsuno/dotfiles";
-    
+
     # home-manager側の設定を追加/上書きする場合（オプション）
     # configOverrides = { pkgs, ... }: { ... };
 
@@ -18,7 +18,7 @@
     user = "tsuno";
     # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
     dotfilesDir = "/Users/tsuno/dotfiles";
-    
+
     # home-manager側の設定を追加/上書きする場合（オプション）
     # configOverrides = { pkgs, ... }: { ... };
 
