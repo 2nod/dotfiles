@@ -14,6 +14,7 @@
     onActivation.cleanup = "uninstall";
     casks = [
       "karabiner-elements"
+      "obsidian"
       "orbstack"
     ];
   };

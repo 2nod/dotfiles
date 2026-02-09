@@ -12,7 +12,6 @@ in
     brewCasks.discord
     brewCasks.nani
     brewCasks.notion
-    brewCasks.obsidian
     brewCasks.raycast
     brewCasks.slack
     brewCasks.visual-studio-code

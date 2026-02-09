@@ -46,6 +46,9 @@ in
     };
     "editor.unicodeHighlight.ambiguousCharacters" = false;
     "editor.unicodeHighlight.invisibleCharacters" = false;
+    "extensions.experimental.affinity" = {
+      "asvetliakov.vscode-neovim" = 1;
+    };
     "vscode-neovim.neovimExecutablePaths.darwin" = nvimBin;
     "vscode-neovim.neovimInitVimPaths.darwin" = nvimInit;
   };
