@@ -13,9 +13,11 @@
     enable = true;
     onActivation.cleanup = "uninstall";
     casks = [
+      "aqua-voice"
       "karabiner-elements"
       "obsidian"
       "orbstack"
+      "typeless"
     ];
   };
 
