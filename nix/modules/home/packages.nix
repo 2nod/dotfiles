@@ -14,6 +14,7 @@
     pkgs.lazygit
     pkgs.lazydocker
     pkgs.pnpm
+    pkgs.spotify
     pkgs.uv
     pkgs.wezterm
     pkgs.yazi
