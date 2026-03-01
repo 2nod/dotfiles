@@ -23,6 +23,10 @@
 - brew-nix cask一覧: `nix/modules/darwin/packages.nix` の `pkgs.brewCasks.*`
 - brew-nixの固定元: `flake.lock` の `brew-api.locked.rev`
 - Homebrew直管理: `nix/modules/darwin/system.nix` の `homebrew.*`（固定なし）
+### GUIアプリの方針（macOS）
+- GUIアプリは `homebrew.casks` で管理（/Applications 配置で永続化しやすい）
+- brew-nixの `pkgs.brewCasks.*` はGUIを避け、CLI/軽量ツールに限定する
+- 背景: `/nix/store` 配置の `.app` に ACL が付くと GC 時に `Operation not permitted` が発生しやすい
 ### バージョン確認（コマンド）
 - Nixパッケージ: `nix eval --raw ".#darwinConfigurations.<profile>.pkgs.<name>.version"`
 - brew-nix cask: `nix eval --raw ".#darwinConfigurations.<profile>.pkgs.brewCasks.<cask>.version"`

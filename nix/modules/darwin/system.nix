@@ -11,13 +11,26 @@
   # Homebrew is managed here for casks that are fragile under brew-nix.
   homebrew = {
     enable = true;
-    onActivation.cleanup = "uninstall";
+    onActivation = {
+      cleanup = "uninstall";
+      autoUpdate = true;
+    };
     casks = [
       "aqua-voice"
+      "arc"
+      "bitwarden"
+      "cursor"
+      "discord"
       "karabiner-elements"
+      "nani"
+      "notion"
       "obsidian"
       "orbstack"
+      "raycast"
+      "slack"
       "typeless"
+      "visual-studio-code"
+      "zoom"
     ];
   };
 
@@ -42,7 +55,7 @@
         ProgramArguments = [
           "/usr/bin/open"
           "-g"
-          "${pkgs.brewCasks.raycast}/Applications/Raycast.app"
+          "/Applications/Raycast.app"
         ];
         LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;
@@ -68,7 +81,7 @@
         ProgramArguments = [
           "/usr/bin/open"
           "-g"
-          "${pkgs.brewCasks.bitwarden}/Applications/Bitwarden.app"
+          "/Applications/Bitwarden.app"
         ];
         LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;
