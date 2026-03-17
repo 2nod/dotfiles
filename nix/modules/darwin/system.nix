@@ -17,10 +17,12 @@
     };
     casks = [
       "aqua-voice"
+      "anki"
       "arc"
       "bitwarden"
       "cursor"
       "discord"
+      "google-chrome"
       "karabiner-elements"
       "nani"
       "notion"
