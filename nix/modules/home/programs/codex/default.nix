@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   dotfilesDir,
   ...
 }:
@@ -28,17 +29,22 @@ let
       };
     };
   };
+  codexConfig = tomlFormat.generate "codex-config" settings;
 in
 {
   home.sessionVariables = {
     CODEX_HOME = codexConfigDir;
   };
 
+  home.activation.writeCodexConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    $DRY_RUN_CMD mkdir -p "${codexConfigDir}"
+    if [ -e "${codexConfigDir}/config.toml" ] || [ -L "${codexConfigDir}/config.toml" ]; then
+      $DRY_RUN_CMD rm -f -- "${codexConfigDir}/config.toml"
+    fi
+    $DRY_RUN_CMD install -m 0644 "${codexConfig}" "${codexConfigDir}/config.toml"
+  '';
+
   home.file = {
-    "${codexConfigDir}/config.toml" = {
-      source = tomlFormat.generate "codex-config" settings;
-      force = true;
-    };
     "${codexConfigDir}/AGENTS.md".source =
       config.lib.file.mkOutOfStoreSymlink "${codexDotfilesDir}/AGENTS.md";
   };

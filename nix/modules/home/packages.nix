@@ -15,6 +15,7 @@
     pkgs.lazydocker
     pkgs.pnpm
     pkgs.spotify
+    pkgs.ripgrep
     pkgs.uv
     pkgs.wezterm
     pkgs.yazi

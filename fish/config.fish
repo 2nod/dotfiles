@@ -32,6 +32,8 @@ if status is-interactive
     end
 end
 
+set -gx ABBR_TIPS_PROMPT "\n[abbr] {{ .abbr }} => {{ .cmd }}"
+
 set -gx theme_nerd_fonts yes
 set -gx BIT_THEME monochrome
 
