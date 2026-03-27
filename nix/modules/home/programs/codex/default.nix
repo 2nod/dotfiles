@@ -11,11 +11,11 @@ let
   codexDotfilesDir = "${dotfilesDir}/codex";
   tomlFormat = pkgs.formats.toml { };
   settings = {
-    model = "gpt-5.2-codex";
+    model = "gpt-5.4-mini";
     approval_policy = "never";
     sandbox_mode = "danger-full-access";
     network_access = "restricted";
-    model_reasoning_effort = "xhigh";
+    model_reasoning_effort = "high";
     web_search_request = true;
 
     notice = {
