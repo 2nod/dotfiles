@@ -143,6 +143,31 @@
     };
 
     CustomUserPreferences = {
+      # Mission Control / Spaces shortcuts
+      "com.apple.symbolichotkeys" = {
+        AppleSymbolicHotKeys = {
+          # Mission Control (Ctrl + Up)
+          "32" = {
+            enabled = true;
+            value = { type = "standard"; parameters = [ 65535 126 2359296 ]; };
+          };
+          # Application windows (Ctrl + Down)
+          "33" = {
+            enabled = true;
+            value = { type = "standard"; parameters = [ 65535 125 2359296 ]; };
+          };
+          # Move left a Space (Ctrl + Left)
+          "79" = {
+            enabled = true;
+            value = { type = "standard"; parameters = [ 65535 123 2359296 ]; };
+          };
+          # Move right a Space (Ctrl + Right)
+          "81" = {
+            enabled = true;
+            value = { type = "standard"; parameters = [ 65535 124 2359296 ]; };
+          };
+        };
+      };
       # Detailed trackpad settings not covered by system.defaults.trackpad.
       "com.apple.AppleMultitouchTrackpad" = {
         FirstClickThreshold = 0; # Light click.

@@ -42,11 +42,21 @@
 
 ## WezTermキーと開発コマンド
 ### WezTermキー
-- Leader: Ctrl-;
+- Leader: Ctrl+q
 - Pane: Cmd-d(左右) / Cmd-Shift-d(上下) / Cmd-hjkl(移動) / Cmd-Shift-hjkl(サイズ) / Cmd-z(ズーム) / Cmd-w or Leader+x(閉じる)
 - タブ: Cmd-t(新規) / Cmd-Shift-W(閉じる) / Leader+1..9(移動) / Cmd-Shift-( / Cmd-Shift-)(並べ替え)
 - Workspace: Cmd-Shift-S(作成) / Cmd-s(一覧/切替) / Cmd-Shift-n/p(前後) / Leader+s(改名)
 - その他: Leader+Space(QuickSelect) / Leader+;(フルスクリーン) / Cmd-Shift-f(ぼかし切替) / Leader+Ctrl+a(Ctrl-A送信)
+
+### Macキー
+- Option+h/l: Space切り替え / Option+j/k: Mission Control・App Expose
+
+### Copy mode
+- 入る: `Leader+[`
+- 選択: `v` でセル選択 / `V` で行選択 / `Ctrl+v` で矩形選択
+- 移動: `h j k l` / 矢印 / `Home` / `End` / `PageUp` / `PageDown`
+- コピーして終了: `y`（選択をクリアして終了）
+- 終了: `Esc` / `q`（選択をクリアして終了）
 
 ### よく使うコマンド
 - 開発起動: `pnpm dev` / `bun run dev` / `deno task dev`

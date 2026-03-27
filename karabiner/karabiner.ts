@@ -129,18 +129,32 @@ k.writeToProfile("Default profile", [
       ),
     ]),
 
-  // Tab は単押しで Tab、長押しでスーパーモディファイア。
+
+  // Option + H/J/K/L で Space / Mission Control を切り替える。
   k.rule(
-    "Hold tab to super key, tap tab to tab in Macbook",
+    "Option + h/j/k/l to switch macOS spaces and mission control",
     devices.ifNotSelfMadeKeyboard,
   ).manipulators([
-    k.map({ key_code: "tab" })
-      .toIfAlone({ key_code: "tab", lazy: true })
-      .toIfHeldDown({ key_code: "tab", repeat: true })
-      .to({
-        key_code: "left_command",
-        modifiers: ["left_option", "left_shift", "left_control"],
-      }),
+    ...(["left_option", "right_option"] as const).flatMap((option) =>
+      k.withMapper<k.LetterKeyCode, k.ArrowKeyCode>(
+        {
+          "h": "left_arrow",
+          "j": "down_arrow",
+          "k": "up_arrow",
+          "l": "right_arrow",
+        } as const,
+      )((key, arrow) =>
+        k.map({
+          key_code: key,
+          modifiers: { mandatory: [option], optional: ["any"] },
+        })
+          .to({
+            key_code: arrow,
+            modifiers: ["left_control"],
+          })
+          .description(`Tap ${option}+${key} to ctrl+${arrow}`)
+      ),
+    ),
   ]),
 
   // Fn + H/J/K/L を矢印キーにする。
@@ -165,15 +179,4 @@ k.writeToProfile("Default profile", [
     ),
   ]),
 
-  // 右 Option をスーパーモディファイアにする。
-  k.rule(
-    "Right option to super key in Macbook",
-    devices.ifNotSelfMadeKeyboard,
-  ).manipulators([
-    k.map({ key_code: "right_option" })
-      .to({
-        key_code: "right_command",
-        modifiers: ["right_option", "right_shift", "right_control"],
-      }),
-  ]),
 ]);

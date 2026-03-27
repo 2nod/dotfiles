@@ -1,6 +1,14 @@
 local wezterm = require("wezterm")
 local mux = wezterm.mux
 
+wezterm.on("update-right-status", function(window, _pane)
+	local name = window:active_key_table()
+	if name then
+		name = "TABLE: " .. name
+	end
+	window:set_right_status(name or "")
+end)
+
 wezterm.on("toggle-opacity", function(window, _)
 	local overrides = window:get_config_overrides() or {}
 	if not overrides.window_background_opacity then

@@ -2,6 +2,7 @@ local wezterm = require("wezterm")
 
 local utils = require("utils")
 local keys = require("keymaps")
+local copy_mode = require("copy-mode")
 require("on")
 
 ---------------------------------------------------------------
@@ -42,9 +43,12 @@ local config = {
 	send_composed_key_when_left_alt_is_pressed = false,
 	send_composed_key_when_right_alt_is_pressed = false,
 	keys = keys,
+	key_tables = {
+		copy_mode = copy_mode,
+	},
 	set_environment_variables = {},
 	-- keys = create_keybinds(),
-	leader = { key = ";", mods = "CTRL" },
+	leader = { key = "q", mods = "CTRL" },
 	enable_csi_u_key_encoding = true,
 	unix_domains = {
 		{
