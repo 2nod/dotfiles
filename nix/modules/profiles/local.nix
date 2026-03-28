@@ -4,6 +4,8 @@
 {
   "personal" = {
     user = "tsuno";
+    # system = "aarch64-darwin"; # Apple Silicon / Intel を切り替える場合に明示
+    # hostName = "tsuno-air"; # 任意。未指定なら変更しない
     # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
     dotfilesDir = "/Users/tsuno/dotfiles";
 
@@ -16,6 +18,8 @@
 
   "work" = {
     user = "tsuno";
+    # system = "aarch64-darwin"; # Apple Silicon / Intel を切り替える場合に明示
+    # hostName = "tsuno-pro"; # 任意。未指定なら変更しない
     # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
     dotfilesDir = "/Users/tsuno/dotfiles";
 

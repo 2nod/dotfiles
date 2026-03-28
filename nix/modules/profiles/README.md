@@ -6,7 +6,7 @@
 
 ### 初回セットアップ
 
-1. `local.nix`を編集（必要なら`local.nix.example`を参照）:
+1. `local.nix`を編集:
    ```bash
    $EDITOR nix/modules/profiles/local.nix
    ```
@@ -16,10 +16,14 @@
    {
     "personal" = {
       user = "your-username";
+      system = "aarch64-darwin";
+      hostName = "your-mac";
     };
 
     "work" = {
       user = "your-username";
+      system = "x86_64-darwin";
+      hostName = "your-work-mac";
     };
   }
    ```
@@ -36,6 +40,12 @@
 {
   "personal" = {
     user = "your-username";           # 必須: ユーザー名
+
+    # オプション: macOS のアーキテクチャ。未指定なら現在の Mac に合わせる
+    system = "aarch64-darwin";
+
+    # オプション: ホスト名。未指定なら変更しない
+    hostName = "your-mac";
     
     # オプション: dotfilesディレクトリのパス（デフォルト: /Users/${user}/dotfiles）
     dotfilesDir = "/path/to/dotfiles";
@@ -52,6 +62,8 @@
 ### プロファイルごとに設定を変更
 
 このリポジトリでは、home-manager のプロファイル別設定は `local.nix` の `configOverrides` に集約します。
+複数 Mac を運用する場合は、1 台ごとに profile を切って `system` / `hostName` を分けるのが基本です。
+`configOverrides` には `profileName` と `profile` も渡しているので、Mac ごとの分岐にも使えます。
 
 #### 方法1: local.nix の configOverrides に記述（推奨）
 
@@ -60,6 +72,8 @@
 {
   "work" = {
     user = "your-username";
+    system = "x86_64-darwin";
+    hostName = "work-mac";
     configOverrides = { pkgs, ... }: {
       # パッケージを追加
       home.packages = [ pkgs.docker-compose pkgs.terraform ];

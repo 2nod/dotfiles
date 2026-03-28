@@ -1,12 +1,15 @@
 # nix-darwin dotfiles
 
 ## 概要
-このリポジトリは macOS を nix-darwin + flakes で管理するための最小構成です。`flake.nix` を起点に `nix/modules/...` を読み込み、`nixpkgs-unstable` / `nix-darwin/master` / `home-manager` / `brew-nix` / `brew-api` を入力として、`yuheis-MacBook-Air` ホスト向けのシステム構成 ( `darwinConfigurations` ) をエクスポートします。
+このリポジトリは macOS を nix-darwin + flakes で管理するための最小構成です。`flake.nix` を起点に `nix/modules/...` を読み込み、`nixpkgs-unstable` / `nix-darwin/master` / `home-manager` / `brew-nix` / `brew-api` を入力として、複数 Mac 向けのシステム構成 ( `darwinConfigurations` ) をエクスポートします。
 
 ## 役割分担
 - nix-darwin: macOS のシステム設定、brew-nix の有効化。
 - home-manager: ユーザー単位の CLI パッケージと brew-nix cask。
 - brew-nix: Homebrew cask を Nix パッケージとして扱う仕組み。
+
+## 何が入るか
+- 一覧は [INSTALLS.md](/Users/tsuno/dotfiles/INSTALLS.md) にまとめています。
 
 ## 参考
 - https://github.com/ryoppippi/dotfiles
@@ -71,7 +74,7 @@ nix run .#build -- <profile>
 nix run .#switch -- <profile>
 ```
 
-※ `local.nix` はリポジトリ管理のため、秘密情報は入れない運用にしてください。プロファイルの設定手順は `nix/modules/profiles/README.md` を参照してください。
+※ `local.nix` はリポジトリ管理のため、秘密情報は入れない運用にしてください。プロファイルの設定手順は `nix/modules/profiles/README.md` を参照してください。複数 Mac を運用する場合は、Mac ごとに `profile` を分けて `system` / `hostName` を設定します。
 
 ## よく使うコマンド
 - `nix run .#list-profiles`: 利用可能なプロファイル一覧を表示。
@@ -125,7 +128,8 @@ Home Manager が生成する `~/.config/git/config` や `~/.local/state/home-man
 - `nix/modules/darwin/packages.nix`: brew-nix cask の追加場所 (home-manager 側)。
 - `nix/modules/home/packages.nix`: CLI パッケージの追加場所 (例: `pkgs.gh`, `pkgs.pnpm`)。
 - `programs.*`: 例として `programs.fish.enable = true;` をアンコメントすれば fish シェルを有効化できます。
-- `darwinSystem` / `nixpkgs.hostPlatform`: ARM Mac (Apple Silicon) 以外で使う場合は両方を変更します (例: `x86_64-darwin`)。
+- `system`: ARM Mac (Apple Silicon) 以外で使う場合は `local.nix` の `system` を明示します (例: `x86_64-darwin`)。
+- `hostName`: Mac ごとにホスト名を変えたい場合は profile で指定します。
 - `system.stateVersion`: nix-darwin の互換性のため、更新時はリリースノートを確認してください。
 
 ## ヒント
