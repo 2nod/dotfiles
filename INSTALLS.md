@@ -2,6 +2,29 @@
 
 このリポジトリで `nix run .#switch -- <profile>` を実行したときに入るものを、役割ごとに列挙します。
 
+## 注意
+
+- `link_force` は既存のファイルやディレクトリを削除してから symlink を張ります。
+- `homebrew.onActivation.cleanup = "uninstall"` が有効なので、`homebrew.casks` から外した GUI アプリは削除対象になります。
+- 初回適用前に、少なくとも次のファイルはバックアップ対象として確認してください。
+  - `~/.zshenv`
+  - `~/.zshrc`
+  - `~/.bash_profile`
+  - `~/.bashrc`
+  - `~/.config/wezterm`
+  - `~/.config/karabiner`
+  - `~/.config/efm-langserver`
+  - `~/.config/fish`
+  - `~/.claude/settings.json`
+  - `~/.config/nvim`
+  - `~/Library/Application Support/Code/User/settings.json`
+  - `~/Library/Application Support/Code/User/keybindings.json`
+  - `~/Library/Application Support/Cursor/User/settings.json`
+  - `~/Library/Application Support/Cursor/User/keybindings.json`
+  - `~/.config/codex/config.toml`
+  - `~/.config/codex/AGENTS.md`
+  - `~/.docker/config.json`
+
 ## System
 
 `nix-darwin` 側で適用されるもの。

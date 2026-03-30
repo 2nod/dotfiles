@@ -11,6 +11,12 @@
 ## 何が入るか
 - 一覧は [INSTALLS.md](/Users/tsuno/dotfiles/INSTALLS.md) にまとめています。
 
+## 注意点
+- `nix run .#switch -- <profile>` は、選んだ profile の `nix-darwin` と `home-manager` をまとめて適用します。
+- `link_force` は既存のファイルやディレクトリを削除してから symlink を張るため、手元で編集した設定は上書きされます。
+- `homebrew.onActivation.cleanup = "uninstall"` が有効なので、`homebrew.casks` から外した GUI アプリは削除対象になります。
+- 初回適用や別 Mac への展開では、先に `INSTALLS.md` の上書き対象を確認してから `switch` してください。
+
 ## 参考
 - https://github.com/ryoppippi/dotfiles
 - https://apribase.net/2025/03/24/brew-nix/
