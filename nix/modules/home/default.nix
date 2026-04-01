@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  profile ? { },
   dotfilesDir ? "${config.home.homeDirectory}/dotfiles",
   ...
 }:
@@ -24,6 +25,7 @@ in
         pkgs
         lib
         config
+        profile
         dotfilesDir
         ;
     })

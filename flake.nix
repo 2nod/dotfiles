@@ -157,7 +157,7 @@
                   {
                     imports = [
                       (import ./nix/modules/home {
-                        inherit pkgs config lib;
+                        inherit pkgs config lib profile;
                         inherit dotfilesDir;
                       })
                       ./nix/modules/darwin

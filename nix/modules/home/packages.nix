@@ -4,6 +4,7 @@
   home.packages = [
     pkgs.bat
     pkgs.bun
+    pkgs.mise
     pkgs.nodejs_24
     pkgs.claude-code
     pkgs.codex
@@ -12,6 +13,8 @@
     pkgs.gh
     pkgs.git
     pkgs.lazygit
+    pkgs.colima
+    pkgs.docker
     pkgs.lazydocker
     pkgs.pnpm
     pkgs.spotify

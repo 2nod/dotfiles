@@ -27,6 +27,9 @@ devenv.lock
 result
 result-*
 
+# Karabiner
+karabiner/automatic_backups/
+
 # Fish
 fish/fish_variables
 

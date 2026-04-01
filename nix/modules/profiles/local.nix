@@ -22,12 +22,13 @@
     # hostName = "tsuno-pro"; # 任意。未指定なら変更しない
     # dotfilesディレクトリのパス（オプション、デフォルト: /Users/${user}/dotfiles）
     dotfilesDir = "/Users/tsuno/dotfiles";
+    colima = if builtins.pathExists ./work-colima.nix then import ./work-colima.nix else null;
 
     # home-manager側の設定を追加/上書きする場合（オプション）
     # configOverrides = { pkgs, ... }: { ... };
 
     # nix-darwin側の設定を追加/上書きする場合（オプション）
-    # extraModules = [ ../../profiles/work-darwin.nix ];
+    # extraModules = [ ../../profiles/your-darwin.nix ];
   };
   # 新しい環境を追加する場合は、ここに追加してください
   # "新しいマシン名" = {

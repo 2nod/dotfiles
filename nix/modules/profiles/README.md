@@ -99,14 +99,14 @@
 {
   "work" = {
     user = "your-username";
-    # local.nix からの相対パスなので ../../profiles を参照
-    extraModules = [ ../../profiles/work-darwin.nix ];
+    # local.nix からの相対パスで nix-darwin モジュールを追加
+    extraModules = [ ../../profiles/your-darwin.nix ];
   };
 }
 ```
 
 ```nix
-# nix/profiles/work-darwin.nix
+# nix/profiles/your-darwin.nix
 { pkgs, lib, ... }:
 {
   environment.systemPackages = [ pkgs.git pkgs.gnupg ];

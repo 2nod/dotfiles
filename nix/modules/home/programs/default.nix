@@ -2,6 +2,7 @@
   pkgs,
   lib,
   config,
+  profile ? { },
   dotfilesDir,
   ...
 }:
@@ -57,6 +58,14 @@
         lib
         config
         dotfilesDir
+        ;
+    })
+    (import ./colima {
+      inherit
+        pkgs
+        lib
+        config
+        profile
         ;
     })
   ];

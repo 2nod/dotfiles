@@ -16,6 +16,18 @@
       cleanup = "uninstall";
       autoUpdate = true;
     };
+    brews = [
+      "pkg-config"
+      "cairo"
+      "pango"
+      "libpng"
+      "jpeg"
+      "giflib"
+      "librsvg"
+      "pixman"
+      "python-setuptools"
+      "yarn"
+    ];
     casks = [
       "aqua-voice"
       "anki"
@@ -28,7 +40,6 @@
       "nani"
       "notion"
       "obsidian"
-      "orbstack"
       "raycast"
       "slack"
       "typeless"
@@ -53,6 +64,19 @@
 
   # Launch apps at login for the primary user.
   launchd.user.agents = {
+    colima = {
+      serviceConfig = {
+        ProgramArguments = [
+          "${pkgs.colima}/bin/colima"
+          "start"
+          "--foreground"
+        ];
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+      };
+    };
     raycast = {
       serviceConfig = {
         ProgramArguments = [
@@ -144,6 +168,12 @@
     };
 
     CustomUserPreferences = {
+      # Activity Monitor can garble localized virtual machine service names in
+      # Japanese environments, so prefer English just for that app.
+      "com.apple.ActivityMonitor" = {
+        AppleLanguages = [ "en" ];
+      };
+
       # Mission Control / Spaces shortcuts
       "com.apple.symbolichotkeys" = {
         AppleSymbolicHotKeys = {
