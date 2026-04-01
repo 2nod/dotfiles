@@ -7,10 +7,7 @@ let
 
   settings = {
     auths = { };
-    credsStore = "osxkeychain";
-    currentContext = "orbstack";
-    experimental = "enabled";
-    stackOrchestrator = "swarm";
+    currentContext = "colima";
   };
 in
 {

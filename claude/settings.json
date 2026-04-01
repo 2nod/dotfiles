@@ -13,5 +13,6 @@
       "Bash(npx *)",
       "Bash(pnpm *)"
     ]
-  }
+  },
+  "model": "opus[1m]"
 }
