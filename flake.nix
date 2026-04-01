@@ -36,10 +36,14 @@
       ...
     }:
     let
-      darwinSystem = "aarch64-darwin";
-      pkgs = import nixpkgs { system = darwinSystem; };
-
-      treefmtEval = treefmt-nix.lib.evalModule pkgs {
+      lib = nixpkgs.lib;
+      supportedSystems = [
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
+      defaultDarwinSystem = "aarch64-darwin";
+      mkPkgs = system: import nixpkgs { inherit system; };
+      treefmtConfig = pkgs: {
         projectRootFile = "flake.nix";
         programs = {
           nixfmt = {
@@ -63,6 +67,12 @@
           };
         };
       };
+      mkTreefmtEval =
+        system:
+        let
+          pkgs = mkPkgs system;
+        in
+        treefmt-nix.lib.evalModule pkgs (treefmtConfig pkgs);
 
       # プロファイル定義を別ファイルから読み込む
       localProfilesPath = ./nix/modules/profiles/local.nix;
@@ -75,8 +85,7 @@
             builtins.trace ''
               ⚠️  Warning: local.nix not found!
 
-              Please create nix/modules/profiles/local.nix by copying local.nix.example:
-                cp nix/modules/profiles/local.nix.example nix/modules/profiles/local.nix
+              Please create nix/modules/profiles/local.nix and define your profiles there.
 
               Then edit local.nix with your profile definitions.
             '' { }
@@ -88,32 +97,55 @@
       # プロファイル名のリストを文字列として取得（シェルスクリプトで使用）
       profileNamesStr = builtins.concatStringsSep " " availableProfileNames;
 
+      profileSystem = profile: profile.system or defaultDarwinSystem;
+      profileHostName = profile: profile.hostName or null;
+      profileDotfilesDir = profile: user: profile.dotfilesDir or "/Users/${user}/dotfiles";
+
       # プロファイルからdarwinConfigurationを生成するヘルパー関数
       mkDarwinConfig =
         profileName:
-        {
-          user,
-          dotfilesDir ? "/Users/${user}/dotfiles",
-          extraModules ? [ ],
-          configOverrides ? null,
-        }:
+        profile:
+        let
+          user = profile.user;
+          system = profileSystem profile;
+          hostName = profileHostName profile;
+          dotfilesDir = profileDotfilesDir profile user;
+          extraModules = profile.extraModules or [ ];
+          configOverrides = profile.configOverrides or null;
+          profileData = profile // {
+            inherit
+              system
+              hostName
+              dotfilesDir
+              ;
+          };
+        in
         nix-darwin.lib.darwinSystem {
-          system = darwinSystem;
+          system = system;
           specialArgs = {
             inherit self user;
-            profile = profileName;
+            hostSystem = system;
+            profile = profileData;
+            inherit profileName;
           };
           modules = [
             brew-nix.darwinModules.default
             ./nix/modules/darwin/system.nix
             home-manager.darwinModules.home-manager
+            (lib.optionalAttrs (hostName != null) {
+              networking.hostName = hostName;
+              networking.computerName = hostName;
+              networking.localHostName = hostName;
+            })
             {
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
                 extraSpecialArgs = {
                   inherit user;
-                  profile = profileName;
+                  hostSystem = system;
+                  profile = profileData;
+                  inherit profileName;
                 };
                 users.${user} =
                   {
@@ -131,7 +163,12 @@
                       ./nix/modules/darwin
                     ]
                     # プロファイル固有の設定オーバーライドをモジュールとして追加
-                    ++ (if configOverrides != null then [ (configOverrides { inherit pkgs config lib; }) ] else [ ]);
+                    ++ (
+                      if configOverrides != null then
+                        [ (configOverrides { inherit pkgs config lib profile profileName; }) ]
+                      else
+                        [ ]
+                    );
                     home.username = user;
                     home.homeDirectory = "/Users/${user}";
                   };
@@ -143,9 +180,9 @@
         };
 
       # すべてのプロファイルからdarwinConfigurationsを生成
-      darwinConfigs = builtins.mapAttrs (name: profile: mkDarwinConfig name profile) profiles;
+      darwinConfigs = builtins.mapAttrs mkDarwinConfig profiles;
 
-      listProfilesApp = {
+      mkListProfilesApp = pkgs: {
         type = "app";
         program = toString (
           pkgs.writeShellScript "list-profiles" ''
@@ -169,147 +206,156 @@
           ''
         );
       };
+
+      mkApps = system:
+        let
+          pkgs = mkPkgs system;
+          treefmtEval = mkTreefmtEval system;
+        in
+        {
+          build = {
+            type = "app";
+            program = toString (
+              pkgs.writeShellScript "darwin-build" ''
+                # プロファイル名のリストを環境変数として設定
+                export AVAILABLE_PROFILES="${profileNamesStr}"
+
+                set -e
+
+                # プロファイル選択ロジック
+                PROFILE="''${NIX_DARWIN_PROFILE:-}"
+
+                # コマンドライン引数からプロファイルを取得（最優先）
+                if [ $# -gt 0 ]; then
+                  PROFILE="$1"
+                fi
+
+                # プロファイルが指定されていない場合
+                if [ -z "$PROFILE" ]; then
+                  AVAILABLE_PROFILES="${profileNamesStr}"
+
+                  if [ -z "$AVAILABLE_PROFILES" ]; then
+                    echo "Error: No profiles found!"
+                    echo "Please create a profile file in nix/modules/profiles/"
+                    exit 1
+                  fi
+
+                  # プロファイルが1つだけの場合、自動選択
+                  if [ $(echo "$AVAILABLE_PROFILES" | wc -w) -eq 1 ]; then
+                    PROFILE="$AVAILABLE_PROFILES"
+                    echo "Auto-selected profile: $PROFILE (only profile available)"
+                  else
+                    echo "Error: Profile not specified."
+                    echo ""
+                    echo "Available profiles:"
+                    for p in $AVAILABLE_PROFILES; do
+                      echo "  $p"
+                    done
+                    echo ""
+                    echo "Please specify a profile using:"
+                    echo "  NIX_DARWIN_PROFILE=<profile> nix run .#build"
+                    echo "  or"
+                    echo "  nix run .#build -- <profile>"
+                    exit 1
+                  fi
+                fi
+
+                echo "Building darwin configuration for profile: $PROFILE"
+                nix build .#darwinConfigurations."$PROFILE".system
+                echo "Build successful! Run 'nix run .#switch -- $PROFILE' to apply."
+              ''
+            );
+          };
+
+          switch = {
+            type = "app";
+            program = toString (
+              pkgs.writeShellScript "darwin-switch" ''
+                # プロファイル名のリストを環境変数として設定
+                export AVAILABLE_PROFILES="${profileNamesStr}"
+
+                set -e
+
+                # プロファイル選択ロジック
+                PROFILE="''${NIX_DARWIN_PROFILE:-}"
+
+                # コマンドライン引数からプロファイルを取得（最優先）
+                if [ $# -gt 0 ]; then
+                  PROFILE="$1"
+                fi
+
+                # プロファイルが指定されていない場合
+                if [ -z "$PROFILE" ]; then
+                  AVAILABLE_PROFILES="${profileNamesStr}"
+
+                  if [ -z "$AVAILABLE_PROFILES" ]; then
+                    echo "Error: No profiles found!"
+                    echo "Please create a profile file in nix/modules/profiles/"
+                    exit 1
+                  fi
+
+                  # プロファイルが1つだけの場合、自動選択
+                  if [ $(echo "$AVAILABLE_PROFILES" | wc -w) -eq 1 ]; then
+                    PROFILE="$AVAILABLE_PROFILES"
+                    echo "Auto-selected profile: $PROFILE (only profile available)"
+                  else
+                    echo "Error: Profile not specified."
+                    echo ""
+                    echo "Available profiles:"
+                    for p in $AVAILABLE_PROFILES; do
+                      echo "  $p"
+                    done
+                    echo ""
+                    echo "Please specify a profile using:"
+                    echo "  NIX_DARWIN_PROFILE=<profile> nix run .#switch"
+                    echo "  or"
+                    echo "  nix run .#switch -- <profile>"
+                    exit 1
+                  fi
+                fi
+
+                echo "Building and switching darwin configuration for profile: $PROFILE"
+                sudo -H nix run nix-darwin -- switch --flake .#"$PROFILE"
+              ''
+            );
+          };
+
+          update = {
+            type = "app";
+            program = toString (
+              pkgs.writeShellScript "flake-update" ''
+                set -e
+                echo "Updating flake.lock..."
+                nix flake update
+                echo "Done! Run 'nix run .#switch -- <profile>' to apply changes."
+              ''
+            );
+          };
+
+          fmt = {
+            type = "app";
+            program = toString (
+              pkgs.writeShellScript "treefmt-wrapper" ''
+                exec ${treefmtEval.config.build.wrapper}/bin/treefmt "$@"
+              ''
+            );
+          };
+
+          # プロファイル一覧を表示
+          list-profiles = mkListProfilesApp pkgs;
+          list = mkListProfilesApp pkgs;
+        };
     in
     {
       # プロファイルごとのdarwinConfigurations
       darwinConfigurations = darwinConfigs;
 
-      formatter.${darwinSystem} = treefmtEval.config.build.wrapper;
+      formatter = lib.genAttrs supportedSystems (system: (mkTreefmtEval system).config.build.wrapper);
 
-      checks.${darwinSystem}.formatting = treefmtEval.config.build.check self;
+      checks = lib.genAttrs supportedSystems (system: {
+        formatting = (mkTreefmtEval system).config.build.check self;
+      });
 
-      apps.${darwinSystem} = {
-        build = {
-          type = "app";
-          program = toString (
-            pkgs.writeShellScript "darwin-build" ''
-              # プロファイル名のリストを環境変数として設定
-              export AVAILABLE_PROFILES="${profileNamesStr}"
-
-              set -e
-
-              # プロファイル選択ロジック
-              PROFILE="''${NIX_DARWIN_PROFILE:-}"
-
-              # コマンドライン引数からプロファイルを取得（最優先）
-              if [ $# -gt 0 ]; then
-                PROFILE="$1"
-              fi
-
-              # プロファイルが指定されていない場合
-              if [ -z "$PROFILE" ]; then
-                AVAILABLE_PROFILES="${profileNamesStr}"
-                
-                if [ -z "$AVAILABLE_PROFILES" ]; then
-                  echo "Error: No profiles found!"
-                  echo "Please create a profile file in nix/modules/profiles/"
-                  exit 1
-                fi
-                
-                # プロファイルが1つだけの場合、自動選択
-                if [ $(echo "$AVAILABLE_PROFILES" | wc -w) -eq 1 ]; then
-                  PROFILE="$AVAILABLE_PROFILES"
-                  echo "Auto-selected profile: $PROFILE (only profile available)"
-                else
-                  echo "Error: Profile not specified."
-                  echo ""
-                  echo "Available profiles:"
-                  for p in $AVAILABLE_PROFILES; do
-                    echo "  $p"
-                  done
-                  echo ""
-                  echo "Please specify a profile using:"
-                  echo "  NIX_DARWIN_PROFILE=<profile> nix run .#build"
-                  echo "  or"
-                  echo "  nix run .#build -- <profile>"
-                  exit 1
-                fi
-              fi
-
-              echo "Building darwin configuration for profile: $PROFILE"
-              nix build .#darwinConfigurations."$PROFILE".system
-              echo "Build successful! Run 'nix run .#switch -- $PROFILE' to apply."
-            ''
-          );
-        };
-
-        switch = {
-          type = "app";
-          program = toString (
-            pkgs.writeShellScript "darwin-switch" ''
-              # プロファイル名のリストを環境変数として設定
-              export AVAILABLE_PROFILES="${profileNamesStr}"
-
-              set -e
-
-              # プロファイル選択ロジック
-              PROFILE="''${NIX_DARWIN_PROFILE:-}"
-
-              # コマンドライン引数からプロファイルを取得（最優先）
-              if [ $# -gt 0 ]; then
-                PROFILE="$1"
-              fi
-
-              # プロファイルが指定されていない場合
-              if [ -z "$PROFILE" ]; then
-                AVAILABLE_PROFILES="${profileNamesStr}"
-                
-                if [ -z "$AVAILABLE_PROFILES" ]; then
-                  echo "Error: No profiles found!"
-                  echo "Please create a profile file in nix/modules/profiles/"
-                  exit 1
-                fi
-                
-                # プロファイルが1つだけの場合、自動選択
-                if [ $(echo "$AVAILABLE_PROFILES" | wc -w) -eq 1 ]; then
-                  PROFILE="$AVAILABLE_PROFILES"
-                  echo "Auto-selected profile: $PROFILE (only profile available)"
-                else
-                  echo "Error: Profile not specified."
-                  echo ""
-                  echo "Available profiles:"
-                  for p in $AVAILABLE_PROFILES; do
-                    echo "  $p"
-                  done
-                  echo ""
-                  echo "Please specify a profile using:"
-                  echo "  NIX_DARWIN_PROFILE=<profile> nix run .#switch"
-                  echo "  or"
-                  echo "  nix run .#switch -- <profile>"
-                  exit 1
-                fi
-              fi
-
-              echo "Building and switching darwin configuration for profile: $PROFILE"
-              sudo nix run nix-darwin -- switch --flake .#"$PROFILE"
-            ''
-          );
-        };
-
-        update = {
-          type = "app";
-          program = toString (
-            pkgs.writeShellScript "flake-update" ''
-              set -e
-              echo "Updating flake.lock..."
-              nix flake update
-              echo "Done! Run 'nix run .#switch -- <profile>' to apply changes."
-            ''
-          );
-        };
-
-        fmt = {
-          type = "app";
-          program = toString (
-            pkgs.writeShellScript "treefmt-wrapper" ''
-              exec ${treefmtEval.config.build.wrapper}/bin/treefmt "$@"
-            ''
-          );
-        };
-
-        # プロファイル一覧を表示
-        list-profiles = listProfilesApp;
-        list = listProfilesApp;
-      };
+      apps = lib.genAttrs supportedSystems mkApps;
     };
 }
