@@ -6,14 +6,20 @@ export PATH="/Users/tsuno/.detaspace/bin:$PATH"
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # Rust
-. "$HOME/.cargo/env"
+[ -s "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 # ssh-agent
 ssh-add -l &>/dev/null || ssh-add --apple-use-keychain "$HOME/.ssh/github" 2>/dev/null
 
-# Node (nvm)
-export NVM_DIR="${XDG_CONFIG_HOME}/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+# Node (mise)
+export PATH="/etc/profiles/per-user/$USER/bin:$HOME/.local/state/home-manager/gcroots/current-home/home-path/bin:$PATH"
+if command -v mise >/dev/null 2>&1; then
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    eval "$(mise activate zsh)"
+  elif [ -n "${BASH_VERSION:-}" ]; then
+    eval "$(mise activate bash)"
+  fi
+fi
 
 # Bun
 export BUN_INSTALL="$HOME/.bun"

@@ -88,7 +88,7 @@
 - `home.packages`
   - `bat`
   - `bun`
-  - `nodejs_24`
+  - `mise`
   - `claude-code`
   - `codex`
   - `deno`

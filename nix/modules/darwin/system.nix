@@ -1,10 +1,20 @@
 {
   self,
+  lib,
   user,
   hostSystem,
   pkgs,
+  profile ? { },
   ...
 }:
+let
+  profileColima = profile.colima or null;
+  colima = if profileColima != null then {
+    vmType = (profileColima.vmType or "vz");
+    rosetta = (profileColima.rosetta or true);
+  } else null;
+  installRosetta = colima != null && colima.vmType == "vz" && colima.rosetta;
+in
 {
   brew-nix.enable = true;
 
@@ -64,13 +74,17 @@
 
   # Launch apps at login for the primary user.
   launchd.user.agents = {
-    colima = {
+    colima = lib.mkIf (colima != null) {
       serviceConfig = {
-        ProgramArguments = [
-          "${pkgs.colima}/bin/colima"
-          "start"
-          "--foreground"
-        ];
+        ProgramArguments =
+          [
+            "${pkgs.colima}/bin/colima"
+            "start"
+            "--foreground"
+            "--vm-type"
+            colima.vmType
+          ]
+          ++ lib.optionals colima.rosetta [ "--vz-rosetta" ];
         RunAtLoad = true;
         KeepAlive = {
           SuccessfulExit = false;
@@ -223,6 +237,15 @@
   environment.shells = [ pkgs.fish ];
 
   system.activationScripts.postActivation.text = ''
+    ${lib.optionalString installRosetta ''
+    if [ "$(uname -m)" = "arm64" ]; then
+      if ! /usr/sbin/softwareupdate --install-rosetta --agree-to-license; then
+        echo "Rosetta 2 installation failed" >&2
+        exit 1
+      fi
+    fi
+    ''}
+
     echo "Setting login shell to fish..."
     chsh -s ${pkgs.fish}/bin/fish ${user} || true
   '';

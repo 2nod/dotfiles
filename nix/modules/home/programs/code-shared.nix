@@ -24,6 +24,7 @@ in
     "workbench.editor.labelFormat" = "short";
     "workbench.editor.tabSizing" = "shrink";
     "workbench.startupEditor" = "none";
+    "prisma.hidePrisma6Prompts" = true;
     "terminal.integrated.copyOnSelection" = true;
     "terminal.integrated.defaultProfile.osx" = "fish";
     "terminal.integrated.profiles.osx" = {
