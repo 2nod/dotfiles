@@ -1,4 +1,4 @@
 {
   cpu = 4;
-  memory = 16;
+  memory = 24;
 }
