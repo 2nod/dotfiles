@@ -38,6 +38,8 @@
   - `anki`
   - `arc`
   - `bitwarden`
+  - `claude`
+  - `codex-app`
   - `cursor`
   - `discord`
   - `google-chrome`
@@ -88,8 +90,8 @@
 - `home.packages`
   - `bat`
   - `bun`
-  - `mise`
   - `claude-code`
+  - `mise`
   - `codex`
   - `deno`
   - `eza`

@@ -31,7 +31,7 @@
 ## 前提条件
 1. [Nix](https://nixos.org/download.html) を macOS にインストールしておく（未導入なら下記の手順）。
 2. `nix-command` と `flakes` を有効化しておく (初回実行の前に必要)。
-3. 初回は `darwin-rebuild` が PATH に無いので、`nix run .#build` / `nix run .#switch` を使う。`switch` は途中で sudo を求められる。
+3. 初回は `darwin-rebuild` が PATH に無いので、`nix run .#build -- <profile>` / `nix run .#switch -- <profile>` を使う。`switch` は途中で sudo を求められる。
 
 ### Nixのインストール
 Nixがインストールされていない場合は、以下のコマンドでインストールします：
@@ -90,8 +90,8 @@ nix run .#switch -- <profile>
 
 ## 変更と反映の流れ
 1. `flake.nix` を編集してパッケージや設定を追加する。
-2. 影響を確認したい場合は `nix run .#build` でビルドのみ行う。
-3. 問題なければ `nix run .#switch` で本適用。
+2. 影響を確認したい場合は `nix run .#build -- <profile>` でビルドのみ行う。
+3. 問題なければ `nix run .#switch -- <profile>` で本適用。
 
 依存するチャネルを更新したい場合は `nix run .#update` (または `nix flake update`) を実行し、ロックファイル ( `flake.lock` ) が生成されたらコミットしてください。
 
@@ -116,7 +116,7 @@ nix run .#build -- <profile>
 ## リンクの挙動
 `link_force` は、既存のファイル/ディレクトリを削除してからシンボリックリンクを張ります。
 この repo では `nix/modules/home/dotfiles.nix` と `nix/modules/home/programs/neovim` で使っています。
-手動で削除する必要はありませんが、必要なら `nix run .#switch` の前にバックアップを取っておくのがおすすめです。
+手動で削除する必要はありませんが、必要なら `nix run .#switch -- <profile>` の前にバックアップを取っておくのがおすすめです。
 
 例: `~/.bashrc`, `~/.bash_profile`, `~/.zshrc`, `~/.zshenv`, `~/.config/nvim`, `~/.config/wezterm`, `~/.config/karabiner` などが置き換わります。
 Home Manager が生成する `~/.config/git/config` や `~/.local/state/home-manager/...` も作成されます。

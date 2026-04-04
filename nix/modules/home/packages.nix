@@ -4,8 +4,8 @@
   home.packages = [
     pkgs.bat
     pkgs.bun
-    pkgs.mise
     pkgs.claude-code
+    pkgs.mise
     pkgs.codex
     pkgs.deno
     pkgs.eza

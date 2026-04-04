@@ -6,7 +6,7 @@
   ...
 }:
 let
-  profileColima = profile.colima or null;
+  profileColima = profile.colima or { };
   colima = {
     cpu = (profileColima.cpu or 2);
     memory = (profileColima.memory or 8);
@@ -16,7 +16,7 @@ let
   colimaConfigDir = "${config.home.homeDirectory}/.config/colima/default";
   colimaConfig = "${colimaConfigDir}/colima.yaml";
 in
-lib.mkIf (profileColima != null) {
+{
   home.activation.syncColimaConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     $DRY_RUN_CMD mkdir -p "${colimaConfigDir}"
     if [ -f "${colimaConfig}" ]; then

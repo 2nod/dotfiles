@@ -19,6 +19,9 @@
       url = "github:BatteredBunny/brew-api";
       flake = false;
     };
+    claude-code = {
+      url = "github:sadjow/claude-code-nix";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -31,6 +34,7 @@
       nix-darwin,
       nixpkgs,
       brew-nix,
+      claude-code,
       home-manager,
       treefmt-nix,
       ...
@@ -129,6 +133,9 @@
             inherit profileName;
           };
           modules = [
+            {
+              nixpkgs.overlays = [ claude-code.overlays.default ];
+            }
             brew-nix.darwinModules.default
             ./nix/modules/darwin/system.nix
             home-manager.darwinModules.home-manager
@@ -232,32 +239,18 @@
 
                 # プロファイルが指定されていない場合
                 if [ -z "$PROFILE" ]; then
-                  AVAILABLE_PROFILES="${profileNamesStr}"
-
-                  if [ -z "$AVAILABLE_PROFILES" ]; then
-                    echo "Error: No profiles found!"
-                    echo "Please create a profile file in nix/modules/profiles/"
-                    exit 1
-                  fi
-
-                  # プロファイルが1つだけの場合、自動選択
-                  if [ $(echo "$AVAILABLE_PROFILES" | wc -w) -eq 1 ]; then
-                    PROFILE="$AVAILABLE_PROFILES"
-                    echo "Auto-selected profile: $PROFILE (only profile available)"
-                  else
-                    echo "Error: Profile not specified."
-                    echo ""
-                    echo "Available profiles:"
-                    for p in $AVAILABLE_PROFILES; do
-                      echo "  $p"
-                    done
-                    echo ""
-                    echo "Please specify a profile using:"
-                    echo "  NIX_DARWIN_PROFILE=<profile> nix run .#build"
-                    echo "  or"
-                    echo "  nix run .#build -- <profile>"
-                    exit 1
-                  fi
+                  echo "Error: Profile not specified."
+                  echo ""
+                  echo "Available profiles:"
+                  for p in $AVAILABLE_PROFILES; do
+                    echo "  $p"
+                  done
+                  echo ""
+                  echo "Please specify a profile using:"
+                  echo "  NIX_DARWIN_PROFILE=<profile> nix run .#build"
+                  echo "  or"
+                  echo "  nix run .#build -- <profile>"
+                  exit 1
                 fi
 
                 echo "Building darwin configuration for profile: $PROFILE"
@@ -286,32 +279,18 @@
 
                 # プロファイルが指定されていない場合
                 if [ -z "$PROFILE" ]; then
-                  AVAILABLE_PROFILES="${profileNamesStr}"
-
-                  if [ -z "$AVAILABLE_PROFILES" ]; then
-                    echo "Error: No profiles found!"
-                    echo "Please create a profile file in nix/modules/profiles/"
-                    exit 1
-                  fi
-
-                  # プロファイルが1つだけの場合、自動選択
-                  if [ $(echo "$AVAILABLE_PROFILES" | wc -w) -eq 1 ]; then
-                    PROFILE="$AVAILABLE_PROFILES"
-                    echo "Auto-selected profile: $PROFILE (only profile available)"
-                  else
-                    echo "Error: Profile not specified."
-                    echo ""
-                    echo "Available profiles:"
-                    for p in $AVAILABLE_PROFILES; do
-                      echo "  $p"
-                    done
-                    echo ""
-                    echo "Please specify a profile using:"
-                    echo "  NIX_DARWIN_PROFILE=<profile> nix run .#switch"
-                    echo "  or"
-                    echo "  nix run .#switch -- <profile>"
-                    exit 1
-                  fi
+                  echo "Error: Profile not specified."
+                  echo ""
+                  echo "Available profiles:"
+                  for p in $AVAILABLE_PROFILES; do
+                    echo "  $p"
+                  done
+                  echo ""
+                  echo "Please specify a profile using:"
+                  echo "  NIX_DARWIN_PROFILE=<profile> nix run .#switch"
+                  echo "  or"
+                  echo "  nix run .#switch -- <profile>"
+                  exit 1
                 fi
 
                 echo "Building and switching darwin configuration for profile: $PROFILE"
