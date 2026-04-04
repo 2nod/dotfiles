@@ -44,7 +44,6 @@ in
       "arc"
       "bitwarden"
       "codex-app"
-      "claude-code"
       "cursor"
       "discord"
       "google-chrome"

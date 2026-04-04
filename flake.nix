@@ -19,6 +19,9 @@
       url = "github:BatteredBunny/brew-api";
       flake = false;
     };
+    claude-code = {
+      url = "github:sadjow/claude-code-nix";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -31,6 +34,7 @@
       nix-darwin,
       nixpkgs,
       brew-nix,
+      claude-code,
       home-manager,
       treefmt-nix,
       ...
@@ -129,6 +133,9 @@
             inherit profileName;
           };
           modules = [
+            {
+              nixpkgs.overlays = [ claude-code.overlays.default ];
+            }
             brew-nix.darwinModules.default
             ./nix/modules/darwin/system.nix
             home-manager.darwinModules.home-manager
