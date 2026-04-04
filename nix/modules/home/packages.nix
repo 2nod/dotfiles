@@ -5,7 +5,6 @@
     pkgs.bat
     pkgs.bun
     pkgs.mise
-    pkgs.claude-code
     pkgs.codex
     pkgs.deno
     pkgs.eza

@@ -39,6 +39,7 @@
   - `arc`
   - `bitwarden`
   - `codex-app`
+  - `claude-code`
   - `cursor`
   - `discord`
   - `google-chrome`
@@ -90,7 +91,6 @@
   - `bat`
   - `bun`
   - `mise`
-  - `claude-code`
   - `codex`
   - `deno`
   - `eza`

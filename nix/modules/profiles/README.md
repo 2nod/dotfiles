@@ -143,23 +143,17 @@
 }
 ```
 
-## プロファイルの自動選択
+## プロファイルの指定
 
-プロファイルが1つだけ定義されている場合、自動的にそのプロファイルが選択されます:
-
-```bash
-# プロファイルが1つだけの場合
-$ nix run .#build
-Auto-selected profile: personal (only profile available)
-Building darwin configuration for profile: personal
-```
-
-複数のプロファイルがある場合は、明示的に指定する必要があります:
+プロファイルは常に明示的に指定します:
 
 ```bash
-# 複数のプロファイルがある場合
+# 明示的に profile を指定
 $ nix run .#build -- work
+$ nix run .#switch -- work
 ```
+
+`NIX_DARWIN_PROFILE=<profile>` でも指定できます。
 
 ## 設定の優先順位
 
