@@ -7,7 +7,9 @@ let
 
   settings = {
     auths = { };
-    currentContext = "colima";
+    # Use the DOCKER_HOST-based default context so Docker does not depend on
+    # a persisted colima context record that can disappear across reinstalls.
+    currentContext = "default";
   };
 in
 {

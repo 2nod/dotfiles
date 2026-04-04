@@ -38,6 +38,7 @@
   - `anki`
   - `arc`
   - `bitwarden`
+  - `codex-app`
   - `cursor`
   - `discord`
   - `google-chrome`

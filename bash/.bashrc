@@ -33,7 +33,12 @@ case ":$PATH:" in
 esac
 
 # Colima
-export DOCKER_HOST="unix://$HOME/.config/colima/default/docker.sock"
+export COLIMA_HOME="$HOME/.config/colima"
+if [ -S "$HOME/.config/colima/default/docker.sock" ]; then
+  export DOCKER_HOST="unix://$HOME/.config/colima/default/docker.sock"
+else
+  unset DOCKER_HOST
+fi
 
 # direnv
 if [ -n "$BASH_VERSION" ] && command -v direnv >/dev/null 2>&1; then

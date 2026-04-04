@@ -8,12 +8,12 @@
   ...
 }:
 let
-  profileColima = profile.colima or null;
-  colima = if profileColima != null then {
+  profileColima = profile.colima or { };
+  colima = {
     vmType = (profileColima.vmType or "vz");
     rosetta = (profileColima.rosetta or true);
-  } else null;
-  installRosetta = colima != null && colima.vmType == "vz" && colima.rosetta;
+  };
+  installRosetta = colima.vmType == "vz" && colima.rosetta;
 in
 {
   brew-nix.enable = true;
@@ -43,6 +43,7 @@ in
       "anki"
       "arc"
       "bitwarden"
+      "codex-app"
       "cursor"
       "discord"
       "google-chrome"
@@ -74,8 +75,11 @@ in
 
   # Launch apps at login for the primary user.
   launchd.user.agents = {
-    colima = lib.mkIf (colima != null) {
+    colima = {
       serviceConfig = {
+        EnvironmentVariables = {
+          COLIMA_HOME = "/Users/${user}/.config/colima";
+        };
         ProgramArguments =
           [
             "${pkgs.colima}/bin/colima"
