@@ -162,6 +162,7 @@ in
 
     NSGlobalDomain = {
       AppleInterfaceStyle = "Dark"; # Use Dark Mode.
+      ApplePressAndHoldEnabled = false; # Disable accent popup on key hold.
       AppleShowAllExtensions = true; # Also set at global domain.
       KeyRepeat = 2; # Faster key repeat.
       InitialKeyRepeat = 25; # Shorter delay before repeating.
