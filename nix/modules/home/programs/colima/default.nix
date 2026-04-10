@@ -18,22 +18,22 @@ let
 in
 {
   home.activation.syncColimaConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    $DRY_RUN_CMD mkdir -p "${colimaConfigDir}"
-    if [ -f "${colimaConfig}" ]; then
-      $DRY_RUN_CMD ${pkgs.perl}/bin/perl -0pi -e '
-        s/^cpu: .*/cpu: ${toString colima.cpu}/m;
-        s/^memory: .*/memory: ${toString colima.memory}/m;
-        s/^vmType: .*/vmType: ${colima.vmType}/m;
-        s/^rosetta: .*/rosetta: ${lib.boolToString colima.rosetta}/m;
-      ' "${colimaConfig}"
-    else
-      $DRY_RUN_CMD cat > "${colimaConfig}" <<'EOF'
-# Managed by nix home-manager (colima module)
-cpu: ${toString colima.cpu}
-memory: ${toString colima.memory}
-vmType: ${colima.vmType}
-rosetta: ${lib.boolToString colima.rosetta}
-EOF
-    fi
+        $DRY_RUN_CMD mkdir -p "${colimaConfigDir}"
+        if [ -f "${colimaConfig}" ]; then
+          $DRY_RUN_CMD ${pkgs.perl}/bin/perl -0pi -e '
+            s/^cpu: .*/cpu: ${toString colima.cpu}/m;
+            s/^memory: .*/memory: ${toString colima.memory}/m;
+            s/^vmType: .*/vmType: ${colima.vmType}/m;
+            s/^rosetta: .*/rosetta: ${lib.boolToString colima.rosetta}/m;
+          ' "${colimaConfig}"
+        else
+          $DRY_RUN_CMD cat > "${colimaConfig}" <<'EOF'
+    # Managed by nix home-manager (colima module)
+    cpu: ${toString colima.cpu}
+    memory: ${toString colima.memory}
+    vmType: ${colima.vmType}
+    rosetta: ${lib.boolToString colima.rosetta}
+    EOF
+        fi
   '';
 }

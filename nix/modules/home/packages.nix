@@ -15,6 +15,7 @@
     pkgs.colima
     pkgs.docker
     pkgs.lazydocker
+    pkgs.google-cloud-sdk
     pkgs.pnpm
     pkgs.spotify
     pkgs.ripgrep

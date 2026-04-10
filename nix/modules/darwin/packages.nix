@@ -3,7 +3,8 @@
   # macOS-only packages and brew-nix casks live here (home-manager).
   home.packages = [
     # Add Homebrew casks via brew-nix, for example:
-  ] ++ [
+  ]
+  ++ [
     # Examples from brew-nix notes:
     # tar.gz cask needs a custom unpackPhase
     # (brewCasks.alfred.overrideAttrs (o: {
