@@ -41,6 +41,7 @@
   - `claude`
   - `codex-app`
   - `cursor`
+  - `cursor-cli`
   - `discord`
   - `google-chrome`
   - `karabiner-elements`

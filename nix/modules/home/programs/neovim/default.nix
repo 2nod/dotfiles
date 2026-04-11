@@ -1,4 +1,10 @@
-{ lib, config, dotfilesDir, pkgs, ... }:
+{
+  lib,
+  config,
+  dotfilesDir,
+  pkgs,
+  ...
+}:
 let
   helpers = import ../../../lib/helpers { inherit lib; };
   nvimDotfilesDir = "${dotfilesDir}/nvim";

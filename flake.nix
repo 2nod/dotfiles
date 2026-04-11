@@ -107,8 +107,7 @@
 
       # プロファイルからdarwinConfigurationを生成するヘルパー関数
       mkDarwinConfig =
-        profileName:
-        profile:
+        profileName: profile:
         let
           user = profile.user;
           system = profileSystem profile;
@@ -164,7 +163,12 @@
                   {
                     imports = [
                       (import ./nix/modules/home {
-                        inherit pkgs config lib profile;
+                        inherit
+                          pkgs
+                          config
+                          lib
+                          profile
+                          ;
                         inherit dotfilesDir;
                       })
                       ./nix/modules/darwin
@@ -172,7 +176,17 @@
                     # プロファイル固有の設定オーバーライドをモジュールとして追加
                     ++ (
                       if configOverrides != null then
-                        [ (configOverrides { inherit pkgs config lib profile profileName; }) ]
+                        [
+                          (configOverrides {
+                            inherit
+                              pkgs
+                              config
+                              lib
+                              profile
+                              profileName
+                              ;
+                          })
+                        ]
                       else
                         [ ]
                     );
@@ -214,7 +228,8 @@
         );
       };
 
-      mkApps = system:
+      mkApps =
+        system:
         let
           pkgs = mkPkgs system;
           treefmtEval = mkTreefmtEval system;

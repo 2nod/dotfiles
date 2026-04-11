@@ -23,19 +23,19 @@ for _, entry in ipairs(default_key_tables.copy_mode or {}) do
 	end
 end
 
-local close_copy_mode = act.Multiple {
+local close_copy_mode = act.Multiple({
 	act.ClearSelection,
 	act.CopyMode("Close"),
-}
+})
 
 table.insert(copy_mode, {
 	key = "y",
 	mods = "NONE",
-	action = act.Multiple {
+	action = act.Multiple({
 		act.CopyTo("ClipboardAndPrimarySelection"),
 		act.ClearSelection,
 		act.CopyMode("Close"),
-	},
+	}),
 })
 table.insert(copy_mode, {
 	key = "Escape",

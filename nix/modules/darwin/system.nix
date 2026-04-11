@@ -46,6 +46,7 @@ in
       "claude"
       "codex-app"
       "cursor"
+      "cursor-cli"
       "discord"
       "google-chrome"
       "karabiner-elements"
@@ -81,15 +82,14 @@ in
         EnvironmentVariables = {
           COLIMA_HOME = "/Users/${user}/.config/colima";
         };
-        ProgramArguments =
-          [
-            "${pkgs.colima}/bin/colima"
-            "start"
-            "--foreground"
-            "--vm-type"
-            colima.vmType
-          ]
-          ++ lib.optionals colima.rosetta [ "--vz-rosetta" ];
+        ProgramArguments = [
+          "${pkgs.colima}/bin/colima"
+          "start"
+          "--foreground"
+          "--vm-type"
+          colima.vmType
+        ]
+        ++ lib.optionals colima.rosetta [ "--vz-rosetta" ];
         RunAtLoad = true;
         KeepAlive = {
           SuccessfulExit = false;
@@ -162,6 +162,7 @@ in
 
     NSGlobalDomain = {
       AppleInterfaceStyle = "Dark"; # Use Dark Mode.
+      ApplePressAndHoldEnabled = false; # Disable accent popup on key hold.
       AppleShowAllExtensions = true; # Also set at global domain.
       KeyRepeat = 2; # Faster key repeat.
       InitialKeyRepeat = 25; # Shorter delay before repeating.
@@ -199,22 +200,50 @@ in
           # Mission Control (Ctrl + Up)
           "32" = {
             enabled = true;
-            value = { type = "standard"; parameters = [ 65535 126 2359296 ]; };
+            value = {
+              type = "standard";
+              parameters = [
+                65535
+                126
+                2359296
+              ];
+            };
           };
           # Application windows (Ctrl + Down)
           "33" = {
             enabled = true;
-            value = { type = "standard"; parameters = [ 65535 125 2359296 ]; };
+            value = {
+              type = "standard";
+              parameters = [
+                65535
+                125
+                2359296
+              ];
+            };
           };
           # Move left a Space (Ctrl + Left)
           "79" = {
             enabled = true;
-            value = { type = "standard"; parameters = [ 65535 123 2359296 ]; };
+            value = {
+              type = "standard";
+              parameters = [
+                65535
+                123
+                2359296
+              ];
+            };
           };
           # Move right a Space (Ctrl + Right)
           "81" = {
             enabled = true;
-            value = { type = "standard"; parameters = [ 65535 124 2359296 ]; };
+            value = {
+              type = "standard";
+              parameters = [
+                65535
+                124
+                2359296
+              ];
+            };
           };
         };
       };
@@ -243,12 +272,12 @@ in
 
   system.activationScripts.postActivation.text = ''
     ${lib.optionalString installRosetta ''
-    if [ "$(uname -m)" = "arm64" ]; then
-      if ! /usr/sbin/softwareupdate --install-rosetta --agree-to-license; then
-        echo "Rosetta 2 installation failed" >&2
-        exit 1
+      if [ "$(uname -m)" = "arm64" ]; then
+        if ! /usr/sbin/softwareupdate --install-rosetta --agree-to-license; then
+          echo "Rosetta 2 installation failed" >&2
+          exit 1
+        fi
       fi
-    fi
     ''}
 
     echo "Setting login shell to fish..."

@@ -14,7 +14,6 @@
       "Bash(pnpm *)"
     ]
   },
-  "model": "opus[1m]",
   "extraKnownMarketplaces": {
     "openai-codex": {
       "source": {
@@ -25,5 +24,6 @@
   },
   "enabledPlugins": {
     "codex@openai-codex": true
-  }
+  },
+  "model": "opus[1m]"
 }
