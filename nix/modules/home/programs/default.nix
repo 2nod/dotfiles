@@ -60,6 +60,16 @@
         dotfilesDir
         ;
     })
+    ./delta.nix
+    (import ./lazygit {
+      inherit
+        pkgs
+        lib
+        ;
+    })
+    (import ./cmux.nix {
+      inherit pkgs;
+    })
     (import ./colima {
       inherit
         pkgs

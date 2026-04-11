@@ -16,6 +16,7 @@
   - `~/.config/efm-langserver`
   - `~/.config/fish`
   - `~/.claude/settings.json`
+  - `~/.config/cmux/settings.json`
   - `~/.config/nvim`
   - `~/Library/Application Support/Code/User/settings.json`
   - `~/Library/Application Support/Code/User/keybindings.json`
@@ -40,6 +41,7 @@
   - `bitwarden`
   - `claude`
   - `codex-app`
+  - `cmux`
   - `cursor`
   - `cursor-cli`
   - `discord`
@@ -110,9 +112,12 @@
 - `programs.direnv`
 - `programs.neovim`
 - `programs.fish`
+- `programs.delta`
+- `programs.lazygit`
 - `programs.vscode`
 - `programs.cursor`
 - `programs.codex`
+- `programs.cmux`
 
 ## Generated Files
 
@@ -127,11 +132,13 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/.bash_profile`
 - `~/.bashrc`
 - `~/.claude/settings.json`
+- `~/.config/cmux/settings.json`
 - `~/.config/git/config` and other Home Manager managed files
 - `~/Library/Application Support/Code/User/settings.json`
 - `~/Library/Application Support/Code/User/keybindings.json`
 - `~/Library/Application Support/Cursor/User/settings.json`
 - `~/Library/Application Support/Cursor/User/keybindings.json`
+- `~/.config/lazygit/config.yml`
 - `~/.config/codex/config.toml`
 - `~/.config/codex/AGENTS.md`
 - `~/.docker/config.json`

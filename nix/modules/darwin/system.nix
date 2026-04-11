@@ -45,6 +45,7 @@ in
       "bitwarden"
       "claude"
       "codex-app"
+      "cmux"
       "cursor"
       "cursor-cli"
       "discord"
