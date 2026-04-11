@@ -15,5 +15,6 @@
           - colorArg: always
             pager: ${lib.getExe pkgs.delta} --color-only --paging=never
     '';
+    force = true;
   };
 }
