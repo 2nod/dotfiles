@@ -4,10 +4,6 @@
 { pkgs, ... }:
 let
   jsonFormat = pkgs.formats.json { };
-  ghosttyBaseConfig = builtins.readFile ./ghostty-base.conf;
-  ghosttyThemeConfig = builtins.readFile ./themes/kanagawa-dragon.conf;
-  ghosttyConfig = ghosttyBaseConfig + "\n" + ghosttyThemeConfig;
-
   cmuxSettings = {
     "$schema" =
       "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux-settings.schema.json";
@@ -82,6 +78,4 @@ in
     source = jsonFormat.generate "cmux-settings.json" cmuxSettings;
     force = true;
   };
-
-  xdg.configFile."ghostty/config".text = ghosttyConfig;
 }

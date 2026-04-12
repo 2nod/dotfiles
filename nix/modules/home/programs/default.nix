@@ -2,6 +2,7 @@
   pkgs,
   lib,
   config,
+  helpers,
   profile ? { },
   dotfilesDir,
   ...
@@ -61,6 +62,14 @@
         ;
     })
     ./delta.nix
+    (import ./ghostty {
+      inherit
+        pkgs
+        lib
+        config
+        helpers
+        ;
+    })
     (import ./lazygit {
       inherit
         pkgs

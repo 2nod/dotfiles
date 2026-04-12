@@ -49,6 +49,7 @@ in
       "cursor"
       "cursor-cli"
       "discord"
+      "ghostty"
       "google-chrome"
       "karabiner-elements"
       "nani"
