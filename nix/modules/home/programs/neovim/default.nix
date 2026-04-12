@@ -14,6 +14,8 @@ in
 {
   programs.neovim = {
     enable = true;
+    withRuby = false;
+    withPython3 = false;
     extraWrapperArgs = [
       "--set"
       "TREESITTER_GRAMMARS"
