@@ -67,7 +67,7 @@
         lib
         ;
     })
-    (import ./cmux.nix {
+    (import ./cmux {
       inherit pkgs;
     })
     (import ./colima {
