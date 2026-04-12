@@ -274,15 +274,28 @@ in
   system.activationScripts.postActivation.text = ''
     ${lib.optionalString installRosetta ''
       if [ "$(uname -m)" = "arm64" ]; then
-        if ! /usr/sbin/softwareupdate --install-rosetta --agree-to-license; then
-          echo "Rosetta 2 installation failed" >&2
-          exit 1
+        if /usr/sbin/pkgutil --pkg-info com.apple.pkg.RosettaUpdateAuto >/dev/null 2>&1; then
+          echo "Rosetta 2 already installed; skipping."
+        else
+          echo "Installing Rosetta 2..."
+          if ! /usr/sbin/softwareupdate --install-rosetta --agree-to-license; then
+            echo "Rosetta 2 installation failed" >&2
+            exit 1
+          fi
         fi
       fi
     ''}
 
-    echo "Setting login shell to fish..."
-    chsh -s ${pkgs.fish}/bin/fish ${user} || true
+    current_shell="$(/usr/bin/dscl . -read /Users/${user} UserShell 2>/dev/null | /usr/bin/awk '{print $2}')"
+    if [ "$current_shell" = "${pkgs.fish}/bin/fish" ]; then
+      echo "Login shell already set to fish; skipping."
+    else
+      echo "Setting login shell to fish..."
+      if ! chsh -s ${pkgs.fish}/bin/fish ${user}; then
+        echo "Failed to change login shell for ${user}" >&2
+        exit 1
+      fi
+    fi
   '';
 
   # Set Git commit hash for darwin-version.

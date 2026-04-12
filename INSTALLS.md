@@ -78,7 +78,8 @@
   - trackpad settings
   - custom symbolic hotkeys / multitouch settings
 - `environment.shells = [ pkgs.fish ]`
-- login shell change via `chsh -s ... fish`
+- login shell change via `chsh -s ... fish` only when current shell is not already fish
+- Rosetta 2 install only when enabled by profile and not already installed
 - `system.configurationRevision`
 - `system.stateVersion = 6`
 - `nixpkgs.hostPlatform`
