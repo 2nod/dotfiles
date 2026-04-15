@@ -109,9 +109,9 @@
 ### ファイル/検索
 #### oil（ファイルマネージャ）
 - 開く: `<leader>e`（leaderはSpace）
-- 開く/分割: `<CR>` / `<C-s>`(vsplit) / `<C-h>`(split) / `<C-t>`(tab)
+- 開く/分割: `<CR>` / `<C-s>`(vsplit) / `gh`(split) / `<C-t>`(tab)
 - 移動: `-`(親) / `_`(cwd) / `g.`(隠し)
-- プレビュー: `<C-p>` / `gp`(WezTermプレビュー) / `g<leader>`(QuickLook)
+- プレビュー/更新: `<C-p>` / `gp`(WezTermプレビュー) / `g<leader>`(QuickLook) / `gr`(refresh)
 
 #### Telescope
 - `<leader>ff`: ファイル

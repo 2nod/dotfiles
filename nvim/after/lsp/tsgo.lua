@@ -8,6 +8,15 @@ return {
 		end
 		return vim.lsp.rpc.start({ cmd, "--lsp", "--stdio" }, dispatchers)
 	end,
+	-- tsgo can register watchers for bundled:/// virtual paths, which Neovim's
+	-- glob parser rejects. Disable watched-file dynamic registration for tsgo.
+	capabilities = {
+		workspace = {
+			didChangeWatchedFiles = {
+				dynamicRegistration = false,
+			},
+		},
+	},
 	filetypes = {
 		"javascript",
 		"javascript.jsx",

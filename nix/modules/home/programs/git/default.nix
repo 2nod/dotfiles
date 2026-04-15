@@ -7,6 +7,7 @@ in
 {
   programs.git = {
     enable = true;
+    package = null;
     signing.format = null;
     settings = {
       user = {

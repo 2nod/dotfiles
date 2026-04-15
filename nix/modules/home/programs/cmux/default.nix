@@ -4,7 +4,6 @@
 { pkgs, ... }:
 let
   jsonFormat = pkgs.formats.json { };
-
   cmuxSettings = {
     "$schema" =
       "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux-settings.schema.json";

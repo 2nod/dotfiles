@@ -25,6 +25,7 @@ in
         pkgs
         lib
         config
+        helpers
         profile
         dotfilesDir
         ;

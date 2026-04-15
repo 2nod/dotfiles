@@ -13,6 +13,7 @@ in
   home.activation.linkDotfiles = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     ${helpers.activation.mkLinkForce}
 
+    link_force "${dotfilesDir}/aerospace" "${configHome}/aerospace"
     link_force "${dotfilesDir}/wezterm" "${configHome}/wezterm"
     link_force "${dotfilesDir}/karabiner" "${configHome}/karabiner"
     link_force "${dotfilesDir}/efm-langserver" "${configHome}/efm-langserver"

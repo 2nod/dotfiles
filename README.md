@@ -118,13 +118,13 @@ nix run .#build -- <profile>
 この repo では `nix/modules/home/dotfiles.nix` と `nix/modules/home/programs/neovim` で使っています。
 手動で削除する必要はありませんが、必要なら `nix run .#switch -- <profile>` の前にバックアップを取っておくのがおすすめです。
 
-例: `~/.bashrc`, `~/.bash_profile`, `~/.zshrc`, `~/.zshenv`, `~/.config/nvim`, `~/.config/wezterm`, `~/.config/karabiner` などが置き換わります。
+例: `~/.bashrc`, `~/.bash_profile`, `~/.zshrc`, `~/.zshenv`, `~/.config/nvim`, `~/.config/wezterm`, `~/.config/aerospace`, `~/.config/karabiner` などが置き換わります。
 Home Manager が生成する `~/.config/git/config` や `~/.local/state/home-manager/...` も作成されます。
 
 ## home-manager と link_force の使い分け
 - パターンA（home-managerのみ）: `programs.*` で表現でき、設定量も無理なく Nix 化できるもの。例: `git`
 - パターンB（home-manager + link_force）: モジュールは使いたいが、設定は既存ディレクトリをそのまま使いたいもの。例: `nvim`
-- パターンC（link_forceのみ）: モジュールが無い、またはそのまま運用したい設定。例: `wezterm`/`karabiner`/`bash`/`zsh`
+- パターンC（link_forceのみ）: モジュールが無い、またはそのまま運用したい設定。例: `aerospace`/`wezterm`/`karabiner`/`bash`/`zsh`
 - 判断フロー: 「モジュールがある？」→ Yes: Nix 化できるならA / 既存設定を残すならB、No: C
 - 置き場所: `nix/modules/home/programs/` はA/B、repo直下の `wezterm/` などはCの設定置き場
 - 引数方針: `dotfilesDir` などのカスタム引数は `import` で明示的に渡す（依存関係を見える化し、`_module.args` の暗黙依存を避けるため）

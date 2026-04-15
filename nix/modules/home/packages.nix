@@ -10,7 +10,6 @@
     pkgs.deno
     pkgs.eza
     pkgs.gh
-    pkgs.git
     pkgs.lazygit
     pkgs.colima
     pkgs.docker

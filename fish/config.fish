@@ -25,13 +25,9 @@ set -gx ABBR_TIPS_PROMPT "\n[abbr] {{ .abbr }} => {{ .cmd }}"
 set -gx theme_nerd_fonts yes
 set -gx BIT_THEME monochrome
 set -gx COLIMA_HOME "$HOME/.config/colima"
-if test -S "$HOME/.config/colima/default/docker.sock"
-    set -gx DOCKER_HOST "unix://$HOME/.config/colima/default/docker.sock"
-else
-    if set -q DOCKER_HOST
-        set -e DOCKER_HOST
-    end
-end
+# Always point Docker at the Colima socket path so shells started before
+# `colima start` do not fall back to /var/run/docker.sock.
+set -gx DOCKER_HOST "unix://$HOME/.config/colima/default/docker.sock"
 
 set -l theme_file "$FISH_CONFIG_DIR/themes/kanagawa.fish"
 if test -f $theme_file
