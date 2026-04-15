@@ -22,6 +22,9 @@ in
   # Homebrew is managed here for casks that are fragile under brew-nix.
   homebrew = {
     enable = true;
+    taps = [
+      "nikitabobko/tap"
+    ];
     onActivation = {
       cleanup = "uninstall";
       autoUpdate = true;
@@ -39,7 +42,9 @@ in
       "yarn"
     ];
     casks = [
+      "alt-tab"
       "aqua-voice"
+      "nikitabobko/tap/aerospace"
       "anki"
       "arc"
       "bitwarden"
@@ -79,6 +84,36 @@ in
 
   # Launch apps at login for the primary user.
   launchd.user.agents = {
+    aerospace = {
+      serviceConfig = {
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-g"
+          "-a"
+          "AeroSpace"
+        ];
+        LimitLoadToSessionType = [ "Aqua" ];
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+      };
+    };
+    "alt-tab" = {
+      serviceConfig = {
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-g"
+          "-a"
+          "AltTab"
+        ];
+        LimitLoadToSessionType = [ "Aqua" ];
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+      };
+    };
     colima = {
       serviceConfig = {
         EnvironmentVariables = {

@@ -12,6 +12,7 @@
   - `~/.bash_profile`
   - `~/.bashrc`
   - `~/.config/wezterm`
+  - `~/.config/aerospace`
   - `~/.config/karabiner`
   - `~/.config/efm-langserver`
   - `~/.config/fish`
@@ -35,7 +36,9 @@
 - `homebrew.onActivation.cleanup = "uninstall"`
 - `homebrew.onActivation.autoUpdate = true`
 - `homebrew.casks`
+  - `alt-tab`
   - `aqua-voice`
+  - `nikitabobko/tap/aerospace`
   - `anki`
   - `arc`
   - `bitwarden`
@@ -64,6 +67,8 @@
   - `ignoreShellProgramCheck = true`
 - `system.primaryUser = user`
 - `launchd.user.agents`
+  - `aerospace`
+  - `alt-tab`
   - `raycast`
   - `karabiner-elements`
   - `bitwarden`
@@ -125,6 +130,7 @@
 Home Manager の activation で生成・差し替えされるもの。
 
 - `~/.config/wezterm`
+- `~/.config/aerospace`
 - `~/.config/karabiner`
 - `~/.config/efm-langserver`
 - `~/.config/fish`
@@ -149,6 +155,7 @@ Home Manager の activation で生成・差し替えされるもの。
 `link_force` は既存ファイルを消してから symlink を張ります。
 
 - `nix/modules/home/dotfiles.nix`
+  - `aerospace`
   - `wezterm`
   - `karabiner`
   - `efm-langserver`
