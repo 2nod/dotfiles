@@ -149,6 +149,11 @@
 - `<leader>de`: 浮動ウィンドウ
 - `[d` / `]d`: 前/次
 
+#### Markdown
+- `<leader>mp`: Markdown/MDX ライブプレビューの開始/停止（トグル, Markdown/MDX バッファのみ）
+- `<leader>mo`: Markdown/MDX ライブプレビュー開始（Markdown/MDX バッファのみ）
+- `<leader>mc`: Markdown/MDX ライブプレビュー停止（Markdown/MDX バッファのみ）
+
 #### Git (gitsigns)
 - `md`: diffビュー（右分割）
 - `mh` / `mp`: hunkプレビュー
