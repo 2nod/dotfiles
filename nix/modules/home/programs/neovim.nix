@@ -6,7 +6,7 @@
   ...
 }:
 let
-  helpers = import ../../../lib/helpers { inherit lib; };
+  helpers = import ../../lib/helpers { inherit lib; };
   nvimDotfilesDir = "${dotfilesDir}/nvim";
   nvimConfigDir = "${config.xdg.configHome}/nvim";
   treesitterGrammars = pkgs.vimPlugins.nvim-treesitter.withAllGrammars;
@@ -31,7 +31,9 @@ in
     pkgs.typescript-go
   ];
 
-  home.activation.linkNvimConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+  xdg.configFile."nvim/init.lua".enable = lib.mkForce false;
+
+  home.activation.linkNvimConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${helpers.activation.mkLinkForce}
     link_force "${nvimDotfilesDir}" "${nvimConfigDir}"
   '';

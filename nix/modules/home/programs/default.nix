@@ -9,6 +9,7 @@
 }:
 {
   imports = [
+    ./ai-tools.nix
     (import ./git {
       inherit
         pkgs
@@ -16,28 +17,14 @@
         config
         ;
     })
-    (import ./direnv {
+    (import ./direnv.nix {
       inherit
         pkgs
         lib
         config
         ;
     })
-    (import ./neovim {
-      inherit
-        pkgs
-        lib
-        config
-        dotfilesDir
-        ;
-    })
-    (import ./fish {
-      inherit
-        pkgs
-        lib
-        ;
-    })
-    (import ./vscode {
+    (import ./neovim.nix {
       inherit
         pkgs
         lib
@@ -45,7 +32,13 @@
         dotfilesDir
         ;
     })
-    (import ./cursor {
+    (import ./fish.nix {
+      inherit
+        pkgs
+        lib
+        ;
+    })
+    (import ./vscode.nix {
       inherit
         pkgs
         lib
@@ -53,16 +46,33 @@
         dotfilesDir
         ;
     })
-    (import ./codex {
+    (import ./cursor.nix {
       inherit
         pkgs
         lib
         config
+        dotfilesDir
+        ;
+    })
+    (import ./codex.nix {
+      inherit
+        pkgs
+        lib
+        config
+        dotfilesDir
+        ;
+    })
+    (import ./claude-code {
+      inherit
+        pkgs
+        lib
+        config
+        helpers
         dotfilesDir
         ;
     })
     ./delta.nix
-    (import ./ghostty {
+    (import ./ghostty.nix {
       inherit
         pkgs
         lib
@@ -76,10 +86,10 @@
         lib
         ;
     })
-    (import ./cmux {
+    (import ./cmux.nix {
       inherit pkgs;
     })
-    (import ./colima {
+    (import ./colima.nix {
       inherit
         pkgs
         lib
