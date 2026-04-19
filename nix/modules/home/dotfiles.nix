@@ -22,6 +22,5 @@ in
     link_force "${dotfilesDir}/zsh/zshrc" "${homeDir}/.zshrc"
     link_force "${dotfilesDir}/bash/.bash_profile" "${homeDir}/.bash_profile"
     link_force "${dotfilesDir}/bash/.bashrc" "${homeDir}/.bashrc"
-    link_force "${dotfilesDir}/claude/settings.json" "${homeDir}/.claude/settings.json"
   '';
 }

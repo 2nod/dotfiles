@@ -32,6 +32,8 @@ let
   codexConfig = tomlFormat.generate "codex-config" settings;
 in
 {
+  home.packages = [ pkgs.llm-agents.codex ];
+
   home.sessionVariables = {
     CODEX_HOME = codexConfigDir;
   };

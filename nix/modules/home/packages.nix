@@ -1,12 +1,11 @@
 { pkgs, ... }:
 {
-  # CLI packages live here (home-manager).
+  # Generic CLI packages that don't have a dedicated programs/<tool>/ module.
+  # Tool-specific packages live alongside their config in programs/<tool>/default.nix.
   home.packages = [
     pkgs.bat
     pkgs.bun
-    pkgs.claude-code
     pkgs.mise
-    pkgs.codex
     pkgs.deno
     pkgs.eza
     pkgs.gh

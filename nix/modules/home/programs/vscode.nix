@@ -5,9 +5,9 @@
   ...
 }:
 let
-  helpers = import ../../../lib/helpers { inherit lib; };
+  helpers = import ../../lib/helpers { inherit lib; };
   jsonFormat = pkgs.formats.json { };
-  shared = import ../code-shared.nix { inherit config; };
+  shared = import ./code-shared.nix { inherit config; };
   vscodeUserDir =
     if pkgs.stdenv.hostPlatform.isDarwin then
       "${config.home.homeDirectory}/Library/Application Support/Code/User"

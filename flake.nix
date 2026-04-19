@@ -22,6 +22,7 @@
     claude-code = {
       url = "github:sadjow/claude-code-nix";
     };
+    llm-agents.url = "github:numtide/llm-agents.nix";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -36,6 +37,7 @@
       brew-nix,
       claude-code,
       home-manager,
+      llm-agents,
       treefmt-nix,
       ...
     }:
@@ -133,7 +135,10 @@
           };
           modules = [
             {
-              nixpkgs.overlays = [ claude-code.overlays.default ];
+              nixpkgs.overlays = [
+                claude-code.overlays.default
+                llm-agents.overlays.default
+              ];
             }
             brew-nix.darwinModules.default
             ./nix/modules/darwin/system.nix
