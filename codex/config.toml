@@ -1,0 +1,25 @@
+approval_policy = "never"
+model = "gpt-5.4-mini"
+model_reasoning_effort = "high"
+network_access = "restricted"
+sandbox_mode = "danger-full-access"
+web_search_request = true
+
+[notice]
+"hide_gpt-5.1-codex-max_migration_prompt" = true
+hide_gpt5_1_migration_prompt = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = false
+
+[projects."/Users/tsuno"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents/manga-admins/work-1"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents/manga-admins/work-2"]
+trust_level = "trusted"

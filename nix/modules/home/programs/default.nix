@@ -59,6 +59,7 @@
         pkgs
         lib
         config
+        helpers
         dotfilesDir
         ;
     })
