@@ -1,0 +1,4 @@
+# Add exact remote URLs here to allow direct push to refs/heads/main or refs/heads/master.
+# Examples:
+# git@github.com:your-org/important-repo.git
+# https://github.com/your-org/important-repo.git
