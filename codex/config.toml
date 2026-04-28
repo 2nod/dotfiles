@@ -1,0 +1,59 @@
+approval_policy = "never"
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+network_access = "restricted"
+sandbox_mode = "danger-full-access"
+web_search_request = true
+
+[notice]
+"hide_gpt-5.1-codex-max_migration_prompt" = true
+hide_gpt5_1_migration_prompt = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = false
+
+[plugins."browser-use@openai-bundled"]
+enabled = true
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[projects."/Users/tsuno"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents/manga-admins/work-1"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents/manga-admins/work-2"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents/studio-ml-pipeline/work-1"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents/studio-ml-pipeline/work-2"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/escape"]
+trust_level = "trusted"
+
+[marketplaces.openai-bundled]
+last_updated = "2026-04-28T10:29:16Z"
+source_type = "local"
+source = "/Users/tsuno/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-04-24T11:41:39Z"
+source_type = "local"
+source = "/Users/tsuno/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 3

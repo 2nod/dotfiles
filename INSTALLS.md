@@ -16,6 +16,7 @@
   - `~/.config/karabiner`
   - `~/.config/efm-langserver`
   - `~/.config/fish`
+  - `~/.config/git/hooks/pre-push`
   - `~/.claude/settings.json`
   - `~/.config/cmux/settings.json`
   - `~/.config/nvim`
@@ -115,6 +116,8 @@
   - `wezterm`
   - `yazi`
 - `programs.git`
+- `programs.git.settings.core.hooksPath`
+- `programs.git` の pre-push hook で allowlist 以外の `main` / `master` への直接 push を拒否
 - `programs.direnv`
 - `programs.neovim`
 - `programs.fish`
@@ -134,6 +137,8 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/.config/karabiner`
 - `~/.config/efm-langserver`
 - `~/.config/fish`
+- `~/.config/git/hooks/pre-push`
+- `~/.config/git/hooks/pre-push.allowlist`
 - `~/.zshenv`
 - `~/.zshrc`
 - `~/.bash_profile`
@@ -178,6 +183,18 @@ Home Manager の activation で生成・差し替えされるもの。
 
 `nix-darwin` の `homebrew` 管理で入るもの。
 
+- brews
+  - `pkg-config`
+  - `cairo`
+  - `pango`
+  - `libomp`
+  - `libpng`
+  - `jpeg`
+  - `giflib`
+  - `librsvg`
+  - `pixman`
+  - `python-setuptools`
+  - `yarn`
 - casks は `homebrew.casks` に列挙した GUI アプリ
 - `homebrew` 自体の挙動は `cleanup = "uninstall"` と `autoUpdate = true`
 
