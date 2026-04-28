@@ -46,7 +46,7 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-04-28T10:28:07Z"
+last_updated = "2026-04-28T10:29:16Z"
 source_type = "local"
 source = "/Users/tsuno/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
