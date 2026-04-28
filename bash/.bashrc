@@ -1,46 +1,53 @@
-# PATH
-export XDG_CONFIG_HOME="$HOME/.config"
-export PATH="/Users/tsuno/.detaspace/bin:$PATH"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 
-# Homebrew
-eval "$(/opt/homebrew/bin/brew shellenv)"
-
-# Rust
-[ -s "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
-
-# ssh-agent
-ssh-add -l &>/dev/null || ssh-add --apple-use-keychain "$HOME/.ssh/github" 2>/dev/null
-
-# Node (mise)
-export PATH="/etc/profiles/per-user/$USER/bin:$HOME/.local/state/home-manager/gcroots/current-home/home-path/bin:$PATH"
-if command -v mise >/dev/null 2>&1; then
-  if [ -n "${ZSH_VERSION:-}" ]; then
-    eval "$(mise activate zsh)"
-  elif [ -n "${BASH_VERSION:-}" ]; then
-    eval "$(mise activate bash)"
-  fi
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
-# Bun
 export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# pnpm
-export PNPM_HOME="/Users/tsuno/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-
-# Colima
+export PNPM_HOME="$HOME/Library/pnpm"
 export COLIMA_HOME="$HOME/.config/colima"
-if [ -S "$HOME/.config/colima/default/docker.sock" ]; then
-  export DOCKER_HOST="unix://$HOME/.config/colima/default/docker.sock"
-else
-  unset DOCKER_HOST
+
+path_prepend() {
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="$1${PATH:+:$PATH}" ;;
+  esac
+}
+
+path_prepend "$HOME/.nix-profile/bin"
+path_prepend "$HOME/.cargo/bin"
+path_prepend "$HOME/.detaspace/bin"
+path_prepend "$HOME/.deno/bin"
+path_prepend "$BUN_INSTALL/bin"
+path_prepend "$HOME/.cache/.bun/bin"
+path_prepend "/etc/profiles/per-user/$USER/bin"
+path_prepend "$HOME/.local/state/home-manager/gcroots/current-home/home-path/bin"
+path_prepend "/run/current-system/sw/bin"
+path_prepend "$HOME/.local/bin"
+path_prepend "$PNPM_HOME"
+path_prepend "/usr/local/opt/curl/bin"
+path_prepend "/usr/local/opt/coreutils/libexec/gnubin"
+path_prepend "/opt/homebrew/sbin"
+path_prepend "/opt/homebrew/bin"
+export PATH
+
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate bash --shims)"
 fi
 
-# direnv
-if [ -n "$BASH_VERSION" ] && command -v direnv >/dev/null 2>&1; then
+export DOCKER_HOST="unix://$HOME/.config/colima/default/docker.sock"
+
+export EDITOR=nvim
+export GIT_EDITOR=nvim
+export VISUAL=nvim
+
+if command -v direnv >/dev/null 2>&1; then
   eval "$(direnv hook bash)"
+fi
+
+if [[ $- == *i* ]]; then
+  ssh-add -l &>/dev/null || ssh-add --apple-use-keychain "$HOME/.ssh/github" 2>/dev/null
 fi
