@@ -15,7 +15,10 @@ in
         name = user.username;
         email = user.email;
       };
-      ghq.root = "${config.home.homeDirectory}/ghq";
+      ghq.root = [
+        "${config.home.homeDirectory}/ghq"
+        "${config.home.homeDirectory}/src"
+      ];
     };
     includes = [
       { path = "${aliasesFile}"; }
