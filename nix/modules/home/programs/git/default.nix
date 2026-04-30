@@ -15,6 +15,7 @@ in
         name = user.username;
         email = user.email;
       };
+      ghq.root = "${config.home.homeDirectory}/ghq";
     };
     includes = [
       { path = "${aliasesFile}"; }

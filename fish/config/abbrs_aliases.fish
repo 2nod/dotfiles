@@ -135,7 +135,9 @@ abbr -a gh-fork-sync "gh repo list --limit 200 --fork --json nameWithOwner --jq 
 # abbr -a -c git pbr 'browse-pr'
 
 # ghq
-# abbr -a gg 'ghq get'
+abbr -a gg 'ghq get'
+abbr -a ggl 'ghq list'
+abbr -a ggr 'cd (ghq root)'
 
 # leetcode
 # abbr -a lc leetcode

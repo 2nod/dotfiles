@@ -20,6 +20,9 @@ in
       "--set"
       "TREESITTER_GRAMMARS"
       "${treesitterGrammars}"
+      "--set"
+      "TELESCOPE_FZF_NATIVE"
+      "${pkgs.vimPlugins.telescope-fzf-native-nvim}"
     ];
   };
 
@@ -28,6 +31,7 @@ in
     pkgs.hadolint
     pkgs.oxfmt
     pkgs.oxlint
+    pkgs.vimPlugins.telescope-fzf-native-nvim
     pkgs.typescript-go
   ];
 

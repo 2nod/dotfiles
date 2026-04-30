@@ -38,6 +38,14 @@ if command -v mise >/dev/null 2>&1; then
   eval "$(mise activate bash --shims)"
 fi
 
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init bash)"
+fi
+
+if command -v fzf >/dev/null 2>&1; then
+  eval "$(fzf --bash)"
+fi
+
 export DOCKER_HOST="unix://$HOME/.config/colima/default/docker.sock"
 
 export EDITOR=nvim

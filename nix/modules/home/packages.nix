@@ -8,7 +8,9 @@
     pkgs.mise
     pkgs.deno
     pkgs.eza
+    pkgs.fzf
     pkgs.gh
+    pkgs.ghq
     pkgs.lazygit
     pkgs.colima
     pkgs.docker
@@ -17,8 +19,10 @@
     pkgs.pnpm
     pkgs.spotify
     pkgs.ripgrep
+    pkgs.roots
     pkgs.uv
     pkgs.wezterm
     pkgs.yazi
+    pkgs.zoxide
   ];
 }

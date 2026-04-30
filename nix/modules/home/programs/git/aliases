@@ -1,2 +1,29 @@
 [alias]
-  ; add aliases here
+  ; Interactive add with fzf preview using delta.
+  apf = "!git ls-files -m -o --exclude-standard | fzf -m --preview 'git diff --color=always -- {} | delta' | xargs -o git add -p"
+  ; Switch to a branch selected with fzf.
+  swf = "!git branch -a --format='%(refname:short)' | sed 's|^origin/||' | sort -u | fzf | xargs git switch"
+  ; Switch to a remote branch selected with fzf.
+  swor = "!f() { local ref; ref=$(git branch -r --format='%(refname:short)' | fzf); [ -n \"$ref\" ] && git switch \"${1:-${ref#*/}}\" \"$ref\"; }; f"
+  ; View an issue selected with fzf from the issue list.
+  isv = "!gh issue list | fzf --prompt 'issue preview>' --preview \"echo {} | awk '{print \\$1}' | xargs gh issue view\" | awk '{print $1}' | xargs gh issue view"
+  ; View a PR selected with fzf from the PR list.
+  prv = "!gh pr list | fzf --prompt 'pr preview>' --preview \"echo {} | awk '{print \\$1}' | xargs gh pr view\" | awk '{print $1}' | xargs gh pr view"
+  ; Delete all local branches that have been merged.
+  clean-local-branches = "!git branch --merged | grep -v '\\*' | xargs git branch -d"
+  ; Open the repository in a web browser.
+  browse = "!gh repo view --web"
+  ; Open the current pull request in a web browser.
+  browse-pr = "!gh pr view --web"
+  ; Get the commit URL for the current HEAD.
+  brc = "!echo $(gh repo view --json url --jq .url)/commit/$(git rev-parse HEAD)"
+  ; Checkout the main branch, auto-detecting main or master.
+  com = "!f() { remote_head=$(git symbolic-ref --quiet refs/remotes/origin/HEAD); remote_head=${remote_head#refs/remotes/origin/}; git checkout ${remote_head:-$(git rev-parse --symbolic --verify --quiet main || git rev-parse --symbolic --verify --quiet master)}; }; f"
+  ; Setup fetching GitHub pull requests as local refs.
+  pr-setup = config --add remote.origin.fetch +refs/pull/*/head:refs/remotes/origin/pr/*
+  ; Show recent branches from reflog.
+  rb = "!git reflog -n 50 --pretty='format:%gs' | perl -anal -e '$seen{$1}++ or print $1 if /checkout:.*to (.+)/'"
+  ; Show the root directory of the repository.
+  root = rev-parse --show-toplevel
+  ; List all git aliases.
+  aliases = "!git config --get-regexp alias | sed 's/^alias\\.//g' | sed 's/ / = /1'"

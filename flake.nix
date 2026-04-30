@@ -138,6 +138,7 @@
               nixpkgs.overlays = [
                 claude-code.overlays.default
                 llm-agents.overlays.default
+                (import ./nix/overlays/roots.nix)
               ];
             }
             brew-nix.darwinModules.default
