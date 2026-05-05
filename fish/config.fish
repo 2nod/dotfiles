@@ -10,6 +10,10 @@ if type -q direnv
     direnv hook fish | source
 end
 
+if type -q zoxide
+    zoxide init fish | source
+end
+
 for file in $FISH_CONFIG_DIR/config/*.fish
     source $file
 end
@@ -40,6 +44,7 @@ end
 
 # PATH
 fish_add_path "/etc/profiles/per-user/$USER/bin"
+fish_add_path "$HOME/.nix-profile/bin"
 fish_add_path "$HOME/.local/bin"
 fish_add_path /usr/local/opt/coreutils/libexec/gnubin
 fish_add_path /usr/local/opt/curl/bin

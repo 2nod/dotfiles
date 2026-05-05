@@ -18,6 +18,8 @@ map("n", "<leader>ff", "<cmd>Telescope find_files<CR>", { desc = "Find files" })
 map("n", "<leader>fg", "<cmd>Telescope live_grep<CR>", { desc = "Live grep" })
 map("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "Buffers" })
 map("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "Help" })
+map("n", "<leader>fG", "<cmd>Telescope ghq list<CR>", { desc = "GHQ repositories" })
+map("n", "<leader>fz", "<cmd>Telescope zoxide list<CR>", { desc = "Zoxide directories" })
 
 map("n", "<leader>de", vim.diagnostic.open_float, { desc = "Diagnostic float" })
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })

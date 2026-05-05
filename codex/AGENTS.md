@@ -19,3 +19,6 @@ These skills are discovered at startup from multiple local sources. Each entry i
   - Avoid deeply nested references; prefer one-hop files explicitly linked from `SKILL.md`.
   - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
 - Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
+- Before running any `git commit`, always ask the user for explicit permission. Never commit automatically.
+- Before running any `git push`, always ask the user for explicit permission. Never push automatically.
+- Never push directly to `main` or `master`. Always use a branch and open a PR unless the user explicitly instructs otherwise.

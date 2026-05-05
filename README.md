@@ -82,6 +82,44 @@ nix run .#switch -- <profile>
 
 ※ `local.nix` はリポジトリ管理のため、秘密情報は入れない運用にしてください。プロファイルの設定手順は `nix/modules/profiles/README.md` を参照してください。複数 Mac を運用する場合は、Mac ごとに `profile` を分けて `system` / `hostName` を設定します。
 
+## キーバインドと CLI ナビゲーション
+
+### fzf キーバインド（fish shell）
+
+| キー | 動作 |
+|------|------|
+| `Ctrl+G` | ghq で管理しているリポジトリを fzf で選択して cd |
+| `Ctrl+B` | git ブランチを fzf で選択して switch |
+| `Ctrl+T` | ファイルを fzf で選択してコマンドラインに挿入 |
+| `Ctrl+R` | コマンド履歴を fzf で検索 |
+| `Alt+C` | ディレクトリを fzf で選択して cd |
+| `Ctrl+X Ctrl+K` | プロセスを fzf で選択して kill |
+
+### リポジトリ管理（ghq）
+
+`Ctrl+G` は `ghq list --full-path | roots | fzf` のパイプラインで動く。
+
+- **ghq root**: `~/ghq`（`ghq get` でクローンした先）と `~/src`（手動クローン）の 2 つ
+- **roots**: monorepo のルートディレクトリを検出する CLI。ghq の複数 root を正規化するフィルターとして使っている
+- **運用方針**: 新規リポジトリは `ghq get github.com/<owner>/<repo>` で `~/ghq` に入れる。`~/src` は移行期の既存リポジトリ置き場
+
+```fish
+# リポジトリをクローン（~/ghq/github.com/<owner>/<repo> に入る）
+ghq get github.com/<owner>/<repo>
+
+# 管理リポジトリ一覧
+ghq list
+```
+
+### ディレクトリ移動（zoxide）
+
+`zoxide` が有効化されており、`z <keyword>` で訪問履歴からディレクトリジャンプできる。
+
+```fish
+z dotfiles   # ~/dotfiles に移動
+z sig        # ~/src/signoz など履歴マッチで移動
+```
+
 ## よく使うコマンド
 - `nix run .#list-profiles`: 利用可能なプロファイル一覧を表示。
 - `nix run .#build -- <profile>`: 指定したプロファイルで反映なしでビルドのみ行う。

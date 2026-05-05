@@ -33,6 +33,7 @@ in
       "pkg-config"
       "cairo"
       "pango"
+      "libomp"
       "libpng"
       "jpeg"
       "giflib"
