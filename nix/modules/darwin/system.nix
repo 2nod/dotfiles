@@ -41,7 +41,6 @@ in
       "librsvg"
       "pixman"
       "python-setuptools"
-      "hunk"
       "yarn"
     ];
     casks = [
@@ -74,7 +73,13 @@ in
   # Determinate Nix manages the daemon; disable nix-darwin's Nix management.
   nix.enable = false;
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+    permittedInsecurePackages = [
+      "lima-full-1.2.2"
+      "lima-additional-guestagents-1.2.2"
+    ];
+  };
 
   users.users.${user} = {
     home = "/Users/${user}";

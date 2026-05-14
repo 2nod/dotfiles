@@ -27,6 +27,20 @@
 - GUIアプリは `homebrew.casks` で管理（/Applications 配置で永続化しやすい）
 - brew-nixの `pkgs.brewCasks.*` はGUIを避け、CLI/軽量ツールに限定する
 - 背景: `/nix/store` 配置の `.app` に ACL が付くと GC 時に `Operation not permitted` が発生しやすい
+### バイナリキャッシュ
+- `nixos-25.11` stable を使用（unstable はキャッシュミスが多い）
+- `llm-agents.nix`（codex / cursor-agent / opencode）は `cache.numtide.com` からキャッシュ取得
+- キャッシュ設定は `/etc/nix/nix.custom.conf` にシステムレベルで記述（Determinate Nix の管理外）
+  ```
+  extra-trusted-substituters = https://cache.numtide.com
+  extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
+  ```
+- 新規マシンセットアップ時にこの2行を `/etc/nix/nix.custom.conf` に追加してデーモン再起動が必要
+  ```bash
+  sudo sh -c 'printf "extra-trusted-substituters = https://cache.numtide.com\nextra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=\n" > /etc/nix/nix.custom.conf'
+  sudo launchctl kickstart -k system/systems.determinate.nix-daemon
+  ```
+
 ### バージョン確認（コマンド）
 - Nixパッケージ: `nix eval --raw ".#darwinConfigurations.<profile>.pkgs.<name>.version"`
 - brew-nix cask: `nix eval --raw ".#darwinConfigurations.<profile>.pkgs.brewCasks.<cask>.version"`

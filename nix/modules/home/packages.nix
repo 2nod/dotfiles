@@ -20,6 +20,8 @@
     pkgs.spotify
     pkgs.ripgrep
     pkgs.roots
+    pkgs.pyright
+    pkgs.ruff
     pkgs.uv
     pkgs.wezterm
     pkgs.yazi

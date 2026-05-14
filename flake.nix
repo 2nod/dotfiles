@@ -3,7 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
-    nix-darwin.url = "github:nix-darwin/nix-darwin/master";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
@@ -19,8 +20,9 @@
       url = "github:BatteredBunny/brew-api";
       flake = false;
     };
-    claude-code = {
-      url = "github:sadjow/claude-code-nix";
+    nix-claude-code = {
+      url = "github:ryoppippi/nix-claude-code";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
     treefmt-nix = {
@@ -35,7 +37,7 @@
       nix-darwin,
       nixpkgs,
       brew-nix,
-      claude-code,
+      nix-claude-code,
       home-manager,
       llm-agents,
       treefmt-nix,
@@ -136,9 +138,15 @@
           modules = [
             {
               nixpkgs.overlays = [
-                claude-code.overlays.default
+                nix-claude-code.overlays.default
                 llm-agents.overlays.default
                 (import ./nix/overlays/roots.nix)
+                (final: _prev: {
+                  unstable = import inputs.nixpkgs-unstable {
+                    inherit (final) system;
+                    config = final.config;
+                  };
+                })
               ];
             }
             brew-nix.darwinModules.default
@@ -315,7 +323,7 @@
                 fi
 
                 echo "Building and switching darwin configuration for profile: $PROFILE"
-                sudo -H nix run nix-darwin -- switch --flake .#"$PROFILE"
+                sudo -H nix run --accept-flake-config nix-darwin -- switch --flake .#"$PROFILE"
               ''
             );
           };

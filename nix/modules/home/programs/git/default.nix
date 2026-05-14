@@ -7,8 +7,7 @@ in
 {
   programs.git = {
     enable = true;
-    package = null;
-    signing.format = null;
+
     settings = {
       core.hooksPath = "${config.home.homeDirectory}/.config/git/hooks";
       user = {

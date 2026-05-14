@@ -29,7 +29,7 @@ in
   home.packages = [
     pkgs.efm-langserver
     pkgs.hadolint
-    pkgs.oxfmt
+    pkgs.unstable.oxfmt
     pkgs.oxlint
     pkgs.vimPlugins.telescope-fzf-native-nvim
     pkgs.typescript-go

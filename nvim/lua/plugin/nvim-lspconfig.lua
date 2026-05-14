@@ -7,7 +7,7 @@ return {
 		"hrsh7th/cmp-nvim-lsp",
 	},
 	init = function()
-		vim.lsp.enable({ "efm", "oxfmt", "oxlint", "tsgo" })
+		vim.lsp.enable({ "efm", "oxfmt", "oxlint", "pyright", "ruff", "tsgo" })
 	end,
 	config = function()
 		require("config.lsp")
