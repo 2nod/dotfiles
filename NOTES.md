@@ -125,8 +125,10 @@
 
 ### 開発支援
 #### LSP
-- `gd`: 定義へ
-- `gr`: 参照一覧
+- `gd`: 定義へ（Telescope）
+- `gt`: 型定義へ（Telescope）
+- `gI`: 実装へ（Telescope）
+- `gr`: 参照一覧（Telescope）
 - `K`: ホバー
 - `<leader>rn`: リネーム
 - `<leader>ca`: コードアクション

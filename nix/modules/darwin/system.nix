@@ -23,6 +23,7 @@ in
   homebrew = {
     enable = true;
     taps = [
+      "modem-dev/tap"
       "nikitabobko/tap"
     ];
     onActivation = {
@@ -40,6 +41,7 @@ in
       "librsvg"
       "pixman"
       "python-setuptools"
+      "hunk"
       "yarn"
     ];
     casks = [
