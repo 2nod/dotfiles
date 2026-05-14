@@ -30,7 +30,7 @@ in
     pkgs.efm-langserver
     pkgs.hadolint
     pkgs.unstable.oxfmt
-    pkgs.oxlint
+    pkgs.unstable.oxlint
     pkgs.vimPlugins.telescope-fzf-native-nvim
     pkgs.typescript-go
   ];
