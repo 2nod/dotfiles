@@ -17,5 +17,6 @@ in
     ${helpers.activation.mkLinkForce}
     $DRY_RUN_CMD mkdir -p "${homeDir}/.claude"
     link_force "${claudeDotfilesDir}/settings.json" "${homeDir}/.claude/settings.json"
+    link_force "${claudeDotfilesDir}/CLAUDE.md" "${homeDir}/.claude/CLAUDE.md"
   '';
 }
