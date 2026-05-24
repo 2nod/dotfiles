@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  dotfilesDir,
   ...
 }:
 let
@@ -15,6 +16,7 @@ let
       "${config.home.homeDirectory}/Library/Application Support/Cursor/User"
     else
       "${config.xdg.configHome}/Cursor/User";
+  cursorHomeDir = "${config.home.homeDirectory}/.cursor";
   cursorSettings = jsonFormat.generate "cursor-settings.json" userSettings;
   cursorKeybindings = jsonFormat.generate "cursor-keybindings.json" keybindings;
 in
@@ -23,5 +25,7 @@ in
     ${helpers.activation.mkLinkForce}
     link_force "${cursorSettings}" "${cursorUserDir}/settings.json"
     link_force "${cursorKeybindings}" "${cursorUserDir}/keybindings.json"
+    $DRY_RUN_CMD mkdir -p "${cursorHomeDir}/skills"
+    link_force "${dotfilesDir}/.agents/skills/grill-me" "${cursorHomeDir}/skills/grill-me"
   '';
 }

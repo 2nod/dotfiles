@@ -1,6 +1,6 @@
 approval_policy = "never"
-model = "gpt-5.4-mini"
-model_reasoning_effort = "medium"
+model = "gpt-5.5"
+model_reasoning_effort = "low"
 network_access = "restricted"
 sandbox_mode = "danger-full-access"
 web_search_request = true
@@ -34,13 +34,16 @@ enabled = true
 [plugins."presentations@openai-primary-runtime"]
 enabled = true
 
-[plugins."browser-use@openai-bundled"]
+[plugins."notion@openai-curated"]
+enabled = true
+
+[plugins."slack@openai-curated"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
 enabled = true
 
 [plugins."chrome@openai-bundled"]
-enabled = true
-
-[plugins."notion@openai-curated"]
 enabled = true
 
 [projects."/Users/tsuno"]
@@ -76,13 +79,25 @@ trust_level = "trusted"
 [projects."/Users/tsuno/Documents/Notion"]
 trust_level = "trusted"
 
+[projects."/Users/tsuno/Documents/Slack"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents/Codex/2026-05-18/claude-managed-agent-gui-session"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents"]
+trust_level = "trusted"
+
+[projects."/Users/tsuno/Documents/studio/studio-ml-pipeline"]
+trust_level = "trusted"
+
 [marketplaces.openai-bundled]
-last_updated = "2026-05-13T02:36:05Z"
+last_updated = "2026-05-19T07:28:11Z"
 source_type = "local"
 source = "/Users/tsuno/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-05-08T04:41:40Z"
+last_updated = "2026-05-19T06:41:52Z"
 source_type = "local"
 source = "/Users/tsuno/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
