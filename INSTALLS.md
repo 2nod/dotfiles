@@ -26,7 +26,6 @@
   - `~/Library/Application Support/Cursor/User/keybindings.json`
   - `~/.config/codex/config.toml`
   - `~/.config/codex/AGENTS.md`
-  - `~/.docker/config.json`
 
 ## System
 
@@ -153,7 +152,6 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/.config/lazygit/config.yml`
 - `~/.config/codex/config.toml`
 - `~/.config/codex/AGENTS.md`
-- `~/.docker/config.json`
 
 ## link_force
 
