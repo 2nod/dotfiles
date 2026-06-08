@@ -33,6 +33,7 @@ if command -v mise >/dev/null 2>&1; then
 fi
 
 export COLIMA_HOME="$HOME/.config/colima"
+export DOCKER_CONFIG="$HOME/.config/docker"
 export DOCKER_HOST="unix://$HOME/.config/colima/default/docker.sock"
 
 export EDITOR=nvim

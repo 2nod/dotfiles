@@ -29,6 +29,7 @@ set -gx ABBR_TIPS_PROMPT "\n[abbr] {{ .abbr }} => {{ .cmd }}"
 set -gx theme_nerd_fonts yes
 set -gx BIT_THEME monochrome
 set -gx COLIMA_HOME "$HOME/.config/colima"
+set -gx DOCKER_CONFIG "$HOME/.config/docker"
 # Always point Docker at the Colima socket path so shells started before
 # `colima start` do not fall back to /var/run/docker.sock.
 set -gx DOCKER_HOST "unix://$HOME/.config/colima/default/docker.sock"

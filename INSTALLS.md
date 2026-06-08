@@ -5,7 +5,7 @@
 ## 注意
 
 - `link_force` は既存のファイルやディレクトリを削除してから symlink を張ります。
-- `homebrew.onActivation.cleanup = "uninstall"` が有効なので、`homebrew.casks` から外した GUI アプリは削除対象になります。
+- `homebrew.onActivation.cleanup = "uninstall"` が有効なので、`homebrew.brews` / `homebrew.casks` から外した formula/cask は削除対象になります。
 - 初回適用前に、少なくとも次のファイルはバックアップ対象として確認してください。
   - `~/.zshenv`
   - `~/.zshrc`
@@ -24,9 +24,7 @@
   - `~/Library/Application Support/Code/User/keybindings.json`
   - `~/Library/Application Support/Cursor/User/settings.json`
   - `~/Library/Application Support/Cursor/User/keybindings.json`
-  - `~/.config/codex/config.toml`
   - `~/.config/codex/AGENTS.md`
-  - `~/.docker/config.json`
 
 ## System
 
@@ -36,6 +34,7 @@
 - `homebrew.enable = true`
 - `homebrew.onActivation.cleanup = "uninstall"`
 - `homebrew.onActivation.autoUpdate = true`
+- `homebrew.onActivation.extraFlags = [ "--force-cleanup" ]`
 - `homebrew.casks`
   - `alt-tab`
   - `aqua-voice`
@@ -112,6 +111,7 @@
   - `pnpm`
   - `spotify`
   - `ripgrep`
+  - `terraform`
   - `uv`
   - `wezterm`
   - `yazi`
@@ -151,9 +151,7 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/Library/Application Support/Cursor/User/settings.json`
 - `~/Library/Application Support/Cursor/User/keybindings.json`
 - `~/.config/lazygit/config.yml`
-- `~/.config/codex/config.toml`
 - `~/.config/codex/AGENTS.md`
-- `~/.docker/config.json`
 
 ## link_force
 
@@ -182,6 +180,7 @@ Home Manager の activation で生成・差し替えされるもの。
 ## Homebrew
 
 `nix-darwin` の `homebrew` 管理で入るもの。
+Brewfile は nix-darwin が生成するため、手元で `brew bundle install` / `brew bundle cleanup` は実行しない。
 
 - brews
   - `pkg-config`
@@ -196,7 +195,7 @@ Home Manager の activation で生成・差し替えされるもの。
   - `python-setuptools`
   - `yarn`
 - casks は `homebrew.casks` に列挙した GUI アプリ
-- `homebrew` 自体の挙動は `cleanup = "uninstall"` と `autoUpdate = true`
+- `homebrew` 自体の挙動は `cleanup = "uninstall"`、`autoUpdate = true`、`extraFlags = [ "--force-cleanup" ]`
 
 ## どこを見るか
 

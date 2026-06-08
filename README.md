@@ -14,7 +14,7 @@
 ## 注意点
 - `nix run .#switch -- <profile>` は、選んだ profile の `nix-darwin` と `home-manager` をまとめて適用します。
 - `link_force` は既存のファイルやディレクトリを削除してから symlink を張るため、手元で編集した設定は上書きされます。
-- `homebrew.onActivation.cleanup = "uninstall"` が有効なので、`homebrew.casks` から外した GUI アプリは削除対象になります。
+- `homebrew.onActivation.cleanup = "uninstall"` が有効なので、`homebrew.brews` / `homebrew.casks` から外した formula/cask は削除対象になります。
 - 初回適用や別 Mac への展開では、先に `INSTALLS.md` の上書き対象を確認してから `switch` してください。
 
 ## 参考
@@ -169,6 +169,7 @@ Home Manager が生成する `~/.config/git/config` や `~/.local/state/home-man
 
 ## よく編集する箇所
 - `nix/modules/darwin/system.nix`: システム設定と brew-nix の有効化。
+- `nix/modules/darwin/system.nix` の `homebrew.brews` / `homebrew.casks`: Homebrew formula/cask の追加場所。Brewfile は使わない。
 - `nix/modules/darwin/packages.nix`: brew-nix cask の追加場所 (home-manager 側)。
 - `nix/modules/home/packages.nix`: CLI パッケージの追加場所 (例: `pkgs.gh`, `pkgs.pnpm`)。
 - `programs.*`: 例として `programs.fish.enable = true;` をアンコメントすれば fish シェルを有効化できます。
@@ -180,6 +181,7 @@ Home Manager が生成する `~/.config/git/config` や `~/.local/state/home-man
 - `system.configurationRevision = self.rev or self.dirtyRev or null;` により `darwin-version` で現在のコミットが確認できます。Git 管理下で作業することで、構成の再現性を保てます。
 - モジュールが増えてきたら `nix/modules/darwin/default.nix` や `nix/modules/home/default.nix` に `imports = [ ./foo.nix ];` を追加して分割できます。
 - brew-nix cask は形式ごとに `unpackPhase` や `installPhase`、`hash` の上書きが必要な場合があり、`nix/modules/darwin/packages.nix` に例を置いてあります。
+- Homebrew は nix-darwin の `homebrew` module で管理します。Brewfile は置かず、手元で `brew bundle` は使いません。
 - 一部のアプリは初回起動時に `App is damaged` が出るので、`Privacy & Security` の `Open Anyway` で許可します。
 - Nix の更新は新規インストール扱いになるため、アプリによっては設定やプロファイルがリセットされることがあります。
 
