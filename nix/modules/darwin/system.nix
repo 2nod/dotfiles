@@ -29,6 +29,7 @@ in
     onActivation = {
       cleanup = "uninstall";
       autoUpdate = true;
+      extraFlags = [ "--force-cleanup" ];
     };
     brews = [
       "pkg-config"

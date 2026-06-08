@@ -20,6 +20,7 @@
     pkgs.spotify
     pkgs.ripgrep
     pkgs.roots
+    pkgs.terraform
     pkgs.pyright
     pkgs.ruff
     pkgs.uv
