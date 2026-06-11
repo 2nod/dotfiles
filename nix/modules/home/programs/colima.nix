@@ -11,7 +11,7 @@ let
     cpu = (profileColima.cpu or 2);
     memory = (profileColima.memory or 8);
     vmType = (profileColima.vmType or "vz");
-    rosetta = (profileColima.rosetta or true);
+    rosetta = (profileColima.rosetta or false);
   };
   colimaConfigDir = "${config.home.homeDirectory}/.config/colima/default";
   colimaConfig = "${colimaConfigDir}/colima.yaml";
