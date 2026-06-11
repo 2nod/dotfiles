@@ -11,7 +11,7 @@ let
   profileColima = profile.colima or { };
   colima = {
     vmType = (profileColima.vmType or "vz");
-    rosetta = (profileColima.rosetta or true);
+    rosetta = (profileColima.rosetta or false);
   };
   installRosetta = colima.vmType == "vz" && colima.rosetta;
 in
