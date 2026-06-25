@@ -6,12 +6,16 @@ dotfiles の shared skill を配置・公開・検証するときに読む。
 
 1. `.agents/skills/<category>/<skill-name>/SKILL.md` を作る。
 2. 必要なら `.agents/skills/<category>/<skill-name>/references/` に詳細を分ける。
-3. `.agents/README.md` の Available Skills に、人間向けの 1 行説明を追加する。
-4. `claude/CLAUDE.md` は `.agents/README.md` を source of truth として参照する。原則として skill ごとの一覧は増やさない。
+3. `.agents/README.md` に skill ごとの一覧は追加しない。`SKILL.md` の frontmatter と `find` 結果を source of truth にする。
+4. `claude/CLAUDE.md` も skill ごとの一覧は増やさない。
 
 ## Installed Skill
 
 third-party skill は wrapper で `.agents/installed-skills` に入れる。
+installed skill は upstream の内容を追跡しやすくするため、`SKILL.md` を原則そのまま保存する。
+trigger や本文を整理したい場合でも、分割・要約・編集は避ける。
+必要なローカル補足は `SOURCE.md` など別ファイルに置き、upstream 由来の `SKILL.md` と混ぜない。
+参照元 URL、repo、path、取得元が分かる情報を必ず残す。
 
 ```sh
 .agents/bin/install-skill \
@@ -27,6 +31,8 @@ third-party skill は wrapper で `.agents/installed-skills` に入れる。
   --target <category>/<skill-name> \
   --url https://github.com/<owner>/<repo>/tree/<ref>/<path/to/skill>
 ```
+
+手動で追加した installed skill も、出典は各 skill の `SOURCE.md` に残し、`.agents/README.md` に skill ごとの一覧は追加しない。
 
 ## 即時公開
 
