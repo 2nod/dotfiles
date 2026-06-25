@@ -10,6 +10,7 @@ let
   homeDir = config.home.homeDirectory;
   codexHomeDir = "${homeDir}/.codex";
   codexDotfilesDir = "${dotfilesDir}/codex";
+  agentSkills = import ./agent-skills.nix { inherit lib dotfilesDir; };
 in
 {
   home.packages = [ pkgs.llm-agents.codex ];
@@ -21,5 +22,6 @@ in
   home.activation.linkCodexSettings = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     ${helpers.activation.mkLinkForce}
     link_force "${codexDotfilesDir}/AGENTS.md" "${codexHomeDir}/AGENTS.md"
+    ${agentSkills.linkCommands "${codexHomeDir}/skills"}
   '';
 }

@@ -14,6 +14,7 @@
       "Bash(pnpm *)"
     ]
   },
+  "model": "opus[1m]",
   "enabledPlugins": {
     "codex@openai-codex": true
   },
@@ -24,6 +25,5 @@
         "repo": "openai/codex-plugin-cc"
       }
     }
-  },
-  "model": "opus[1m]"
+  }
 }
