@@ -24,7 +24,6 @@ in
     enable = true;
     taps = [
       "modem-dev/tap"
-      "nikitabobko/tap"
     ];
     onActivation = {
       cleanup = "uninstall";
@@ -47,7 +46,6 @@ in
     casks = [
       "alt-tab"
       "aqua-voice"
-      "nikitabobko/tap/aerospace"
       "anki"
       "arc"
       "bitwarden"
@@ -93,21 +91,6 @@ in
 
   # Launch apps at login for the primary user.
   launchd.user.agents = {
-    aerospace = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/open"
-          "-g"
-          "-a"
-          "AeroSpace"
-        ];
-        LimitLoadToSessionType = [ "Aqua" ];
-        RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
-      };
-    };
     "alt-tab" = {
       serviceConfig = {
         ProgramArguments = [
