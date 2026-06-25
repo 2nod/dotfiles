@@ -10,6 +10,7 @@ skill を新規作成・更新するときに確認する。
 - `skill-name` は lowercase hyphen-case にする。
 - 個人環境の絶対パスを書かない。dotfiles 内は repo root 相対で書く。
 - 自作 skill と installed skill で同じ公開 path を使わない。
+- 成果物の雛形がある場合は `templates/` に置き、`SKILL.md` から template 名を明示する。
 
 ## 自作 `SKILL.md` の文字量目安
 
@@ -23,6 +24,15 @@ skill を新規作成・更新するときに確認する。
 - domain 固有の詳細ルール
 - 過去事例に強く依存する説明
 
+成果物として生成する型は `references/` ではなく `templates/` に置く。特に次は template に置く。
+
+- issue body
+- ADR
+- handoff document
+- spike README / verdict
+- 調査レポート
+- PR description
+
 ## 避けること
 
 - `README.md` や `QUICK_REFERENCE.md` など、skill 実行に不要な補助文書を増やす。
@@ -33,6 +43,7 @@ skill を新規作成・更新するときに確認する。
 ## Installed Skill の要件
 
 - third-party 由来の `SKILL.md` は、原則として upstream の内容をそのまま保存する。
-- `SKILL.md` を分割、要約、再構成しない。更新時に upstream との差分を追いにくくなるため。
+- upstream の `templates/`, `scripts/`, `assets/` なども、skill の一部としてそのまま保存する。
+- `SKILL.md` や同梱 template を分割、要約、再構成しない。更新時に upstream との差分を追いにくくなるため。
 - 参照元 URL、repo、path、raw URL などを `SOURCE.md` または `.agents/README.md` に残す。
 - ローカル補足が必要な場合は、upstream の `SKILL.md` とは別ファイルに書く。

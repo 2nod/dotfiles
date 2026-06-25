@@ -19,3 +19,4 @@ GitHub PR のレビューコメントや CI の失敗に対応するときに使
 ## 参照
 
 - 返信文を作るときは [references/reply-format.md](references/reply-format.md) を読む。
+- 標準の返信文は [templates/review-reply.md](templates/review-reply.md) を構造として使う。
