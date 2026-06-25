@@ -8,6 +8,7 @@ When the user names a skill, or when a task clearly matches a skill description,
 
 Current shared skills:
 
-- `grill-me`: use when the user wants to stress-test a plan or design, or mentions "grill me".
+- `planning/grill-me`: use when the user wants to stress-test a plan or design, or mentions "grill me".
+- `software-development/pr-review-fix-workflow`: use when addressing GitHub PR review comments, fixing CI after review changes, or keeping commit links and review replies aligned.
 
 Also follow the shared workflow in `/Users/tsuno/dotfiles/.agents/README.md`.

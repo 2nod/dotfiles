@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  .agents/bin/install-skill --target <category/skill-name> [installer args...]
+
+Examples:
+  .agents/bin/install-skill \
+    --target planning/foo \
+    --repo owner/repo \
+    --path skills/foo
+
+  .agents/bin/install-skill \
+    --target planning/foo \
+    --url https://github.com/owner/repo/tree/main/skills/foo
+
+The target must be a two-segment public path, such as planning/foo.
+The skill is installed under .agents/installed-skills/<category>/<skill-name>.
+Home Manager publishes any SKILL.md under .agents/installed-skills to Codex,
+Cursor Agent, and Claude Code with the same public target path.
+EOF
+}
+
+target=""
+installer_args=()
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --target)
+      if [ "$#" -lt 2 ]; then
+        echo "Error: --target requires a value" >&2
+        exit 1
+      fi
+      target="$2"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      installer_args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$target" ]; then
+  echo "Error: --target is required" >&2
+  usage >&2
+  exit 1
+fi
+
+if [[ "$target" = /* || "$target" = *..* || "$target" = *//* || "$target" != */* || "$target" = */*/* ]]; then
+  echo "Error: --target must be a safe two-segment path like category/skill-name" >&2
+  exit 1
+fi
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+agents_dir="$(cd "$script_dir/.." && pwd)"
+
+category="${target%/*}"
+skill_name="${target##*/}"
+dest_root="$agents_dir/installed-skills/$category"
+dest_dir="$dest_root/$skill_name"
+
+if [ -z "$category" ] || [ -z "$skill_name" ] || [ "$skill_name" = "." ] || [ "$skill_name" = ".." ]; then
+  echo "Error: --target must be a safe path like category/skill-name" >&2
+  exit 1
+fi
+
+if [ -e "$agents_dir/skills/$target" ]; then
+  echo "Error: public target already exists in authored skills: .agents/skills/$target" >&2
+  exit 1
+fi
+
+if [ -e "$dest_dir" ]; then
+  echo "Error: installed skill already exists: $dest_dir" >&2
+  exit 1
+fi
+
+installer="${CODEX_SKILL_INSTALLER:-$HOME/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py}"
+
+if [ ! -f "$installer" ]; then
+  echo "Error: skill installer not found: $installer" >&2
+  exit 1
+fi
+
+mkdir -p "$dest_root"
+python3 "$installer" --dest "$dest_root" --name "$skill_name" "${installer_args[@]}"
+
+link_skill() {
+  local target_root="$1"
+  local target_path="$target_root/$target"
+  local target_dir
+  target_dir="$(dirname "$target_path")"
+
+  if [ -e "$target_path" ] && [ "$(readlink "$target_path" || true)" != "$dest_dir" ]; then
+    echo "Error: public target already exists: $target_path" >&2
+    echo "  existing: $(readlink "$target_path" || echo "$target_path")" >&2
+    echo "  new:      $dest_dir" >&2
+    exit 1
+  fi
+
+  mkdir -p "$target_dir"
+  ln -sfn "$dest_dir" "$target_path"
+}
+
+link_skill "$HOME/.codex/skills"
+link_skill "$HOME/.cursor/skills"
+link_skill "$HOME/.claude/skills"
+
+cat <<EOF
+
+Installed skill source:
+  $dest_dir
+
+Public target:
+  $target
+
+Next steps:
+  - Add a one-line entry to .agents/README.md if this skill should be documented.
+  - Add a one-line entry to claude/CLAUDE.md if Claude Code should know when to open it.
+  - Re-apply Home Manager when you want the links recreated from dotfiles state.
+EOF

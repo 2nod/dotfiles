@@ -19,13 +19,13 @@ let
   cursorHomeDir = "${config.home.homeDirectory}/.cursor";
   cursorSettings = jsonFormat.generate "cursor-settings.json" userSettings;
   cursorKeybindings = jsonFormat.generate "cursor-keybindings.json" keybindings;
+  agentSkills = import ./agent-skills.nix { inherit lib dotfilesDir; };
 in
 {
   home.activation.linkCursorConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     ${helpers.activation.mkLinkForce}
     link_force "${cursorSettings}" "${cursorUserDir}/settings.json"
     link_force "${cursorKeybindings}" "${cursorUserDir}/keybindings.json"
-    $DRY_RUN_CMD mkdir -p "${cursorHomeDir}/skills"
-    link_force "${dotfilesDir}/.agents/skills/grill-me" "${cursorHomeDir}/skills/grill-me"
+    ${agentSkills.linkCommands "${cursorHomeDir}/skills"}
   '';
 }
