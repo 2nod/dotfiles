@@ -13,7 +13,7 @@
     pkgs.ghq
     pkgs.lazygit
     pkgs.colima
-    pkgs.docker
+    pkgs.docker_29
     pkgs.lazydocker
     pkgs.google-cloud-sdk
     pkgs.pnpm
