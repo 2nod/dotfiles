@@ -1,6 +1,8 @@
 ---
 name: skill-maintenance
 description: ユーザーが「skill化して」「skillに追加して」「この手順をskillにして」「global/private skillとして残して」と依頼したときに使う。dotfiles の .agents 配下で、作成した skill と install した skill を整理し、Codex / Cursor Agent / Claude Code から読めるようにする。
+metadata:
+  tags: [skills, dotfiles, maintenance, agents]
 ---
 
 # Skill Maintenance

@@ -1,6 +1,8 @@
 ---
 name: pr-review-fix-workflow
 description: GitHub PR のレビューコメント対応、CI 落ちの修正、コメントごとに何を直すかの整理、レビュー返信文の作成、変更内容と返信内容の整合確認を行うときに使う。PR コメント対応の変更・確認・push・返信を追跡可能な形で進める。
+metadata:
+  tags: [github, pull-request, review, workflow]
 ---
 
 # PR レビュー対応ワークフロー

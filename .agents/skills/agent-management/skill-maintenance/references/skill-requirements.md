@@ -11,6 +11,16 @@ skill を新規作成・更新するときに確認する。
 - 個人環境の絶対パスを書かない。dotfiles 内は repo root 相対で書く。
 - 自作 skill と installed skill で同じ公開 path を使わない。
 - 成果物の雛形がある場合は `templates/` に置き、`SKILL.md` から template 名を明示する。
+- agent 横断の整理用に、必要なら `metadata.tags` と `metadata.related_skills` を書く。
+
+例:
+
+```yaml
+metadata:
+  tags: [github, review, workflow]
+  related_skills:
+    - software-development/test-driven-development
+```
 
 ## 自作 `SKILL.md` の文字量目安
 
@@ -39,6 +49,7 @@ skill を新規作成・更新するときに確認する。
 - 特定ケースに寄った判断を汎用ルールとして書く。
 - `SKILL.md` に reference と同じ内容を重複して書く。
 - 起動済み agent に即時反映される前提で説明する。
+- Codex など特定 agent だけに閉じた書き方にする。原則として Codex / Cursor Agent / Claude Code などから読める shared skill として書く。
 
 ## Installed Skill の要件
 
