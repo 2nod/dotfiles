@@ -20,11 +20,16 @@ When a user names a skill, or when the task clearly matches a skill description:
 
 Do not carry a skill across turns unless the user names it again or the new task clearly matches the skill description.
 
-## Available Skills
+Detailed authoring, install, template, and metadata rules live in `agent-management/skill-maintenance`.
 
-- `agent-management/skill-maintenance`: Create, update, install, and publish shared agent skills through the dotfiles `.agents` workflow.
-- `planning/grill-me`: Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree.
-- `software-development/pr-review-fix-workflow`: Address GitHub PR review comments, keep commits and replies aligned, and verify CI without losing traceability.
+## Listing Skills
+
+This README does not keep a hand-written list of every skill.
+Use the `SKILL.md` files as the source of truth:
+
+```sh
+find .agents/skills .agents/installed-skills -mindepth 2 -maxdepth 4 -name SKILL.md -print
+```
 
 ## Public Targets
 
@@ -37,60 +42,26 @@ The path exposed to agents is the public target. Keep targets category-based and
 - Do not reuse the same public target in `.agents/skills` and `.agents/installed-skills`. Home Manager activation checks for target collisions before linking.
 - When adding a skill, check both source roots before choosing a public path.
 
-## Adding a Skill
+## Management
 
-1. Create or install the skill directory.
+Use `agent-management/skill-maintenance` when creating, updating, installing, or reorganizing skills.
 
-   For skills authored in this repository:
+For installed third-party skills, prefer the wrapper:
 
-   ```sh
-   mkdir -p .agents/skills/<category>/<skill-name>
-   ```
+```sh
+.agents/bin/install-skill \
+  --target <category>/<skill-name> \
+  --repo <owner>/<repo> \
+  --path <path/to/skill>
+```
 
-   For installed third-party skills, use the wrapper so the skill is installed under `.agents/installed-skills`:
-
-   ```sh
-   .agents/bin/install-skill \
-     --target <category>/<skill-name> \
-     --repo <owner>/<repo> \
-     --path <path/to/skill>
-   ```
-
-2. For authored skills, add `SKILL.md`:
-
-   ```md
-   ---
-   name: <skill-name>
-   description: When to use this skill.
-   ---
-
-   Instructions for the agent.
-   ```
-
-3. Add the skill to the available skills list in this file when it should be documented for humans.
-
-4. To make the skill available immediately, link it under each agent's skills directory:
-
-   ```sh
-   mkdir -p "$HOME/.codex/skills/<category>" "$HOME/.cursor/skills/<category>" "$HOME/.claude/skills/<category>"
-   ln -s "$PWD/.agents/skills/<category>/<skill-name>" "$HOME/.codex/skills/<category>/<skill-name>"
-   ln -s "$PWD/.agents/skills/<category>/<skill-name>" "$HOME/.cursor/skills/<category>/<skill-name>"
-   ln -s "$PWD/.agents/skills/<category>/<skill-name>" "$HOME/.claude/skills/<category>/<skill-name>"
-   ```
-
-5. Home Manager links any directory under `.agents/skills` or `.agents/installed-skills` that contains a `SKILL.md` file. No per-skill Nix entry is required for persistent setup.
-
-6. Add a one-line entry to `claude/CLAUDE.md` so Claude Code knows when to open the shared skill.
-
-7. Restart the relevant agent so it reloads available skills and instructions.
+Home Manager links any directory under `.agents/skills` or `.agents/installed-skills` that contains a `SKILL.md` file for agents with configured modules. Agents that can read external skill directories directly may point at these two source roots instead.
 
 ## Current Links
 
-- `~/.codex/AGENTS.md` links to `codex/AGENTS.md`.
-- `~/.claude/CLAUDE.md` links to `claude/CLAUDE.md`.
-- `~/.codex/skills/planning/grill-me` links to `.agents/installed-skills/planning/grill-me`.
-- `~/.codex/skills/software-development/pr-review-fix-workflow` links to `.agents/skills/software-development/pr-review-fix-workflow`.
-- `~/.cursor/skills/planning/grill-me` links to `.agents/installed-skills/planning/grill-me`.
-- `~/.cursor/skills/software-development/pr-review-fix-workflow` links to `.agents/skills/software-development/pr-review-fix-workflow`.
-- `~/.claude/skills/planning/grill-me` links to `.agents/installed-skills/planning/grill-me`.
-- `~/.claude/skills/software-development/pr-review-fix-workflow` links to `.agents/skills/software-development/pr-review-fix-workflow`.
+Do not maintain a hand-written list of current skill links.
+Check the live links when needed:
+
+```sh
+find -L "$HOME/.codex/skills" "$HOME/.cursor/skills" "$HOME/.claude/skills" -maxdepth 4 -name SKILL.md -print
+```
