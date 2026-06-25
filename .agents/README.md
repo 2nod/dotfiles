@@ -22,6 +22,7 @@ Do not carry a skill across turns unless the user names it again or the new task
 
 ## Available Skills
 
+- `agent-management/skill-maintenance`: Create, update, install, and publish shared agent skills through the dotfiles `.agents` workflow.
 - `planning/grill-me`: Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree.
 - `software-development/pr-review-fix-workflow`: Address GitHub PR review comments, keep commits and replies aligned, and verify CI without losing traceability.
 
