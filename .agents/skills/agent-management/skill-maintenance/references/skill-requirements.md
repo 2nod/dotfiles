@@ -14,6 +14,7 @@ skill を新規作成・更新するときに確認する。
 ## 自作 `SKILL.md` の文字量目安
 
 自作 skill の `SKILL.md` は常時読まれる入口なので、目安は本文 800-1200 字程度、長くても 1500 字以内に収める。
+日本語で `description` や本文を書く場合は、`writing/japanese-tech-writing` を使って文意、論理、冗長さを点検する。
 
 1500 字を超えそうな場合は、詳細を `references/` に分ける。特に次は reference に置く。
 
