@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+"""Offline regression check for prompt -> skill trigger expectations.
+
+This does not call an LLM. It catches drift in skill names/descriptions by
+ranking local SKILL.md frontmatter against curated prompt examples.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+
+DEFAULT_CASES = Path(".agents/skill-trigger-cases.json")
+SKILL_ROOTS = (Path(".agents/skills"), Path(".agents/installed-skills"))
+
+
+@dataclass(frozen=True)
+class Skill:
+    public_path: str
+    name: str
+    description: str
+
+
+def frontmatter_value(text: str, key: str) -> str:
+    if not text.startswith("---\n"):
+        return ""
+    end = text.find("\n---", 4)
+    if end == -1:
+        return ""
+    lines = text[4:end].splitlines()
+    for index, line in enumerate(lines):
+        match = re.match(rf"^{re.escape(key)}:\s*(.*)$", line)
+        if not match:
+            continue
+        value = match.group(1).strip()
+        if value in {">", "|", ">-", "|-"}:
+            block: list[str] = []
+            for block_line in lines[index + 1 :]:
+                if not block_line.startswith((" ", "\t")):
+                    break
+                block.append(block_line.strip())
+            separator = "\n" if value.startswith("|") else " "
+            return separator.join(line for line in block if line)
+        if (value.startswith('"') and value.endswith('"')) or (
+            value.startswith("'") and value.endswith("'")
+        ):
+            return value[1:-1]
+        return value
+    return ""
+
+
+def public_path(root: Path, skill_file: Path) -> str:
+    return skill_file.parent.relative_to(root).as_posix()
+
+
+def load_skills() -> list[Skill]:
+    skills: list[Skill] = []
+    seen: dict[str, Path] = {}
+    for root in SKILL_ROOTS:
+        if not root.exists():
+            continue
+        for skill_file in sorted(root.glob("*/*/SKILL.md")):
+            path = public_path(root, skill_file)
+            if path in seen:
+                raise SystemExit(
+                    f"duplicate public skill path: {path}\n"
+                    f"  first: {seen[path]}\n"
+                    f"  second: {skill_file}"
+                )
+            seen[path] = skill_file
+            text = skill_file.read_text(encoding="utf-8")
+            skills.append(
+                Skill(
+                    public_path=path,
+                    name=frontmatter_value(text, "name"),
+                    description=frontmatter_value(text, "description"),
+                )
+            )
+    return skills
+
+
+def features(text: str) -> set[str]:
+    normalized = text.lower().replace("/", " ").replace("-", " ")
+    tokens = set(re.findall(r"[a-z0-9_]+", normalized))
+    for token in list(tokens):
+        for suffix in ("ing", "ed", "es", "s"):
+            if len(token) > len(suffix) + 3 and token.endswith(suffix):
+                tokens.add(token[: -len(suffix)])
+        if len(token) > 4 and token.endswith("e"):
+            tokens.add(token[:-1])
+    tokens.update(re.findall(r"[\u3040-\u30ff\u3400-\u9fff]{2,}", normalized))
+    for run in re.findall(r"[\u3040-\u30ff\u3400-\u9fff]{3,}", normalized):
+        tokens.update(run[i : i + 2] for i in range(len(run) - 1))
+        tokens.update(run[i : i + 3] for i in range(len(run) - 2))
+    return {token for token in tokens if len(token) > 1}
+
+
+def score(prompt: str, skill: Skill) -> int:
+    prompt_features = features(prompt)
+    name_features = features(f"{skill.public_path} {skill.name}")
+    desc_features = features(skill.description)
+    prompt_ascii = {token for token in prompt_features if token.isascii()}
+    name_ascii = {token for token in name_features if token.isascii()}
+    desc_ascii = {token for token in desc_features if token.isascii()}
+    return (
+        (len(prompt_features & name_features) * 3)
+        + len(prompt_features & desc_features)
+        + (len(prompt_ascii & name_ascii) * 3)
+        + (len(prompt_ascii & desc_ascii) * 2)
+    )
+
+
+def ranked_skills(prompt: str, skills: list[Skill]) -> list[tuple[int, Skill]]:
+    ranked = [(score(prompt, skill), skill) for skill in skills]
+    return sorted(ranked, key=lambda item: (-item[0], item[1].public_path))
+
+
+def expected_ranks(expected: list[str], ranked: list[tuple[int, Skill]]) -> list[int | None]:
+    ranks: list[int | None] = []
+    ordered_paths = [skill.public_path for _, skill in ranked]
+    for skill in expected:
+        try:
+            ranks.append(ordered_paths.index(skill) + 1)
+        except ValueError:
+            ranks.append(None)
+    return ranks
+
+
+def recall_at(ranks_by_case: list[list[int | None]], limit: int) -> float:
+    expected_count = sum(len(ranks) for ranks in ranks_by_case)
+    if expected_count == 0:
+        return 1.0
+    hits = sum(1 for ranks in ranks_by_case for rank in ranks if rank is not None and rank <= limit)
+    return hits / expected_count
+
+
+def mean_reciprocal_rank(ranks_by_case: list[list[int | None]]) -> float:
+    if not ranks_by_case:
+        return 1.0
+    total = 0.0
+    for ranks in ranks_by_case:
+        present = [rank for rank in ranks if rank is not None]
+        total += 0.0 if not present else 1.0 / min(present)
+    return total / len(ranks_by_case)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
+    parser.add_argument("--max-rank", type=int, default=3)
+    parser.add_argument("--quiet", action="store_true")
+    args = parser.parse_args()
+
+    skills = load_skills()
+    cases = json.loads(args.cases.read_text(encoding="utf-8"))
+    failures: list[str] = []
+    ranks_by_case: list[list[int | None]] = []
+    rows: list[tuple[str, list[str], list[int | None], list[str]]] = []
+
+    for case in cases:
+        prompt = case["prompt"]
+        expected = case["expected"]
+        max_rank = int(case.get("max_rank", args.max_rank))
+        ranked = ranked_skills(prompt, skills)
+        top_paths = [skill.public_path for _, skill in ranked[:max_rank]]
+        ranks = expected_ranks(expected, ranked)
+        ranks_by_case.append(ranks)
+        rows.append((case["id"], expected, ranks, top_paths))
+        missing = [skill for skill in expected if skill not in top_paths]
+        if missing:
+            preview = ", ".join(f"{skill.public_path}:{points}" for points, skill in ranked[:5])
+            failures.append(
+                f"{case['id']}: expected {missing} in top {max_rank}; got {top_paths}. "
+                f"top scores: {preview}"
+            )
+
+    if not args.quiet:
+        print(f"cases: {len(cases)}")
+        print(f"skills: {len(skills)}")
+        print(f"recall@1: {recall_at(ranks_by_case, 1):.3f}")
+        print(f"recall@{args.max_rank}: {recall_at(ranks_by_case, args.max_rank):.3f}")
+        print(f"mrr: {mean_reciprocal_rank(ranks_by_case):.3f}")
+        print()
+        for case_id, expected, ranks, top_paths in rows:
+            rank_text = ", ".join(
+                f"{skill}=#{rank}" if rank is not None else f"{skill}=missing"
+                for skill, rank in zip(expected, ranks)
+            )
+            print(f"{case_id}: {rank_text}; top{args.max_rank}={top_paths}")
+
+    if failures:
+        print("skill trigger checks failed:", file=sys.stderr)
+        for failure in failures:
+            print(f"  - {failure}", file=sys.stderr)
+        return 1
+
+    print(f"ok - {len(cases)} skill trigger cases passed")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

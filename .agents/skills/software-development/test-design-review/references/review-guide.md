@@ -87,6 +87,31 @@ setupRevision({
 
 後者は記述量を減らしつつ、期待値の理由になる scenario を test case 側に残せている。
 
+## Fixture Builder と Mock Factory の使い分け
+
+DB / ORM / SQL / resolver の実挙動を検証する test では、test DB に実データを作る fixture builder を使う。
+外部 API client や GraphQL client の戻り値を前提に処理を検証する test では、mock response factory を使う。
+
+どちらの場合も、assertion に直結する値は test case 本体に残す。
+nested create shape や response object の外枠など、主題ではない boilerplate は builder / factory に隠してよい。
+
+```ts
+await createDictionaryWord({
+  comicId: comic.id,
+  word: 'contained_dictionary_word',
+})
+
+requestMock.mockResolvedValue(
+  buildDictionaryResponse({
+    words: [{ word: 'contained_dictionary_word' }],
+  }),
+)
+```
+
+前者は DB 検索や resolver を通すための fixture builder。
+後者は mock client の返却 shape を作る factory。
+helper が「何を検証しているか」を隠すなら、意味のある値を test case に戻す。
+
 ## Mock のレビュー
 
 mock は重要な behavior を固定するために使う。
