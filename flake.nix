@@ -362,6 +362,17 @@
 
       checks = lib.genAttrs supportedSystems (system: {
         formatting = (mkTreefmtEval system).config.build.check self;
+        skill-triggers =
+          let
+            pkgs = mkPkgs system;
+          in
+          pkgs.runCommand "skill-trigger-check" { src = self; } ''
+            cp -R "$src" repo
+            chmod -R u+w repo
+            cd repo
+            ${pkgs.python3}/bin/python3 .agents/bin/check-skill-triggers
+            touch "$out"
+          '';
       });
 
       apps = lib.genAttrs supportedSystems mkApps;

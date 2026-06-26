@@ -70,6 +70,7 @@ skill を追加・更新したら、まず次の最小検証を行う。
 ```sh
 rg --files .agents | rg '(^|/)SKILL\.md$'
 rg -n '^(name|description):' .agents/skills .agents/installed-skills
+.agents/bin/check-skill-triggers
 git diff --cached --stat
 git status --short
 ```

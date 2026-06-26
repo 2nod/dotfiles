@@ -17,6 +17,16 @@
 - Missing validation: ファイル変更や判断を伴うのに、検証手順がない。
 - Unsafe automation: 明示承認なしで state-changing action を促している。
 
+代表 prompt に対する発火期待は `.agents/skill-trigger-cases.json` に追加し、次を実行して regression を確認する。
+
+```sh
+.agents/bin/check-skill-triggers
+```
+
+この check は LLM を呼ばず、ローカルの `SKILL.md` frontmatter だけで候補順位を見積もる。
+実際の agent 判断の完全再現ではなく、`description` の劣化、trigger overlap、期待 skill の候補落ちを早く見つけるために使う。
+出力される `recall@1`, `recall@N`, `mrr` を定期点検時の回帰指標として見る。
+
 ## 安全シグナル
 
 installed skill と外部由来の skill では、次の項目を優先して確認する。

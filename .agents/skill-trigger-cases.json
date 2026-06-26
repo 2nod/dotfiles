@@ -1,0 +1,37 @@
+[
+  {
+    "id": "skill-maintenance-update",
+    "prompt": "この手順をskillに追加して、CodexとClaude Codeから使えるようにして",
+    "expected": ["agent-management/skill-maintenance"]
+  },
+  {
+    "id": "skill-scout-periodic-audit",
+    "prompt": "shared agent skillを定期的に見直して、改善候補をレポートして",
+    "expected": ["agent-management/skill-scout"]
+  },
+  {
+    "id": "test-design-review",
+    "prompt": "このテスト設計を見て。fixtureとmockの分け方が読みにくい",
+    "expected": ["software-development/test-design-review"]
+  },
+  {
+    "id": "pr-review-fix-workflow",
+    "prompt": "GitHub PRのレビューコメントを確認して、修正して返信文も作って",
+    "expected": ["software-development/pr-review-fix-workflow"]
+  },
+  {
+    "id": "ponytail-simplest-solution",
+    "prompt": "ponytailで見て。これ、もっと最小構成にできない？",
+    "expected": ["software-development/ponytail"]
+  },
+  {
+    "id": "diagnosing-bugs",
+    "prompt": "このbugをdiagnoseして。壊れている原因を再現コマンドから切り分けたい",
+    "expected": ["engineering/diagnosing-bugs"]
+  },
+  {
+    "id": "japanese-tech-writing",
+    "prompt": "日本語の技術記事として推敲して。冗長さと論証の甘さを直したい",
+    "expected": ["writing/japanese-tech-writing"]
+  }
+]
