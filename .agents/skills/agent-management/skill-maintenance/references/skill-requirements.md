@@ -12,6 +12,7 @@ skill を新規作成・更新するときに確認する。
 - 自作 skill と installed skill で同じ公開 path を使わない。
 - 成果物の雛形がある場合は `templates/` に置き、`SKILL.md` から template 名を明示する。
 - agent 横断の整理用に、必要なら `metadata.tags` と `metadata.related_skills` を書く。
+- 日本語で自作 `SKILL.md`、`references/`、`templates/` を書くときは、`writing/japanese-tech-writing` も併用し、冗長さ、LLM っぽい表現、論理の曖昧さを点検する。
 
 例:
 
@@ -53,8 +54,9 @@ metadata:
 
 ## Installed Skill の要件
 
-- third-party 由来の `SKILL.md` は、原則として upstream の内容をそのまま保存する。
-- upstream の `templates/`, `scripts/`, `assets/` なども、skill の一部としてそのまま保存する。
-- `SKILL.md` や同梱 template を分割、要約、再構成しない。更新時に upstream との差分を追いにくくなるため。
-- 参照元 URL、repo、path、raw URL などを `SOURCE.md` または `.agents/README.md` に残す。
-- ローカル補足が必要な場合は、upstream の `SKILL.md` とは別ファイルに書く。
+installed skill の全体方針は `agent-management/skill-governance` に従う。
+更新・install 作業では、少なくとも次を確認する。
+
+- third-party 由来の `SKILL.md` と同梱 directory を、upstream 追跡可能な形で置いている。
+- `SOURCE.md` に repository、source path、pinned commit、raw URL、install command などが残っている。
+- ローカル挙動を変えたい場合、installed skill の本文ではなく自作 wrapper skill で扱っている。
