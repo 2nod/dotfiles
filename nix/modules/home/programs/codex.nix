@@ -74,6 +74,24 @@ in
       ln -sfn "${codexHomeDir}" "${codexXdgDir}"
     '';
 
+    # User skills live in ~/.agents/skills (experimental_use_profile). Keep only Codex system skills here.
+    activation.pruneCodexUserSkills = lib.hm.dag.entryAfter [ "linkCodexXdgDir" ] ''
+      skillsDir="${codexHomeDir}/skills"
+      if [ ! -d "$skillsDir" ]; then
+        exit 0
+      fi
+
+      for item in "$skillsDir"/*; do
+        [ -e "$item" ] || continue
+        base=$(basename "$item")
+        if [ "$base" = ".system" ]; then
+          continue
+        fi
+        echo "Removing legacy Codex user skill path $item" >&2
+        rm -rf "$item"
+      done
+    '';
+
     activation.writeCodexConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p "${codexHomeDir}"
       cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexHomeDir}/config.toml"
