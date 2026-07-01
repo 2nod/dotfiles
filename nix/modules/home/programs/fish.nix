@@ -1,4 +1,9 @@
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   fishPlugins = [
     {
@@ -28,6 +33,12 @@ let
       end
     end
   '') fishPlugins;
+
+  sessionVarsFish = lib.concatStringsSep "\n" (
+    lib.mapAttrsToList (name: value: ''
+      set -gx ${name} "${value}"
+    '') config.home.sessionVariables
+  );
 in
 {
   home.file = lib.listToAttrs (
@@ -55,5 +66,10 @@ in
     if test -d /run/current-system/sw/bin
       fish_add_path /run/current-system/sw/bin
     end
+  '';
+
+  xdg.configFile."fish/conf.d/02-hm-session-vars.fish".text = ''
+    # Home Manager sessionVariables (hm-session-vars.sh is bash-only)
+    ${sessionVarsFish}
   '';
 }

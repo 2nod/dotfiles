@@ -36,6 +36,7 @@
       inherit
         pkgs
         lib
+        config
         ;
     })
     (import ./vscode.nix {
@@ -50,16 +51,14 @@
       inherit
         pkgs
         lib
-        config
-        dotfilesDir
         ;
     })
+    ./cursor-ide.nix
     (import ./codex.nix {
       inherit
         pkgs
         lib
         config
-        helpers
         dotfilesDir
         ;
     })
@@ -68,7 +67,6 @@
         pkgs
         lib
         config
-        helpers
         dotfilesDir
         ;
     })

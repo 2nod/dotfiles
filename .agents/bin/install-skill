@@ -18,8 +18,8 @@ Examples:
 
 The target must be a two-segment public path, such as planning/foo.
 The skill is installed under .agents/installed-skills/<category>/<skill-name>.
-Home Manager publishes any SKILL.md under .agents/installed-skills to configured
-agent skills directories with the same public target path.
+Add a personal wrapper under .agents/skills/<category>/<skill-name> when you want runtime routing.
+Run 'nix run .#switch -- <profile>' to deploy authored skills via agent-skills-nix.
 EOF
 }
 
@@ -91,27 +91,6 @@ fi
 mkdir -p "$dest_root"
 python3 "$installer" --dest "$dest_root" --name "$skill_name" "${installer_args[@]}"
 
-link_skill() {
-  local target_root="$1"
-  local target_path="$target_root/$target"
-  local target_dir
-  target_dir="$(dirname "$target_path")"
-
-  if [ -e "$target_path" ] && [ "$(readlink "$target_path" || true)" != "$dest_dir" ]; then
-    echo "Error: public target already exists: $target_path" >&2
-    echo "  existing: $(readlink "$target_path" || echo "$target_path")" >&2
-    echo "  new:      $dest_dir" >&2
-    exit 1
-  fi
-
-  mkdir -p "$target_dir"
-  ln -sfn "$dest_dir" "$target_path"
-}
-
-link_skill "$HOME/.codex/skills"
-link_skill "$HOME/.cursor/skills"
-link_skill "$HOME/.claude/skills"
-
 cat <<EOF
 
 Installed skill source:
@@ -121,6 +100,6 @@ Public target:
   $target
 
 Next steps:
-  - Add a one-line entry to an agent-specific instruction file only if that agent cannot discover SKILL.md metadata.
-  - Re-apply Home Manager when you want the links recreated from dotfiles state.
+  1. Add a personal wrapper under .agents/skills/$target if you want runtime routing
+  2. Run 'nix run .#switch -- <profile>' to deploy authored skills via agent-skills-nix
 EOF

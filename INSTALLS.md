@@ -16,14 +16,15 @@
   - `~/.config/efm-langserver`
   - `~/.config/fish`
   - `~/.config/git/hooks/pre-push`
-  - `~/.claude/settings.json`
+  - `~/.config/claude/settings.json`
   - `~/.config/cmux/settings.json`
   - `~/.config/nvim`
   - `~/Library/Application Support/Code/User/settings.json`
   - `~/Library/Application Support/Code/User/keybindings.json`
   - `~/Library/Application Support/Cursor/User/settings.json`
   - `~/Library/Application Support/Cursor/User/keybindings.json`
-  - `~/.config/codex/AGENTS.md`
+  - `~/.codex/AGENTS.md`
+- `~/.config/codex` (symlink to `~/.codex`)
 
 ## System
 
@@ -139,7 +140,7 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/.zshrc`
 - `~/.bash_profile`
 - `~/.bashrc`
-- `~/.claude/settings.json`
+- `~/.config/claude/settings.json`
 - `~/.config/cmux/settings.json`
 - `~/.config/git/config` and other Home Manager managed files
 - `~/Library/Application Support/Code/User/settings.json`
@@ -147,7 +148,8 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/Library/Application Support/Cursor/User/settings.json`
 - `~/Library/Application Support/Cursor/User/keybindings.json`
 - `~/.config/lazygit/config.yml`
-- `~/.config/codex/AGENTS.md`
+- `~/.codex/AGENTS.md`
+- `~/.config/codex` (symlink to `~/.codex`)
 
 ## link_force
 
@@ -162,7 +164,6 @@ Home Manager の activation で生成・差し替えされるもの。
   - `zsh/zshrc`
   - `bash/.bash_profile`
   - `bash/.bashrc`
-  - `claude/settings.json`
 - `nix/modules/home/programs/neovim/default.nix`
   - `~/.config/nvim`
 - `nix/modules/home/programs/vscode/default.nix`

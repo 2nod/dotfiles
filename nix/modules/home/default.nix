@@ -4,6 +4,7 @@
   pkgs,
   profile ? { },
   dotfilesDir ? "${config.home.homeDirectory}/dotfiles",
+  local-skills,
   ...
 }:
 let
@@ -11,6 +12,7 @@ let
 in
 {
   imports = [
+    (import ./agent-skills.nix { inherit local-skills; })
     ./packages.nix
     (import ./dotfiles.nix {
       inherit
