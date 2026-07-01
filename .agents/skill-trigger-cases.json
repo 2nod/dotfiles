@@ -33,5 +33,15 @@
     "id": "japanese-tech-writing",
     "prompt": "日本語の技術記事として推敲して。冗長さと論証の甘さを直したい",
     "expected": ["writing/japanese-tech-writing"]
+  },
+  {
+    "id": "ask-codex-second-opinion",
+    "prompt": "この設計方針、Codexにも聞いてセカンドオピニオンをもらって",
+    "expected": ["agent-management/ask-codex"]
+  },
+  {
+    "id": "ask-claude-second-opinion",
+    "prompt": "この設計方針、Claudeにも聞いてセカンドオピニオンをもらって",
+    "expected": ["agent-management/ask-claude"]
   }
 ]
