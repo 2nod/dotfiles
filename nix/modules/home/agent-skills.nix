@@ -1,8 +1,8 @@
 # Agent skills configuration
 # https://github.com/Kyure-A/agent-skills-nix
 #
-# Authoring lives in .agents/skills; agent-skills-nix deploys the same bundle
-# to each agent's runtime skills directory.
+# Authoring lives in .agents/skills; third-party skills in .agents/installed-skills.
+# agent-skills-nix bundles both and deploys to each agent's runtime skills directory.
 {
   local-skills,
   ...
@@ -16,9 +16,16 @@
         path = local-skills;
         subdir = ".agents/skills";
       };
+      installed = {
+        path = local-skills;
+        subdir = ".agents/installed-skills";
+      };
     };
 
-    skills.enableAll = [ "local" ];
+    skills.enableAll = [
+      "local"
+      "installed"
+    ];
 
     targets = {
       agents = {
