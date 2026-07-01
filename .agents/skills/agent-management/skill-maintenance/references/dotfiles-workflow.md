@@ -35,7 +35,7 @@ skill 管理の文書と agent 実行時の指示を混ぜない。
 | Agent | dotfiles 側 | Home Manager が触る先 |
 | --- | --- | --- |
 | Codex | `codex/AGENTS.md`, `config.toml` | `~/.codex`, `~/.config/codex` |
-| Claude Code | `claude/CLAUDE.md`, generated `settings.json` | `~/.config/claude` |
+| Claude Code | `claude/CLAUDE.md`, generated `settings.json`, generated shared-skills plugin | `~/.config/claude` |
 | Cursor | `cli-config.json`（CLI 設定のみ） | `~/.config/cursor/cli-config.json` |
 
 Cursor の global runtime rule を dotfiles から安全に同期できる公式形式は、現状 skill deploy とは別問題として扱う。
@@ -77,7 +77,7 @@ skill 本体は共通。`agent-skills-nix` が `.agents/skills` と `.agents/ins
 | deploy 先 | 主な reader | 備考 |
 | --- | --- | --- |
 | `~/.agents/skills` | Codex など | `copy-tree` |
-| `~/.config/claude/skills` | Claude Code | `link` |
+| `~/.config/claude/skills/dotfiles-shared-skills` | Claude Code | generated plugin |
 | `~/.cursor/skills` | Cursor / cursor-agent | `symlink-tree` |
 
 `.agents/installed-skills` は third-party 保管庫。`agent-skills-nix` の `installed` source 経由で runtime へ deploy する。ローカル向けの trigger や guardrail を変えたい場合は installed skill を編集せず、`.agents/skills/<category>/<skill-name>` に personal wrapper skill を作る。
@@ -104,11 +104,12 @@ git status --short
 shell 設定や補助 script を変更した場合は、対象 shell の構文検査や代表コマンドも実行する。
 
 deploy 後、各 agent の runtime path に同じ skill 群が見えることを確認する。
+Claude Code は `~/.config/claude/skills` 直下の raw skill tree ではなく、`.claude-plugin/plugin.json` を持つ plugin の `skills/<skill-name>/SKILL.md` を読むため、`dotfiles-shared-skills` plugin 配下を確認する。
 
 ```sh
 find -L \
   ~/.agents/skills \
-  ~/.config/claude/skills \
+  ~/.config/claude/skills/dotfiles-shared-skills/skills \
   ~/.cursor/skills \
   -maxdepth 4 -name SKILL.md -print
 ```
