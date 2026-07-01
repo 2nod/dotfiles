@@ -21,7 +21,7 @@ shared skill 全体の方針を整理する。
 
 ## 自作 skill
 
-自作 skill は `.agents/skills/<category>/<skill-name>` に置く。
+自作 skill は personal skill として `.agents/skills/<category>/<skill-name>` に置く。
 `SKILL.md` は入口に絞り、詳細な checklist、判断材料、長い手順は `references/` に分ける。
 成果物の雛形は `templates/` に置く。
 
@@ -33,7 +33,13 @@ installed skill は upstream の内容を追跡しやすい形で保存する。
 third-party 由来の `SKILL.md`、`templates/`, `scripts/`, `assets/` は原則として upstream の内容をそのまま置く。
 ローカル都合で本文を分割、要約、再構成しない。
 
-upstream の挙動をローカル向けに変えたい場合は、installed skill を編集せず、自作 wrapper skill を作る。
+installed skill は runtime の entrypoint として直接使わない。
+その installed skill を使う場合は、同じ public path の personal wrapper skill を `.agents/skills/<category>/<skill-name>` に置き、agent の routing は wrapper を優先する。
+personal wrapper はローカルの trigger、guardrail、追加手順を持ち、必要に応じて `.agents/installed-skills/<category>/<skill-name>/SKILL.md` を upstream reference として読むよう指示する。
+symlink 自体は存在してよいが、同じ public path に personal wrapper がある場合は wrapper が発見・発火の source of truth になる。
+使わない installed skill は wrapper なしで upstream 保管庫に残してよい。
+
+upstream の挙動をローカル向けに変えたい場合も、installed skill を編集せず、personal wrapper skill を更新する。
 
 ## SOURCE.md
 

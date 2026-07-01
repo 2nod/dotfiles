@@ -16,7 +16,8 @@ from pathlib import Path
 
 
 DEFAULT_CASES = Path(".agents/skill-trigger-cases.json")
-SKILL_ROOTS = (Path(".agents/skills"), Path(".agents/installed-skills"))
+AUTHORED_SKILLS_ROOT = Path(".agents/skills")
+INSTALLED_SKILLS_ROOT = Path(".agents/installed-skills")
 
 
 @dataclass(frozen=True)
@@ -61,14 +62,16 @@ def public_path(root: Path, skill_file: Path) -> str:
 def load_skills() -> list[Skill]:
     skills: list[Skill] = []
     seen: dict[str, Path] = {}
-    for root in SKILL_ROOTS:
+    for root in (AUTHORED_SKILLS_ROOT, INSTALLED_SKILLS_ROOT):
         if not root.exists():
             continue
         for skill_file in sorted(root.glob("*/*/SKILL.md")):
             path = public_path(root, skill_file)
             if path in seen:
+                if root == INSTALLED_SKILLS_ROOT:
+                    continue
                 raise SystemExit(
-                    f"duplicate public skill path: {path}\n"
+                    f"duplicate authored skill path: {path}\n"
                     f"  first: {seen[path]}\n"
                     f"  second: {skill_file}"
                 )
@@ -82,6 +85,28 @@ def load_skills() -> list[Skill]:
                 )
             )
     return skills
+
+
+def installed_skill_paths() -> set[str]:
+    if not INSTALLED_SKILLS_ROOT.exists():
+        return set()
+    return {
+        public_path(INSTALLED_SKILLS_ROOT, skill_file)
+        for skill_file in INSTALLED_SKILLS_ROOT.glob("*/*/SKILL.md")
+    }
+
+
+def authored_skill_paths() -> set[str]:
+    if not AUTHORED_SKILLS_ROOT.exists():
+        return set()
+    return {
+        public_path(AUTHORED_SKILLS_ROOT, skill_file)
+        for skill_file in AUTHORED_SKILLS_ROOT.glob("*/*/SKILL.md")
+    }
+
+
+def wrapped_installed_skill_paths() -> set[str]:
+    return installed_skill_paths() & authored_skill_paths()
 
 
 def features(text: str) -> set[str]:
@@ -179,9 +204,13 @@ def main() -> int:
                 f"top scores: {preview}"
             )
 
+    installed_paths = installed_skill_paths()
+    wrapped_paths = wrapped_installed_skill_paths()
+
     if not args.quiet:
         print(f"cases: {len(cases)}")
         print(f"skills: {len(skills)}")
+        print(f"installed_wrappers: {len(wrapped_paths)}/{len(installed_paths)}")
         print(f"recall@1: {recall_at(ranks_by_case, 1):.3f}")
         print(f"recall@{args.max_rank}: {recall_at(ranks_by_case, args.max_rank):.3f}")
         print(f"mrr: {mean_reciprocal_rank(ranks_by_case):.3f}")

@@ -7,8 +7,8 @@
 
 ## 構成
 
-- `.agents/skills/`: この repo で自作する skill。
-- `.agents/installed-skills/`: third-party 由来の installed skill。
+- `.agents/skills/`: この repo で自作する personal skill。runtime routing の優先 entrypoint。
+- `.agents/installed-skills/`: third-party 由来の installed skill。personal wrapper skill から参照する upstream 保管庫。
 - `.agents/bin/`: skill 管理用の補助 command。
 
 ## 参照先
@@ -19,7 +19,7 @@
 
 ## Source Of Truth
 
-skill の発見と発火条件は、各 skill の `SKILL.md` frontmatter を source of truth にする。
+skill の発見と発火条件は、`.agents/skills` の各 `SKILL.md` frontmatter を優先 source of truth にする。
 この README には skill ごとの手書き一覧を持たない。
 
 ```sh

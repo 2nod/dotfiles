@@ -6,6 +6,7 @@
       link_agent_skills_root() {
         local source_root="$1"
         local target_root="$2"
+        local prefer_existing="''${3:-false}"
 
         [ -d "$source_root" ] || return 0
 
@@ -21,6 +22,9 @@
           target_dir="$(dirname "$target_path")"
 
           if [ -e "$target_path" ] && [ "$(readlink "$target_path" || true)" != "$source_dir" ]; then
+            if [ "$prefer_existing" = true ]; then
+              continue
+            fi
             echo "agent skill target collision: $target_path" >&2
             echo "  existing: $(readlink "$target_path" || echo "$target_path")" >&2
             echo "  new:      $source_dir" >&2
@@ -33,6 +37,6 @@
       }
 
       link_agent_skills_root "${dotfilesDir}/.agents/skills" "${targetSkillsDir}"
-      link_agent_skills_root "${dotfilesDir}/.agents/installed-skills" "${targetSkillsDir}"
+      link_agent_skills_root "${dotfilesDir}/.agents/installed-skills" "${targetSkillsDir}" true
     '';
 }
