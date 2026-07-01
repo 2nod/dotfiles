@@ -1,31 +1,45 @@
 {
-  config,
   pkgs,
-  lib,
-  dotfilesDir,
   ...
 }:
 let
-  helpers = import ../../lib/helpers { inherit lib; };
   jsonFormat = pkgs.formats.json { };
-  shared = import ./code-shared.nix { inherit config; };
-  userSettings = shared.userSettings;
-  keybindings = shared.keybindings;
-  cursorUserDir =
-    if pkgs.stdenv.hostPlatform.isDarwin then
-      "${config.home.homeDirectory}/Library/Application Support/Cursor/User"
-    else
-      "${config.xdg.configHome}/Cursor/User";
-  cursorHomeDir = "${config.home.homeDirectory}/.cursor";
-  cursorSettings = jsonFormat.generate "cursor-settings.json" userSettings;
-  cursorKeybindings = jsonFormat.generate "cursor-keybindings.json" keybindings;
-  agentSkills = import ./agent-skills.nix { inherit lib dotfilesDir; };
+
+  settings = {
+    permissions = {
+      allow = [
+        "Shell(ls)"
+        "Shell(uv)"
+        "Shell(git status)"
+        "Shell(git diff)"
+      ];
+      deny = [ ];
+    };
+    version = 1;
+    editor = {
+      vimMode = false;
+    };
+    model = {
+      modelId = "composer-2.5-fast";
+      displayModelId = "composer-2.5-fast";
+      displayName = "Composer 2.5 Fast";
+      displayNameShort = "Composer 2.5 Fast";
+      aliases = [ ];
+    };
+    hasChangedDefaultModel = true;
+    privacyCache = {
+      ghostMode = false;
+      privacyMode = 3;
+      updatedAt = 1763647036545;
+    };
+    network = {
+      useHttp1ForAgent = false;
+    };
+  };
 in
 {
-  home.activation.linkCursorConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    ${helpers.activation.mkLinkForce}
-    link_force "${cursorSettings}" "${cursorUserDir}/settings.json"
-    link_force "${cursorKeybindings}" "${cursorUserDir}/keybindings.json"
-    ${agentSkills.linkCommands "${cursorHomeDir}/skills"}
-  '';
+  xdg.configFile."cursor/cli-config.json" = {
+    source = jsonFormat.generate "cli-config.json" settings;
+    force = true;
+  };
 }

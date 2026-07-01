@@ -1,6 +1,13 @@
 {
   description = "Example nix-darwin system flake";
 
+  nixConfig = {
+    extra-substituters = [ "https://cache.numtide.com" ];
+    extra-trusted-public-keys = [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -25,6 +32,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
+    agent-skills = {
+      url = "github:Kyure-A/agent-skills-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -40,11 +51,13 @@
       nix-claude-code,
       home-manager,
       llm-agents,
+      agent-skills,
       treefmt-nix,
       ...
     }:
     let
       lib = nixpkgs.lib;
+      local-skills = self;
       supportedSystems = [
         "aarch64-darwin"
         "x86_64-darwin"
@@ -166,6 +179,7 @@
                   hostSystem = system;
                   profile = profileData;
                   inherit profileName;
+                  inherit local-skills;
                 };
                 users.${user} =
                   {
@@ -176,6 +190,7 @@
                   }:
                   {
                     imports = [
+                      agent-skills.homeManagerModules.default
                       (import ./nix/modules/home {
                         inherit
                           pkgs
@@ -183,7 +198,7 @@
                           lib
                           profile
                           ;
-                        inherit dotfilesDir;
+                        inherit dotfilesDir local-skills;
                       })
                       ./nix/modules/darwin
                     ]
