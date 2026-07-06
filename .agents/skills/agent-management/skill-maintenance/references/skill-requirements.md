@@ -9,7 +9,7 @@ skill を新規作成・更新するときに確認する。
 - skill directory は `<category>/<skill-name>` の 2 segment で公開できる。
 - `skill-name` は lowercase hyphen-case にする。
 - 個人環境の絶対パスを書かない。dotfiles 内は repo root 相対で書く。
-- 自作 skill と installed skill で同じ公開 path を使わない。
+- 自作 skill と installed skill で同じ公開 path を使わない。現行の trigger check と deploy は同名 shadowing を扱わない。
 - 成果物の雛形がある場合は `templates/` に置き、`SKILL.md` から template 名を明示する。
 - agent 横断の整理用に、必要なら `metadata.tags` と `metadata.related_skills` を書く。
 - 日本語で自作 `SKILL.md`、`references/`、`templates/` を書くときは、`writing/japanese-tech-writing` も併用し、冗長さ、LLM っぽい表現、論理の曖昧さを点検する。
@@ -59,4 +59,5 @@ installed skill の全体方針は `agent-management/skill-governance` に従う
 
 - third-party 由来の `SKILL.md` と同梱 directory を、upstream 追跡可能な形で置いている。
 - `SOURCE.md` に repository、source path、pinned commit、raw URL、install command などが残っている。
-- ローカル挙動を変えたい場合、installed skill の本文ではなく自作 wrapper skill で扱っている。
+- ローカル挙動を変えたい場合、installed skill の本文ではなく agent-specific instruction か別名の自作 wrapper skill で扱っている。
+- 同じ公開 path で installed skill を shadow したい場合は、先に `agent-management/skill-governance` で方針を決め、trigger check と deploy の優先順位を実装する。

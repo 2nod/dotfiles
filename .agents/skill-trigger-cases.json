@@ -43,5 +43,30 @@
     "id": "ask-claude-second-opinion",
     "prompt": "この設計方針、Claudeにも聞いてセカンドオピニオンをもらって",
     "expected": ["agent-management/ask-claude"]
+  },
+  {
+    "id": "source-provenance-metadata",
+    "prompt": "installed skillのSOURCE.mdにpinned commitとraw URLを補って、upstream由来として追跡できるようにして",
+    "expected": ["agent-management/skill-maintenance"]
+  },
+  {
+    "id": "wrapper-shadowing-policy",
+    "prompt": "installed skillと自作wrapperが同じpublic targetになりそう。shadowingを許可する方針か整理して",
+    "expected": ["agent-management/skill-governance"]
+  },
+  {
+    "id": "domain-modeling-workflow",
+    "prompt": "We need to define domain terminology, update CONTEXT.md, and maybe record an ADR for this bounded context.",
+    "expected": ["engineering/domain-modeling"]
+  },
+  {
+    "id": "grill-with-docs-workflow",
+    "prompt": "grill-with-docsで設計を詰めながらADRとglossaryも作りたい",
+    "expected": ["engineering/grill-with-docs"]
+  },
+  {
+    "id": "shared-skill-deploy-failure",
+    "prompt": "Claude Codeにshared skillsが見えない。dotfilesのskills-dir pluginとdeploy先を検証して",
+    "expected": ["agent-management/skill-maintenance"]
   }
 ]

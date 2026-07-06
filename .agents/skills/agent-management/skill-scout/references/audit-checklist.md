@@ -5,7 +5,7 @@
 - `.agents/skills` と `.agents/installed-skills` の `SKILL.md` を列挙する。
 - 各 `SKILL.md` に `name` と `description` の frontmatter があるか確認する。
 - `description` が「何の skill か」だけでなく「いつ使うか」を説明しているか確認する。
-- 自作 skill と installed skill の公開 path が衝突していないか確認する。
+- 自作 skill と installed skill の公開 path が衝突していないか確認する。現行では同じ公開 path の shadowing は未対応として扱う。
 - 参照されている `references/`, `templates/`, `scripts/`, `assets/` が存在するか確認する。
 - installed skill に `SOURCE.md` があるか確認する。
 
@@ -16,6 +16,7 @@
 - Bloated skill: `SKILL.md` 本体に、長い例・template・checklist が入りすぎている。
 - Missing validation: ファイル変更や判断を伴うのに、検証手順がない。
 - Unsafe automation: 明示承認なしで state-changing action を促している。
+- Shadowing ambiguity: installed skill を上書きする wrapper 方針がないまま、同じ公開 path を使っている。
 
 代表 prompt に対する発火期待は `.agents/skill-trigger-cases.json` に追加し、次を実行して regression を確認する。
 
