@@ -33,7 +33,12 @@ installed skill は upstream の内容を追跡しやすい形で保存する。
 third-party 由来の `SKILL.md`、`templates/`, `scripts/`, `assets/` は原則として upstream の内容をそのまま置く。
 ローカル都合で本文を分割、要約、再構成しない。
 
-upstream の挙動をローカル向けに変えたい場合は、installed skill を編集せず、自作 wrapper skill を作る。
+upstream の挙動をローカル向けに変えたい場合は、installed skill を編集しない。
+現行の deploy と trigger check は、同じ公開 path を持つ自作 skill と installed skill を許可しない。
+そのため guardrail を追加したい場合は、まず agent-specific instruction に置くか、別名の自作 wrapper skill を作る。
+
+同じ公開 path で installed skill を shadow する設計は、bundle、trigger check、agent ごとの skill discovery の優先順位を実装してから許可する。
+それまでは、同じ `<category>/<skill-name>` を `.agents/skills` と `.agents/installed-skills` の両方に置かない。
 
 ## SOURCE.md
 
