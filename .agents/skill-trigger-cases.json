@@ -68,5 +68,15 @@
     "id": "shared-skill-deploy-failure",
     "prompt": "Claude Codeにshared skillsが見えない。dotfilesのskills-dir pluginとdeploy先を検証して",
     "expected": ["agent-management/skill-maintenance"]
+  },
+  {
+    "id": "meeting-agenda-from-slack",
+    "prompt": "Slack threadとNotionの情報から、MTGの目的、前提、確認事項、時間配分、出口が揃ったシンプルなアジェンダを作って",
+    "expected": ["productivity/meeting-agenda"]
+  },
+  {
+    "id": "git-worktree-cleanup-audit",
+    "prompt": "無駄なworktreeが残っていないか確認して、消してよさそうなものを分類して",
+    "expected": ["software-development/git-worktree-cleanup"]
   }
 ]

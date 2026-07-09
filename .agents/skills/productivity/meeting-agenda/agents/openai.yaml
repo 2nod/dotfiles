@@ -1,0 +1,4 @@
+interface:
+  display_name: "Meeting Agenda"
+  short_description: "Slack や Notion の文脈から一貫した会議アジェンダを作る"
+  default_prompt: "Slack や Notion の文脈を集めて、目的、前提、確認事項、出口が揃った会議アジェンダを作ってください。"

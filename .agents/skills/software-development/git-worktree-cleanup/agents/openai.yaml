@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Worktree 整理"
+  short_description: "Git worktree の残骸を監査して安全に片付ける"
+  default_prompt: "$git-worktree-cleanup を使って、削除前に Git worktree の残骸と低リスクな削除候補を監査してください。"
