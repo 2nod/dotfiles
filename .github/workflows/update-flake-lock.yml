@@ -1,0 +1,36 @@
+name: update-flake-lock
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every Monday 00:00 UTC.
+    - cron: "0 0 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    # `nix flake update` only resolves inputs and rewrites flake.lock; it does
+    # not evaluate the darwin outputs, so a Linux runner is enough here.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - uses: DeterminateSystems/update-flake-lock@main
+        with:
+          pr-title: "chore(nix): update flake.lock"
+          pr-body: |
+            Automated `nix flake update`. Review the input bumps, let CI run,
+            then apply locally with `nix run .#switch -- <profile>`.
+          pr-labels: |
+            dependencies
+            automated
+          # PRs opened with the default GITHUB_TOKEN do NOT trigger the CI
+          # workflow. To have ci.yml run on these PRs, create a fine-grained
+          # PAT with `contents:write` + `pull-requests:write`, store it as the
+          # `GH_TOKEN_FLAKE_UPDATE` secret, and uncomment the line below.
+          # token: ${{ secrets.GH_TOKEN_FLAKE_UPDATE }}
