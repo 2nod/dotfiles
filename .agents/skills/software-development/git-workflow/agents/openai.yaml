@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git 運用"
+  short_description: "リポジトリの役割に応じて安全に Git 操作を進める"
+  default_prompt: "$git-workflow を使って、このリポジトリの役割に合わせて安全に Git 操作を進めてください。"

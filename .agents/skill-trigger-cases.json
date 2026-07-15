@@ -78,5 +78,10 @@
     "id": "git-worktree-cleanup-audit",
     "prompt": "無駄なworktreeが残っていないか確認して、消してよさそうなものを分類して",
     "expected": ["software-development/git-worktree-cleanup"]
+  },
+  {
+    "id": "git-workflow-safe-push",
+    "prompt": "この変更をbranchを切ってcommitして、pushからPR作成まで安全に進めて",
+    "expected": ["software-development/git-workflow"]
   }
 ]
