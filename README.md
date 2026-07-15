@@ -1,5 +1,7 @@
 # nix-darwin dotfiles
 
+[![CI](https://github.com/2nod/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/2nod/dotfiles/actions/workflows/ci.yml)
+
 ## 概要
 このリポジトリは macOS を nix-darwin + flakes で管理するための最小構成です。`flake.nix` を起点に `nix/modules/...` を読み込み、`nixpkgs-unstable` / `nix-darwin/master` / `home-manager` / `brew-nix` / `brew-api` を入力として、複数 Mac 向けのシステム構成 ( `darwinConfigurations` ) をエクスポートします。
 
@@ -132,6 +134,24 @@ z sig        # ~/src/signoz など履歴マッチで移動
 3. 問題なければ `nix run .#switch -- <profile>` で本適用。
 
 依存するチャネルを更新したい場合は `nix run .#update` (または `nix flake update`) を実行し、ロックファイル ( `flake.lock` ) が生成されたらコミットしてください。
+
+## 開発とチェック (CI)
+`flake.nix` の `checks` に 2 つのチェックを定義しています。push / PR で GitHub Actions ( [.github/workflows/ci.yml](/Users/tsuno/dotfiles/.github/workflows/ci.yml) ) が同じチェックを macOS runner 上で回します。
+
+| チェック | 内容 | 手元での実行 |
+|----------|------|--------------|
+| `formatting` | treefmt (nixfmt / stylua / shfmt / fish_indent) の整形差分がないか | `nix run .#fmt` で整形、`nix build .#checks.aarch64-darwin.formatting` で検証 |
+| `skill-triggers` | `.agents` の SKILL.md と `skill-trigger-cases.json` の routing リグレッション | `python3 .agents/bin/check-skill-triggers` |
+
+- コミット前に `nix run .#fmt` を実行して整形差分をなくしておくと CI が通ります。
+- 両方まとめて確認したい場合は `nix flake check` を使えます (`darwinConfigurations` の評価も走るため時間がかかります)。
+
+## 秘密情報とローカル設定
+- 秘密情報は追跡ファイル (`nix/modules/profiles/local.nix` など) に置かず、`.envrc.local` に書きます。`.envrc.local` は gitignore 済みで、direnv 経由で `.envrc` から読み込まれます。
+- 雛形として [.envrc.local.example](/Users/tsuno/dotfiles/.envrc.local.example) をコピーして使ってください。
+  ```bash
+  cp .envrc.local.example .envrc.local
+  ```
 
 ## トラブルシューティング
 ### Nixが見つからない場合
