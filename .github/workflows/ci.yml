@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    # macOS runner because the flake's checks are defined for
+    # aarch64-darwin / x86_64-darwin only (see supportedSystems in flake.nix).
+    # macos-latest is Apple Silicon, i.e. aarch64-darwin.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          # Pull the prebuilt closures the flake serves from numtide's cache
+          # (matches nixConfig.extra-substituters in flake.nix).
+          extra-conf: |
+            extra-substituters = https://cache.numtide.com
+            extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
+
+      # Mirrors `nix run .#fmt` / `nix flake check` (formatting): treefmt with
+      # nixfmt, stylua, shfmt, fish_indent.
+      - name: treefmt formatting check
+        run: nix build --print-build-logs --accept-flake-config .#checks.aarch64-darwin.formatting
+
+      # Offline skill-trigger regression check (.agents/bin/check-skill-triggers).
+      - name: skill trigger regression check
+        run: nix build --print-build-logs --accept-flake-config .#checks.aarch64-darwin.skill-triggers

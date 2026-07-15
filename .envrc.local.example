@@ -1,0 +1,11 @@
+# Copy this file to `.envrc.local` and fill in machine-local values.
+#   cp .envrc.local.example .envrc.local
+#
+# `.envrc.local` is gitignored (see .gitignore) and sourced by `.envrc` via
+# direnv. Put secrets and per-machine overrides here — never in tracked files
+# such as nix/modules/profiles/local.nix.
+#
+# Examples:
+# export GITHUB_TOKEN="ghp_..."
+# export OPENAI_API_KEY="sk-..."
+# export ANTHROPIC_API_KEY="sk-ant-..."
