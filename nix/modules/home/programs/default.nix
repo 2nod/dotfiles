@@ -10,12 +10,6 @@
 {
   imports = [
     ./ai-tools.nix
-    (import ./pi.nix {
-      inherit
-        config
-        dotfilesDir
-        ;
-    })
     (import ./git {
       inherit
         pkgs
