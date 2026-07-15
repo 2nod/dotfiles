@@ -42,6 +42,10 @@ in
       "pixman"
       "python-setuptools"
       "yarn"
+      # CLI tools not installable from nixpkgs
+      # (hunk: not packaged; herdr: 0.7.1 fails to build on darwin, DarwinSdkNotFound)
+      "hunk"
+      "herdr"
     ];
     casks = [
       "alt-tab"
