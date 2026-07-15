@@ -188,3 +188,33 @@
 - `ss`: split（上下）
 - `sv`: vsplit（左右）
 - `sh` / `sj` / `sk` / `sl`: ウィンドウ移動
+
+# Agentツールメモ（herdr / hunk / pi）
+
+## 管理方針
+- herdr / hunk: `homebrew.brews` で管理（`nix/modules/darwin/system.nix`）
+  - herdr: nixpkgs unstable の 0.7.1 は darwin で `DarwinSdkNotFound` によりビルド不可。brew は bottled で新しい
+  - hunk: nixpkgs 未収録
+- pi: `llm-agents` overlay（`nix/modules/home/programs/ai-tools.nix`、cursor-agent / opencode と同じ）
+- pi の skill collision 対策: `~/dotfiles` 内で pi を起動すると、authoring 元（`.agents/skills` = project）と
+  switch 時の配備コピー（`~/.agents/skills` = global）の両方が見つかり衝突警告が出る。
+  `.pi/settings.json` の `"skills": ["!**"]` で project 側の自動探索を除外し、配備コピーだけ読む構成にした
+  - 注意: dotfiles 内の pi は switch 時点の skill を読む。作業ツリーの編集中 skill を pi で試すなら
+    `pi --skill .agents/skills/<category>/<name>` で明示指定
+  - pi は SKILL.md の realpath が同一なら黙って重複排除する。配備を out-of-store symlink 化すれば
+    settings なしで解決できるが、agent-skills-nix の bundle 方式を崩すので見送り
+
+## herdr（agent multiplexer）
+- prefix は `Ctrl+B`（tmux互換）。wezterm leader は `Ctrl+Q` なので衝突しない
+- 注意: herdr 内の nvim ではページアップ（`Ctrl+B`）が prefix に食われる。困ったら
+  `herdr --default-config > ~/.config/herdr/config.toml` で書き出して `prefix` を変更
+- 基本操作: `prefix+c` 新tab / `prefix+1-9` tab切替 / `prefix+v` 縦split / `prefix+-` 横split /
+  `prefix+h/j/k/l` pane移動 / `prefix+w` workspace picker / `prefix+q` detach / `prefix+?` ヘルプ
+- セッション: `herdr --session <name>` → detach しても agent は動き続ける → `herdr session attach <name>`
+
+## hunk（diffビューアTUI）
+- `hunk diff`（作業ツリー、未追跡含む）/ `hunk diff --staged` / `hunk show`（直近コミット）/ `hunk diff --watch`（自動リロード）
+- agent 連携: `hunk skill path` が返す SKILL.md を Claude Code などの skill に登録できる
+
+## 組み合わせ
+- wezterm の tab で herdr 起動 → pane で agent（claude / codex / pi）、隣の pane で `hunk diff --watch`

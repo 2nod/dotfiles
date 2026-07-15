@@ -190,6 +190,8 @@ Brewfile は nix-darwin が生成するため、手元で `brew bundle install` 
   - `pixman`
   - `python-setuptools`
   - `yarn`
+  - `hunk`
+  - `herdr`
 - casks は `homebrew.casks` に列挙した GUI アプリ
 - `homebrew` 自体の挙動は `cleanup = "uninstall"`、`autoUpdate = true`、`extraFlags = [ "--force-cleanup" ]`
 
