@@ -67,6 +67,16 @@ Determinate Nix を使う場合は、nix-darwin の Nix 管理を無効化する
 このリポジトリは `nix.enable = false;` を設定済みなので、Nix の設定は `/etc/nix/nix.conf` 側で行います。
 
 ## 最短の手順
+
+### bootstrap.sh（推奨・一撃）
+Nix 未導入のマシンでも 1 コマンドで済みます。[bootstrap.sh](/Users/tsuno/dotfiles/bootstrap.sh) が Nix の導入・`nix-command`/`flakes` の有効化・`build` → `switch` をまとめて実行します（冪等・再実行可）。
+```bash
+git clone git@github.com:<your-account>/dotfiles.git
+cd dotfiles
+./bootstrap.sh <profile>          # profile 省略時は一覧を表示
+```
+
+### 手動で行う場合
 ```bash
 # dotfiles を手元に取得
 git clone git@github.com:<your-account>/dotfiles.git
@@ -133,7 +143,7 @@ z sig        # ~/src/signoz など履歴マッチで移動
 2. 影響を確認したい場合は `nix run .#build -- <profile>` でビルドのみ行う。
 3. 問題なければ `nix run .#switch -- <profile>` で本適用。
 
-依存するチャネルを更新したい場合は `nix run .#update` (または `nix flake update`) を実行し、ロックファイル ( `flake.lock` ) が生成されたらコミットしてください。
+依存するチャネルを更新したい場合は `nix run .#update` (または `nix flake update`) を実行し、ロックファイル ( `flake.lock` ) が生成されたらコミットしてください。毎週月曜に [update-flake-lock ワークフロー](/Users/tsuno/dotfiles/.github/workflows/update-flake-lock.yml) が `flake.lock` 更新 PR を自動作成します（手動実行も可）。
 
 ## 開発とチェック (CI)
 `flake.nix` の `checks` に 2 つのチェックを定義しています。push / PR で GitHub Actions ( [.github/workflows/ci.yml](/Users/tsuno/dotfiles/.github/workflows/ci.yml) ) が同じチェックを macOS runner 上で回します。
