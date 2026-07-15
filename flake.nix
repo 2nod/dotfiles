@@ -152,7 +152,14 @@
             {
               nixpkgs.overlays = [
                 nix-claude-code.overlays.default
-                llm-agents.overlays.default
+                # Expose llm-agents flake packages as pkgs.llm-agents.*.
+                # overlays.shared-nixpkgs would rebuild them against our
+                # nixos-25.11, which lacks fetchNpmDeps fetcherVersion
+                # (llm-agents.nix#4320); the flake packages are prebuilt
+                # against their nixpkgs and served from cache.numtide.com.
+                (final: _prev: {
+                  llm-agents = llm-agents.packages.${final.stdenv.hostPlatform.system};
+                })
                 (import ./nix/overlays/roots.nix)
                 (final: _prev: {
                   unstable = import inputs.nixpkgs-unstable {
