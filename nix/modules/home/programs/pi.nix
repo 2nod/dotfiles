@@ -19,28 +19,8 @@ in
       config.lib.file.mkOutOfStoreSymlink "${piDotfilesDir}/model-router.json";
   };
 
-  # pi 起動時に global 行動規範を自動付与する fish ラッパ。
-  # install/update などの subcommand には --append-system-prompt を付けない。
-  xdg.configFile."fish/functions/pi.fish".text = ''
-    function pi --wraps pi --description 'pi with global system-prompt append'
-        set -l append "$HOME/.pi/agent/system-append.md"
-        switch "$argv[1]"
-            case install remove uninstall update list config
-                command pi $argv
-            case '*'
-                if test -f "$append"
-                    command pi --append-system-prompt "$append" $argv
-                else
-                    command pi $argv
-                end
-        end
-    end
-  '';
-
-  # 読み取り専用レビュー用ショートカット。
-  xdg.configFile."fish/functions/pi-review.fish".text = ''
-    function pi-review --wraps pi --description 'pi in read-only mode (no edits)'
-        pi --tools read,grep,find,ls $argv
-    end
-  '';
+  # fish 関数（pi ラッパ / pi-review）は `fish/functions/*.fish` にコミット済み実ファイルとして置く。
+  # fish dir 全体は dotfiles.nix の link_force で `~/.config/fish` に symlink 配備されるため、
+  # ここで xdg.configFile.text 生成すると二重管理になり repo 作業ツリーへ書き出されてしまう。
+  # 他の fish 関数と同じく repo ファイル一本で管理する。
 }
