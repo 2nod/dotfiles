@@ -243,16 +243,16 @@
     ```
   - 検証: `herdr plugin list` / `herdr plugin action list`。格納: `~/.config/herdr/plugins/`
   - 提供 action（6種）: `hunk.diff.{worktree,staged,branch}-{split,tab}`
-  - 呼び方: CLI は `herdr plugin action invoke worktree-split`。TUI でキー割当するなら
-    `~/.config/herdr/config.toml` に追記（`[[keys.command]]` はデフォルトに追加される）:
-    ```toml
-    [[keys.command]]
-    key = "prefix+d"
-    type = "plugin_action"
-    command = "hunk.diff.worktree-split"
-    description = "hunk worktree diff (split)"
-    ```
-    追記後 `herdr server reload-config`。元に戻すなら `herdr config reset-keys`
+  - 呼び方:
+    - CLI: `herdr plugin action invoke worktree-split`
+    - TUI キー割当（`herdr/config.toml` を `herdr.nix` で symlink 管理。`[[keys.command]]` は
+      組み込みデフォルトに追加される方式）。空きキー d/i/u（+alt で tab 版）を使用:
+      | キー | action | 意味 |
+      |---|---|---|
+      | `prefix+d` / `prefix+alt+d` | worktree-split / -tab | 作業ツリー diff |
+      | `prefix+i` / `prefix+alt+i` | staged-split / -tab | staged(index) diff |
+      | `prefix+u` / `prefix+alt+u` | branch-split / -tab | branch(upstream) diff |
+    - 変更反映は `herdr server reload-config`。カスタムキーを消すなら `herdr config reset-keys`
   - 配色: `HUNK_THEME` を `nix/modules/home/programs/herdr.nix` で `catppuccin-mocha` に固定
     （home.sessionVariables → fish に export）。プラグイン経由の diff pane にも効く
   - 安全性: manifest は `python3 hunk_herdr.py <type> <mode>` を呼ぶだけ。スクリプトは herdr/git/hunk を
