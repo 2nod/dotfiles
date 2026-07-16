@@ -35,6 +35,16 @@
     "expected": ["writing/japanese-tech-writing"]
   },
   {
+    "id": "cognitive-rhythm-flat-prose",
+    "prompt": "この解説文、密度はあるのに平坦でおもしろくない。緩急をつけて読み進められる文章に直して",
+    "expected": ["writing/cognitive-rhythm-writing"]
+  },
+  {
+    "id": "cognitive-rhythm-readable-chapter",
+    "prompt": "読み物として読ませたい章を書く。認知リズムと未回収の緊張を設計して推進力を作って",
+    "expected": ["writing/cognitive-rhythm-writing"]
+  },
+  {
     "id": "ask-codex-second-opinion",
     "prompt": "この設計方針、Codexにも聞いてセカンドオピニオンをもらって",
     "expected": ["agent-management/ask-codex"]
