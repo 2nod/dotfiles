@@ -2,16 +2,26 @@
   "debug": false,
   "classifierModel": "mini",
   "phaseBias": 0.5,
-  "maxSessionBudget": 5.0,
+  "maxSessionBudget": 10.0,
   "models": {
+    "fable": {
+      "model": "anthropic/claude-fable-5",
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
     "sol": {
       "model": "openai-codex/gpt-5.6-sol",
       "contextWindow": 372000,
       "maxTokens": 128000
     },
-    "gpt55": {
-      "model": "openai-codex/gpt-5.5",
-      "contextWindow": 272000,
+    "terra": {
+      "model": "openai-codex/gpt-5.6-terra",
+      "contextWindow": 372000,
+      "maxTokens": 128000
+    },
+    "luna": {
+      "model": "openai-codex/gpt-5.6-luna",
+      "contextWindow": 372000,
       "maxTokens": 128000
     },
     "mini": {
@@ -40,12 +50,16 @@
   ],
   "profiles": {
     "auto": {
-      "high": { "model": "sol", "thinking": "high" },
-      "medium": { "model": "gpt55", "thinking": "medium" },
-      "low": { "model": "mini", "thinking": "low" }
+      "high": {
+        "model": "fable",
+        "thinking": "high",
+        "fallbacks": ["opus", "sol"]
+      },
+      "medium": { "model": "sol", "thinking": "medium" },
+      "low": { "model": "luna", "thinking": "low" }
     },
     "claude": {
-      "high": { "model": "opus", "thinking": "high" },
+      "high": { "model": "fable", "thinking": "high", "fallbacks": ["opus"] },
       "medium": { "model": "sonnet", "thinking": "medium" },
       "low": { "model": "sonnet", "thinking": "low" }
     }
