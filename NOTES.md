@@ -232,9 +232,37 @@
   `prefix+h/j/k/l` pane移動 / `prefix+w` workspace picker / `prefix+q` detach / `prefix+?` ヘルプ
 - セッション: `herdr --session <name>` → detach しても agent は動き続ける → `herdr session attach <name>`
 
+### herdr のプラグイン機構と hunk プラグイン
+- `herdr plugin ...` は `herdr integration ...`（＝agent CLI の管理）とは別系統。プラグインは
+  manifest（`herdr-plugin.toml`）＋実行ファイルで action / event hook を提供する。要 herdr ≥0.7.0
+- 導入済み: **`edmundmiller/herdr-plugin-hunk`**（herdr の pane/tab に hunk diff を出す薄いラッパ、Python3）
+  - 再現手順（ref 固定・**runtime install**。plugin registry が状態管理するため Nix 管理外）:
+    ```
+    herdr plugin install edmundmiller/herdr-plugin-hunk \
+      --ref 11ba5dcca4358203ca68f160becf6870cf016c18 --yes
+    ```
+  - 検証: `herdr plugin list` / `herdr plugin action list`。格納: `~/.config/herdr/plugins/`
+  - 提供 action（6種）: `hunk.diff.{worktree,staged,branch}-{split,tab}`
+  - 呼び方:
+    - CLI: `herdr plugin action invoke worktree-split`
+    - TUI キー割当（`herdr/config.toml` を `herdr.nix` で symlink 管理。`[[keys.command]]` は
+      組み込みデフォルトに追加される方式）。空きキー d/i/u（+alt で tab 版）を使用:
+      | キー | action | 意味 |
+      |---|---|---|
+      | `prefix+d` / `prefix+alt+d` | worktree-split / -tab | 作業ツリー diff |
+      | `prefix+i` / `prefix+alt+i` | staged-split / -tab | staged(index) diff |
+      | `prefix+u` / `prefix+alt+u` | branch-split / -tab | branch(upstream) diff |
+    - 変更反映は `herdr server reload-config`。カスタムキーを消すなら `herdr config reset-keys`
+  - 配色: `HUNK_THEME` を `nix/modules/home/programs/herdr.nix` で `catppuccin-mocha` に固定
+    （home.sessionVariables → fish に export）。プラグイン経由の diff pane にも効く
+  - 安全性: manifest は `python3 hunk_herdr.py <type> <mode>` を呼ぶだけ。スクリプトは herdr/git/hunk を
+    実行するのみ（`shell=True` なし、`shlex.quote`、mode/target を allowlist 検証、ネットワークなし）
+
 ## hunk（diffビューアTUI）
 - `hunk diff`（作業ツリー、未追跡含む）/ `hunk diff --staged` / `hunk show`（直近コミット）/ `hunk diff --watch`（自動リロード）
 - agent 連携: `hunk skill path` が返す SKILL.md を Claude Code などの skill に登録できる
+- 配色は `HUNK_THEME`（`herdr.nix` で `catppuccin-mocha`）。他候補: graphite / midnight / ember / zenburn / catppuccin-latte
 
 ## 組み合わせ
 - wezterm の tab で herdr 起動 → pane で agent（claude / codex / pi）、隣の pane で `hunk diff --watch`
+- または herdr の hunk プラグインで pane/tab に diff を出す（`herdr plugin action invoke worktree-split`）
