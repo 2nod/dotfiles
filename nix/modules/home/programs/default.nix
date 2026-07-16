@@ -10,6 +10,7 @@
 {
   imports = [
     ./ai-tools.nix
+    ./herdr.nix
     (import ./pi.nix {
       inherit
         config
