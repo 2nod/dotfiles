@@ -12,6 +12,8 @@ in
   # - system-append.md: pi 用の global 行動規範（fish の pi ラッパで --append-system-prompt に渡す）
   # - model-router.json: pi-model-router 拡張の設定（拡張は読むだけ。状態は session 側に持つ）
   # settings.json の "packages" 追記だけは `pi install` が書く live 管理。
+  # 導入済み package の一覧は pi/packages.txt にコミットしておく（唯一の入口）。
+  # 新マシンでの復元: xargs -I{} pi install {} < pi/packages.txt
   home.file = {
     ".pi/agent/system-append.md".source =
       config.lib.file.mkOutOfStoreSymlink "${piDotfilesDir}/system-append.md";
