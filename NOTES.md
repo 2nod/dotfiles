@@ -263,6 +263,16 @@
 - agent 連携: `hunk skill path` が返す SKILL.md を Claude Code などの skill に登録できる
 - 配色は `HUNK_THEME`（`herdr.nix` で `catppuccin-mocha`）。他候補: graphite / midnight / ember / zenburn / catppuccin-latte
 
+### hks（自作 fish 関数: 開いている hunk の表示切り替え）
+- TUI 内にソース切り替えキーは無いので、別ペインから `hunk session reload` を叩く。そのラッパが `hks`（`fish/functions/hks.fish`）
+- `hks` / `hks wt`: 作業ツリー / `hks staged`（`hks s`）: ステージ済み
+- `hks main`: branch 名は `diff main...HEAD`（PR 視点、自分の変更だけ）になる
+- `hks main..HEAD` / `hks v1..v2`: `..` を含む引数はそのまま範囲 diff（log は 2点、diff は 3点が普段使い）
+- `hks HEAD~1` / `hks <hash>`: branch 名でない ref はその commit 単体の表示（`show`）
+- 同一リポジトリでセッションが複数あると fzf で選択（起動が新しい順、Enter で最新）
+- `hks clean`: 端末を失ったゾンビ hunk セッションを kill
+  - hunk 0.17 はペインごと閉じると SIGHUP を無視して残る。`q` で終了してから閉じるか、溜まったら `hks clean`
+
 ## 組み合わせ
 - wezterm の tab で herdr 起動 → pane で agent（claude / codex / pi）、隣の pane で `hunk diff --watch`
 - または herdr の hunk プラグインで pane/tab に diff を出す（`herdr plugin action invoke worktree-split`）
