@@ -22,6 +22,12 @@
         dotfilesDir
         ;
     })
+    (import ./starship.nix {
+      inherit
+        config
+        dotfilesDir
+        ;
+    })
     (import ./git {
       inherit
         pkgs

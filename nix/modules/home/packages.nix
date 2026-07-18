@@ -18,6 +18,7 @@
     pkgs.google-cloud-sdk
     pkgs.pnpm
     pkgs.spotify
+    pkgs.starship
     pkgs.ripgrep
     pkgs.roots
     pkgs.terraform

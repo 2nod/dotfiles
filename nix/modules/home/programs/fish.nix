@@ -7,10 +7,6 @@
 let
   fishPlugins = [
     {
-      name = "hydro";
-      src = pkgs.fishPlugins.hydro.src;
-    }
-    {
       name = "fish-abbreviation-tips";
       src = pkgs.fetchFromGitHub {
         owner = "gazorby";

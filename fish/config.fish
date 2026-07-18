@@ -75,3 +75,10 @@ end
 set -gx EDITOR nvim
 set -gx GIT_EDITOR nvim
 set -gx VISUAL nvim
+
+# prompt（PATH 設定より後に置く）
+if status is-interactive; and type -q starship
+    starship init fish | source
+    # 過去のプロンプト行を ❯ だけに畳む（starship init が定義する関数）
+    enable_transience
+end
