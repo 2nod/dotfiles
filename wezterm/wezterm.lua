@@ -40,6 +40,7 @@ local config = {
 	},
 
 	use_ime = true,
+	ime_preedit_rendering = "Builtin",
 	send_composed_key_when_left_alt_is_pressed = false,
 	send_composed_key_when_right_alt_is_pressed = false,
 	keys = keys,
