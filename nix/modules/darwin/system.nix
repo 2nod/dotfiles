@@ -28,6 +28,7 @@ in
     onActivation = {
       cleanup = "uninstall";
       autoUpdate = true;
+      upgrade = true;
       extraFlags = [ "--force-cleanup" ];
     };
     brews = [
