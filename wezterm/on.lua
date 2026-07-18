@@ -41,14 +41,12 @@ wezterm.on("gui-startup", function(cmd)
 	local _, left, window = mux.spawn_window({ cwd = cwd })
 	window:gui_window():maximize()
 
-	-- 左: herdr(3/5) / 中央: hunk diff + shell(高さ1/5) / 右: nvim(全体の2/15)
-	local middle = left:split({ direction = "Right", size = 0.4, cwd = cwd })
-	local right = middle:split({ direction = "Right", size = 1 / 3, cwd = cwd })
-	local bottom = middle:split({ direction = "Bottom", size = 0.2, cwd = cwd })
+	-- 左: herdr(3/5) / 右: hunk diff + shell(高さ1/5)
+	local right = left:split({ direction = "Right", size = 0.4, cwd = cwd })
+	local bottom = right:split({ direction = "Bottom", size = 0.2, cwd = cwd })
 
 	-- 先頭スペースで fish の履歴に残さない
 	left:send_text(" herdr\n")
-	middle:send_text(" hunk diff\n")
-	right:send_text(" nvim .\n")
+	right:send_text(" hunk diff\n")
 	bottom:activate()
 end)
