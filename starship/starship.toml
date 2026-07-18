@@ -85,6 +85,8 @@ style = "bold yellow"
 format = '[\($state( $progress_current/$progress_total)\)]($style) '
 style = "bold yellow"
 
+# 記号の読み方: ? untracked / ! 未stage変更 / + staged / » リネーム / ✘ 削除
+#               ≡ stashあり / = コンフリクト / ⇡N ahead / ⇣N behind / ⇕ diverged
 [git_status]
 format = "([$all_status$ahead_behind]($style) )"
 style = "bold maroon"
