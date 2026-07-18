@@ -30,7 +30,24 @@ wezterm.on("toggle-blur", function(window, _)
 end)
 
 wezterm.on("gui-startup", function(cmd)
-	local _, _, window = mux.spawn_window(cmd or {})
-	local w = window:gui_window()
-	w:maximize()
+	-- 明示的にコマンド付きで起動された場合はレイアウトを組まない
+	if cmd then
+		local _, _, window = mux.spawn_window(cmd)
+		window:gui_window():maximize()
+		return
+	end
+
+	local cwd = wezterm.home_dir .. "/dotfiles"
+	local _, left, window = mux.spawn_window({ cwd = cwd })
+	window:gui_window():maximize()
+
+	-- 左: herdr(51%) / 中央: hunk diff + shell / 右: nvim(12%)
+	local middle = left:split({ direction = "Right", size = 0.49, cwd = cwd })
+	local right = middle:split({ direction = "Right", size = 0.24, cwd = cwd })
+	local bottom = middle:split({ direction = "Bottom", size = 0.22, cwd = cwd })
+
+	left:send_text("herdr\n")
+	middle:send_text("hunk diff\n")
+	right:send_text("nvim .\n")
+	bottom:activate()
 end)
