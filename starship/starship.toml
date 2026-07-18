@@ -1,0 +1,202 @@
+# starship prompt 設定。実体は dotfiles/starship/starship.toml（live 編集可）。
+# ベース: nwiizo/dotfiles の starship.toml
+# https://syu-m-5151.hatenablog.com/entry/2025/01/10/185633
+#
+# Layout:
+#   [line1] dir  branch state status  jobs duration  exit
+#   [line2] ❯
+#
+# Design:
+#   - Catppuccin Mocha palette
+#   - user/host は SSH 時のみ、cmd_duration は 2 秒超のみ、exit status は失敗時のみ
+#   - 言語・インフラ系モジュールは性能とノイズ対策で無効
+
+palette = "catppuccin_mocha"
+
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_commit\
+$git_status\
+$git_state\
+$jobs\
+$cmd_duration\
+$status\
+$line_break\
+$character"""
+
+right_format = ""
+continuation_prompt = "[  ](overlay0)"
+
+add_newline = true
+scan_timeout = 30
+command_timeout = 500
+follow_symlinks = true
+
+# ─── Prompt Character ─────────────────────────────────────────────────────────
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+
+# ─── User & Host (SSH only) ───────────────────────────────────────────────────
+
+[username]
+show_always = false
+format = "[$user]($style)@"
+style_user = "bold blue"
+style_root = "bold red"
+
+[hostname]
+ssh_only = true
+format = "[$hostname]($style) "
+style = "bold teal"
+
+# ─── Directory ────────────────────────────────────────────────────────────────
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+fish_style_pwd_dir_length = 1
+style = "bold lavender"
+repo_root_style = "bold blue"
+repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
+read_only = " "
+home_symbol = "~"
+
+# ─── Git ──────────────────────────────────────────────────────────────────────
+
+[git_branch]
+symbol = " "
+style = "bold mauve"
+truncation_length = 30
+truncation_symbol = "…"
+
+[git_commit]
+tag_disabled = false
+tag_symbol = "  "
+only_detached = true
+style = "bold yellow"
+
+[git_state]
+format = '[\($state( $progress_current/$progress_total)\)]($style) '
+style = "bold yellow"
+
+# 記号の読み方: ? untracked / ! 未stage変更 / + staged / » リネーム / ✘ 削除
+#               ≡ stashあり / = コンフリクト / ⇡N ahead / ⇣N behind / ⇕ diverged
+[git_status]
+format = "([$all_status$ahead_behind]($style) )"
+style = "bold maroon"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+stashed = "≡"
+untracked = "?"
+modified = "!"
+staged = "+"
+renamed = "»"
+deleted = "✘"
+conflicted = "="
+
+# ─── Languages ────────────────────────────────────────────────────────────────
+
+[golang]
+disabled = true
+
+[rust]
+disabled = true
+
+[python]
+disabled = true
+
+[nodejs]
+disabled = true
+
+# ─── Infrastructure ───────────────────────────────────────────────────────────
+
+[aws]
+disabled = true
+
+[kubernetes]
+disabled = true
+
+[terraform]
+disabled = true
+
+[docker_context]
+disabled = true
+
+# ─── Status & Timing ─────────────────────────────────────────────────────────
+
+[status]
+disabled = false
+format = "[$symbol$status]($style) "
+symbol = " "
+style = "bold red"
+map_symbol = true
+pipestatus = true
+pipestatus_format = "\\[$pipestatus\\] => [$symbol$common_meaning$signal_name]($style) "
+
+[jobs]
+symbol = " "
+style = "bold sapphire"
+number_threshold = 1
+symbol_threshold = 1
+
+[cmd_duration]
+min_time = 2_000
+format = "took [$duration](bold yellow) "
+
+[time]
+disabled = true
+
+# ─── Disabled (performance) ───────────────────────────────────────────────────
+
+[gcloud]
+disabled = true
+
+[azure]
+disabled = true
+
+[package]
+disabled = true
+
+[battery]
+disabled = true
+
+[memory_usage]
+disabled = true
+
+# ─── Catppuccin Mocha Palette ─────────────────────────────────────────────────
+# https://github.com/catppuccin/starship
+
+[palettes.catppuccin_mocha]
+rosewater = "#f5e0dc"
+flamingo = "#f2cdcd"
+pink = "#f5c2e7"
+mauve = "#cba6f7"
+red = "#f38ba8"
+maroon = "#eba0ac"
+peach = "#fab387"
+yellow = "#f9e2af"
+green = "#a6e3a1"
+teal = "#94e2d5"
+sky = "#89dceb"
+sapphire = "#74c7ec"
+blue = "#89b4fa"
+lavender = "#b4befe"
+text = "#cdd6f4"
+subtext1 = "#bac2de"
+subtext0 = "#a6adc8"
+overlay2 = "#9399b2"
+overlay1 = "#7f849c"
+overlay0 = "#6c7086"
+surface2 = "#585b70"
+surface1 = "#45475a"
+surface0 = "#313244"
+base = "#1e1e2e"
+mantle = "#181825"
+crust = "#11111b"

@@ -1,9 +1,13 @@
+# 30 秒を超えたコマンドの完了をデスクトップ通知する。
+# 以前は functions/fish_right_prompt.fish だったが、starship init が
+# fish_right_prompt を定義して autoload を潰すため、event handler に移した。
+
 # Show notification if duration is more than 30 seconds
 set -gx NOTIFY_ON_COMMAND_DURATION 30000
 # Programs to exclude from notifications (TUI tools only)
 set -gx NOTIFY_EXCLUDE_PROGRAMS vim nvim lazygit claude codex yazi gitu bottom ctop top viddy tmux jid jnv fx less man
 
-function fish_right_prompt
+function _notify_long_command --on-event fish_prompt
     if test $CMD_DURATION
         if test $CMD_DURATION -gt $NOTIFY_ON_COMMAND_DURATION
             # Get the command name
