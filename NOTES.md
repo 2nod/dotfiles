@@ -257,6 +257,25 @@
     （home.sessionVariables → fish に export）。プラグイン経由の diff pane にも効く
   - 安全性: manifest は `python3 hunk_herdr.py <type> <mode>` を呼ぶだけ。スクリプトは herdr/git/hunk を
     実行するのみ（`shell=True` なし、`shlex.quote`、mode/target を allowlist 検証、ネットワークなし）
+- 導入済み: **`smarzban/herdr-file-viewer`**（git-aware な読み取り専用ファイルビューア。tree + content pane、
+  変更ファイルは diff 表示、markdown レンダリング、シンタックスハイライト。Rust 製、build は fetch-or-build）
+  - 再現手順（ref 固定・runtime install）:
+    ```
+    herdr plugin install smarzban/herdr-file-viewer \
+      --ref 498722e664d351ed5ab168f5afcac5fd4dce839a --yes
+    ```
+  - 提供 action: `herdr-file-viewer.open-file-viewer`（split、launch-or-focus-or-close の toggle）/
+    `.open-file-viewer-tab`（tab）。popup 版 action は無い
+  - キー割当: `prefix+f`（popup、80%×80%）/ `prefix+shift+f`（split、launch-or-focus-or-close の
+    toggle）/ `prefix+alt+f`（tab）。mnemonic: f=files
+  - popup 表示は herdr 0.7.4 で対応済みだった（以前「未対応」と記録したのは誤り。keybinding の
+    `type = "popup"` は default config に記載あり、`plugin pane open --placement popup` も動く。
+    placement は overlay|popup|split|tab|zoomed から選べる）。`prefix+f` は `type = "shell"` から
+    `herdr plugin pane open --plugin herdr-file-viewer --entrypoint file-viewer --placement popup`
+    を叩く（plugin 管理の pane として popup 表示。herdr が plugin root を解決するので
+    バイナリパスの直書き不要。`type = "popup"` + バイナリ glob パス直起動でも動くが不採用）
+  - pane 内キー: `z` でツリーを隠して拡大、`Z` で pane 全画面、`q`/`Esc` で戻る
+  - 設定は `~/.config/herdr/plugins/config/herdr-file-viewer`（config.example.toml 同梱）
 
 ## hunk（diffビューアTUI）
 - `hunk diff`（作業ツリー、未追跡含む）/ `hunk diff --staged` / `hunk show`（直近コミット）/ `hunk diff --watch`（自動リロード）

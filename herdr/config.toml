@@ -1,9 +1,13 @@
+onboarding = false
 # herdr config — custom keybindings のみ。ここに書いた [[keys.command]] は
 # 組み込みデフォルトに「追加」される（デフォルトのキーは保持）。
 # 変更後は `herdr server reload-config`。カスタムキーを消すなら `herdr config reset-keys`。
 #
 # hunk プラグイン（edmundmiller/herdr-plugin-hunk）の diff アクションを prefix 配下に割当。
 # 空きキー d/i/u（+ alt で tab 版）を使用。mnemonic: d=diff(worktree) / i=index(staged) / u=upstream(branch)。
+# file viewer プラグイン（smarzban/herdr-file-viewer）は f=files（popup）、shift+f で split（toggle）、alt+f で tab 版。
+# popup は type = "shell" から `herdr plugin pane open --placement popup` で開く（plugin 管理の pane、
+# バイナリパス直書き不要。herdr が plugin root を解決する）。q/Esc で閉じる。
 
 [[keys.command]]
 key = "prefix+d"
@@ -40,3 +44,21 @@ key = "prefix+alt+u"
 type = "plugin_action"
 command = "hunk.diff.branch-tab"
 description = "hunk branch diff (tab)"
+
+[[keys.command]]
+key = "prefix+f"
+type = "shell"
+command = "\"${HERDR_BIN_PATH:-herdr}\" plugin pane open --plugin herdr-file-viewer --entrypoint file-viewer --placement popup --width 80% --height 80%"
+description = "file viewer (popup)"
+
+[[keys.command]]
+key = "prefix+shift+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer"
+description = "file viewer (split, toggle)"
+
+[[keys.command]]
+key = "prefix+alt+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer-tab"
+description = "file viewer (tab)"
