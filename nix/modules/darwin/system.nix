@@ -48,6 +48,13 @@ in
       "hunk"
       "herdr"
     ];
+    # 自己更新する cask (slack, google-chrome など auto_updates true) は
+    # アプリ自身が更新する。最近の Homebrew は auto_updates cask も upgrade
+    # しようとするが、これらは root 所有で /Applications への上書きに sudo が
+    # 要り、非対話の activation では失敗して中断・ステージング残骸を生む。
+    # HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS=1 で brew の upgrade 対象から外す
+    # (下の environment.variables を参照)。formulae と非自己更新 cask は
+    # 従来どおり onActivation.upgrade で更新される。
     casks = [
       "alt-tab"
       "aqua-voice"
@@ -73,6 +80,10 @@ in
       "zoom"
     ];
   };
+
+  # 自己更新 cask を activation の brew upgrade 対象から外す (homebrew.casks の
+  # コメント参照)。これで slack / google-chrome の上書き sudo 失敗が起きない。
+  environment.variables.HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS = "1";
 
   # Determinate Nix manages the daemon; disable nix-darwin's Nix management.
   nix.enable = false;
