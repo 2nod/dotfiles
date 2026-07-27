@@ -90,6 +90,16 @@
     "expected": ["software-development/git-worktree-cleanup"]
   },
   {
+    "id": "docker-worktree-cleanup",
+    "prompt": "Dockerの仮想ディスクとvolumeが肥大化している。古いworktreeとCompose環境を対応付けて、安全な削除候補を整理して",
+    "expected": ["software-development/docker-worktree-cleanup"]
+  },
+  {
+    "id": "local-docker-troubleshooting",
+    "prompt": "macOSのDocker ComposeでPlaywrightのChromium検証が落ちる。既存環境を壊さずに切り分けて",
+    "expected": ["software-development/local-docker-troubleshooting"]
+  },
+  {
     "id": "git-workflow-safe-push",
     "prompt": "この変更をbranchを切ってcommitして、pushからPR作成まで安全に進めて",
     "expected": ["software-development/git-workflow"]
