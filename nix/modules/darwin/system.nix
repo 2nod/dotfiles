@@ -52,9 +52,9 @@ in
     # アプリ自身が更新する。最近の Homebrew は auto_updates cask も upgrade
     # しようとするが、これらは root 所有で /Applications への上書きに sudo が
     # 要り、非対話の activation では失敗して中断・ステージング残骸を生む。
-    # HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS=1 で brew の upgrade 対象から外す
-    # (下の environment.variables を参照)。formulae と非自己更新 cask は
-    # 従来どおり onActivation.upgrade で更新される。
+    # HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS=1 で upgrade 対象から外す
+    # (下の system.activationScripts で brew.env に書き込む)。formulae と
+    # 非自己更新 cask は従来どおり onActivation.upgrade で更新される。
     casks = [
       "alt-tab"
       "aqua-voice"
@@ -82,8 +82,19 @@ in
   };
 
   # 自己更新 cask を activation の brew upgrade 対象から外す (homebrew.casks の
-  # コメント参照)。これで slack / google-chrome の上書き sudo 失敗が起きない。
-  environment.variables.HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS = "1";
+  # コメント参照)。activation の brew bundle は
+  #   sudo --preserve-env=PATH --user=... --set-home env brew ...
+  # で起動され PATH 以外の環境変数を捨てるため environment.variables では届かない。
+  # 代わりに Homebrew が必ず読むグローバル設定 brew.env に書き込む。
+  system.activationScripts.extraActivation.text = lib.mkAfter ''
+    if [ -x /opt/homebrew/bin/brew ]; then
+      mkdir -p /opt/homebrew/etc/homebrew
+      printf '%s\n' \
+        '# Managed by nix-darwin (dotfiles). 自己更新 cask を brew upgrade 対象から外す。' \
+        'HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS=1' \
+        > /opt/homebrew/etc/homebrew/brew.env
+    fi
+  '';
 
   # Determinate Nix manages the daemon; disable nix-darwin's Nix management.
   nix.enable = false;
