@@ -1,0 +1,4 @@
+interface:
+  display_name: "Notion ワークスペース保守"
+  short_description: "確定知見に基づくローカル Notion 文書の保守"
+  default_prompt: "$notion-workspace-maintenance を使って、確定した知見に基づきローカル Notion の文書を更新してください。"
