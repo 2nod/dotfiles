@@ -1,0 +1,4 @@
+interface:
+  display_name: "Notion ワークスペース文脈"
+  short_description: "ローカル Notion を参照し、確定知見を更新する"
+  default_prompt: "$notion-workspace-context を使って、この作業に必要なローカル Notion の文脈を確認し、確定した知見を更新してください。"
