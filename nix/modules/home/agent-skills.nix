@@ -67,9 +67,12 @@ in
       "installed"
     ];
 
+    # home-manager targets run in agent-skills-nix's "global" mode, where dest
+    # must expand to an absolute path ($HOME, ~, or ${VAR:-$HOME/...}); relative
+    # paths are rejected at activation time.
     targets = {
       agents = {
-        dest = ".agents/skills";
+        dest = "$HOME/.agents/skills";
         structure = "copy-tree";
       };
       claude = {
@@ -80,7 +83,7 @@ in
         enable = false;
       };
       cursor = {
-        dest = ".cursor/skills";
+        dest = "$HOME/.cursor/skills";
         structure = "symlink-tree";
       };
     };
