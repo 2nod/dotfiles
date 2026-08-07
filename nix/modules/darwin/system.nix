@@ -273,8 +273,9 @@ in
       NSAutomaticPeriodSubstitutionEnabled = false; # Disable double-space period.
       NSAutomaticQuoteSubstitutionEnabled = false; # Disable smart quotes.
       NSAutomaticSpellingCorrectionEnabled = false; # Disable auto-correct.
-      NSStatusItemSpacing = 2; # Menu bar spacing.
-      NSStatusItemSelectionPadding = 2; # Menu bar item padding.
+      # NSStatusItemSpacing / NSStatusItemSelectionPadding は指定しない。
+      # 以前はアイコンが入りきらず 2px まで詰めていたが、Ice (menu bar manager)
+      # が畳むようになったので macOS 既定の間隔に任せる。
     };
 
     screencapture = {
