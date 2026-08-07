@@ -118,5 +118,6 @@
       inherit dotfilesDir;
     })
     ./ice.nix
+    ./stats.nix
   ];
 }

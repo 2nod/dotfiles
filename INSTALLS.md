@@ -155,6 +155,9 @@
 - `ice.nix`
   - `targets.darwin.defaults."com.jordanbaird.Ice"` に Ice の挙動スカラ値を宣言
   - アイコンの仕分けは各アプリの `NSStatusItem Preferred Position` に入るため宣言対象外
+- `stats.nix`
+  - `targets.darwin.defaults."eu.exelban.Stats".CombinedModules` のみ宣言
+  - ウィジェット構成は Stats 自身が同じドメインに書くため、意図的に広げていない
 
 ## Generated Files
 
