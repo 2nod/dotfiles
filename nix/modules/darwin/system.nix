@@ -119,22 +119,15 @@ in
   system.primaryUser = user;
 
   # Launch apps at login for the primary user.
+  #
+  # ここに置くのは「アプリ自身のログイン登録が無い、または無効なもの」だけ。
+  # 自前で確実に登録するアプリは二重管理になるので入れない。判定は
+  # `sfltool dumpbtm` の Disposition を見る。
+  #   - AltTab: 自前の ~/Library/LaunchAgents/com.lwouis.alt-tab-macos.plist が
+  #     enabled なので不要
+  #   - Raycast: app login item が enabled なので不要（Raycast が自動登録する）
+  #   - Stats: app login item が disabled なので、ここで起動する必要がある
   launchd.user.agents = {
-    "alt-tab" = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/open"
-          "-g"
-          "-a"
-          "AltTab"
-        ];
-        LimitLoadToSessionType = [ "Aqua" ];
-        RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
-      };
-    };
     colima = {
       serviceConfig = {
         EnvironmentVariables = {
@@ -148,20 +141,6 @@ in
           colima.vmType
         ]
         ++ lib.optionals colima.rosetta [ "--vz-rosetta" ];
-        RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
-      };
-    };
-    raycast = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/open"
-          "-g"
-          "/Applications/Raycast.app"
-        ];
-        LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;
         KeepAlive = {
           SuccessfulExit = false;

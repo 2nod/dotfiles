@@ -67,14 +67,14 @@
   - `ignoreShellProgramCheck = true`
 - `system.primaryUser = user`
 - `launchd.user.agents`
-  - `alt-tab`
   - `colima`
-  - `raycast`
   - `karabiner-elements`
   - `bitwarden`
   - `ice`
   - `swiftbar`
   - `stats`
+  - アプリ自身のログイン登録が無い、または無効なものだけを置く。AltTab と
+    Raycast は自前で登録する（`sfltool dumpbtm` で enabled）ため入れない
 - `fonts.packages`
   - `udev-gothic`
   - `udev-gothic-nf`
