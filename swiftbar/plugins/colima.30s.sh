@@ -35,6 +35,10 @@ WEZTERM="$(command -v wezterm || true)"
 # `wezterm start` に --hold 相当がないため、終了するコマンドは終わると同時に
 # window が閉じる。docker logs -f や lazydocker は居座るので問題にならない。
 #
+# terminal は省略時 true (= Terminal.app で実行) なので、wezterm に投げる側では
+# terminal=false を必ず付ける。付け忘れると Terminal.app が開いた上でその中から
+# wezterm が起動し、window が二重に開く。
+#
 # usage: term_line "<label>" "<extra params>" <cmd> [args...]
 term_line() {
   label="$1"
@@ -42,7 +46,7 @@ term_line() {
   shift 2
 
   if [ -n "$WEZTERM" ]; then
-    line="$label | $extra bash=$WEZTERM param1=start param2=--"
+    line="$label | $extra terminal=false bash=$WEZTERM param1=start param2=--"
     i=3
   else
     line="$label | $extra terminal=true bash=$1"
