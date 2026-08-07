@@ -120,14 +120,16 @@ in
 
   # Launch apps at login for the primary user.
   #
-  # ここに置くのは「アプリ自身のログイン登録が無い、または無効なもの」だけ。
-  # 自前で確実に登録するアプリは二重管理になるので入れない。判定は
-  # `sfltool dumpbtm` の Disposition を見る。
-  #   - AltTab: 自前の ~/Library/LaunchAgents/com.lwouis.alt-tab-macos.plist が
-  #     enabled なので不要
-  #   - Raycast: app login item が enabled なので不要（Raycast が自動登録する）
-  #   - Ice: 権限を許可すると自分で app login item を登録する（enabled）ので不要
-  #   - Stats: BTM に自前の記録がないので、ここで起動する必要がある
+  # ここに置くのは「アプリ自身にログイン登録の仕組みが無いもの」だけ。
+  # 自前で登録できるアプリはそちらに任せる。二重に持つと、アプリが後から勝手に
+  # 登録したときに宣言と実体がずれる（Ice で実際に起きた）。
+  #
+  # AltTab / Raycast / Ice / SwiftBar / Stats は自前で登録するのでここには無い。
+  # これらは LaunchAtLogin (SMAppService) 経由で BTM に入るため defaults では
+  # 書けず、nix から宣言できない。新しいマシンではアプリの設定画面で一度
+  # ON にする必要がある（Ice / AltTab / Raycast は初回起動時に自分で有効化する
+  # 実績があるが、SwiftBar と Stats は手動で入れた）。
+  # 状態の確認は `sfltool dumpbtm` の Disposition を見る。
   #
   # `open` を使う agent に KeepAlive は付けないこと。launchd が監視するのは
   # `open` であってアプリ本体ではなく、`open` は起動を投げた直後に 0 で終わる。
@@ -172,28 +174,6 @@ in
           "/usr/bin/open"
           "-g"
           "/Applications/Bitwarden.app"
-        ];
-        LimitLoadToSessionType = [ "Aqua" ];
-        RunAtLoad = true;
-      };
-    };
-    swiftbar = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/open"
-          "-g"
-          "/Applications/SwiftBar.app"
-        ];
-        LimitLoadToSessionType = [ "Aqua" ];
-        RunAtLoad = true;
-      };
-    };
-    stats = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/open"
-          "-g"
-          "/Applications/Stats.app"
         ];
         LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;

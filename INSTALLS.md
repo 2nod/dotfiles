@@ -70,10 +70,9 @@
   - `colima`
   - `karabiner-elements`
   - `bitwarden`
-  - `swiftbar`
-  - `stats`
-  - アプリ自身のログイン登録が無い、または無効なものだけを置く。AltTab /
-    Raycast / Ice は自前で登録する（`sfltool dumpbtm` で enabled）ため入れない
+  - アプリ自身にログイン登録の仕組みが無いものだけを置く。AltTab / Raycast /
+    Ice / SwiftBar / Stats は `LaunchAtLogin` (SMAppService) で BTM に登録する
+    ため、nix からは宣言できない。新しいマシンではアプリの設定画面で ON にする
   - `open` を使う agent に `KeepAlive` は付けない（監視対象が `open` であって
     アプリ本体ではないため無意味で、アプリ不在時だけ再試行ループになる）
 - `fonts.packages`
