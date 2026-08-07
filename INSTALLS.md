@@ -70,11 +70,12 @@
   - `colima`
   - `karabiner-elements`
   - `bitwarden`
-  - `ice`
   - `swiftbar`
   - `stats`
-  - アプリ自身のログイン登録が無い、または無効なものだけを置く。AltTab と
-    Raycast は自前で登録する（`sfltool dumpbtm` で enabled）ため入れない
+  - アプリ自身のログイン登録が無い、または無効なものだけを置く。AltTab /
+    Raycast / Ice は自前で登録する（`sfltool dumpbtm` で enabled）ため入れない
+  - `open` を使う agent に `KeepAlive` は付けない（監視対象が `open` であって
+    アプリ本体ではないため無意味で、アプリ不在時だけ再試行ループになる）
 - `fonts.packages`
   - `udev-gothic`
   - `udev-gothic-nf`

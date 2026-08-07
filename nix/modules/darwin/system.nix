@@ -126,7 +126,14 @@ in
   #   - AltTab: 自前の ~/Library/LaunchAgents/com.lwouis.alt-tab-macos.plist が
   #     enabled なので不要
   #   - Raycast: app login item が enabled なので不要（Raycast が自動登録する）
-  #   - Stats: app login item が disabled なので、ここで起動する必要がある
+  #   - Ice: 権限を許可すると自分で app login item を登録する（enabled）ので不要
+  #   - Stats: BTM に自前の記録がないので、ここで起動する必要がある
+  #
+  # `open` を使う agent に KeepAlive は付けないこと。launchd が監視するのは
+  # `open` であってアプリ本体ではなく、`open` は起動を投げた直後に 0 で終わる。
+  # アプリが落ちても再起動されない一方、アプリが無いとき（cask 入れ替え中など）
+  # だけ非ゼロで終わって再試行ループに入る。効かない上に悪い時だけ悪さをする。
+  # colima の KeepAlive は `colima start --foreground` を直接監視するので有効。
   launchd.user.agents = {
     colima = {
       serviceConfig = {
@@ -170,21 +177,6 @@ in
         RunAtLoad = true;
       };
     };
-    # menu bar 系。ice は他のアイコンを畳む側なので常駐していないと意味がない。
-    ice = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/open"
-          "-g"
-          "/Applications/Ice.app"
-        ];
-        LimitLoadToSessionType = [ "Aqua" ];
-        RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
-      };
-    };
     swiftbar = {
       serviceConfig = {
         ProgramArguments = [
@@ -194,9 +186,6 @@ in
         ];
         LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
       };
     };
     stats = {
@@ -208,9 +197,6 @@ in
         ];
         LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
       };
     };
   };
