@@ -48,6 +48,7 @@
   - `discord`
   - `ghostty`
   - `google-chrome`
+  - `jordanbaird-ice`
   - `karabiner-elements`
   - `nani`
   - `notion`
@@ -71,6 +72,9 @@
   - `raycast`
   - `karabiner-elements`
   - `bitwarden`
+  - `ice`
+  - `swiftbar`
+  - `stats`
 - `fonts.packages`
   - `udev-gothic`
   - `udev-gothic-nf`

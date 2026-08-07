@@ -68,6 +68,8 @@ in
       "discord"
       "ghostty"
       "google-chrome"
+      # menu bar manager。stats / swiftbar でアイコンが増える分をここで畳む。
+      "jordanbaird-ice"
       "karabiner-elements"
       "nani"
       "notion"
@@ -187,6 +189,49 @@ in
         ];
         LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;
+      };
+    };
+    # menu bar 系。ice は他のアイコンを畳む側なので常駐していないと意味がない。
+    ice = {
+      serviceConfig = {
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-g"
+          "/Applications/Ice.app"
+        ];
+        LimitLoadToSessionType = [ "Aqua" ];
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+      };
+    };
+    swiftbar = {
+      serviceConfig = {
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-g"
+          "/Applications/SwiftBar.app"
+        ];
+        LimitLoadToSessionType = [ "Aqua" ];
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
+      };
+    };
+    stats = {
+      serviceConfig = {
+        ProgramArguments = [
+          "/usr/bin/open"
+          "-g"
+          "/Applications/Stats.app"
+        ];
+        LimitLoadToSessionType = [ "Aqua" ];
+        RunAtLoad = true;
+        KeepAlive = {
+          SuccessfulExit = false;
+        };
       };
     };
   };
