@@ -114,5 +114,8 @@
         profile
         ;
     })
+    (import ./swiftbar.nix {
+      inherit dotfilesDir;
+    })
   ];
 }

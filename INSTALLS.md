@@ -37,7 +37,6 @@
 - `homebrew.onActivation.extraFlags = [ "--force-cleanup" ]`
 - `homebrew.casks`
   - `alt-tab`
-  - `aqua-voice`
   - `anki`
   - `arc`
   - `bitwarden`
@@ -47,15 +46,16 @@
   - `cursor`
   - `cursor-cli`
   - `discord`
+  - `ghostty`
   - `google-chrome`
   - `karabiner-elements`
   - `nani`
   - `notion`
   - `obsidian`
-  - `orbstack`
   - `raycast`
   - `slack`
-  - `typeless`
+  - `stats`
+  - `swiftbar`
   - `visual-studio-code`
   - `zoom`
 - `nix.enable = false`
@@ -67,6 +67,7 @@
 - `system.primaryUser = user`
 - `launchd.user.agents`
   - `alt-tab`
+  - `colima`
   - `raycast`
   - `karabiner-elements`
   - `bitwarden`
@@ -94,25 +95,37 @@
 
 - `home.stateVersion = "24.11"`
 - `programs.home-manager.enable = true`
-- `home.packages`
+- `home.packages` (`nix/modules/home/packages.nix`)
   - `bat`
   - `bun`
-  - `claude-code`
   - `mise`
-  - `codex`
   - `deno`
   - `eza`
+  - `fzf`
   - `gh`
-  - `git`
+  - `ghq`
   - `lazygit`
+  - `colima`
+  - `docker_29`
   - `lazydocker`
+  - `google-cloud-sdk`
   - `pnpm`
   - `spotify`
+  - `starship`
   - `ripgrep`
+  - `roots`
   - `terraform`
+  - `pyright`
+  - `ruff`
   - `uv`
   - `wezterm`
   - `yazi`
+  - `zoxide`
+- ツール固有のパッケージは `nix/modules/home/programs/<tool>/` 側で入る
+  - `ai-tools.nix`: `cursor-agent` / `opencode` / `pi`
+  - `claude-code/`: `claude-code`
+  - `codex.nix`: `codex`
+  - `neovim.nix`: `efm-langserver` / `hadolint` / `oxfmt` / `oxlint` / `telescope-fzf-native-nvim` / `typescript-go`
 - `programs.git`
 - `programs.git.settings.core.hooksPath`
 - `programs.git` の pre-push hook で allowlist 以外の `main` / `master` への直接 push を拒否
@@ -122,9 +135,19 @@
 - `programs.delta`
 - `programs.lazygit`
 - `programs.vscode`
-- `programs.cursor`
+- `programs.cursor` / `cursor-ide.nix`
 - `programs.codex`
 - `programs.cmux`
+- `claude-code/`
+- `ghostty.nix`
+- `colima.nix`
+- `herdr.nix`
+- `pi.nix`
+- `starship.nix`
+- `ai-tools.nix`
+- `swiftbar.nix`
+  - `targets.darwin.defaults."com.ameba.SwiftBar".PluginDirectory` を `~/dotfiles/swiftbar/plugins` に固定
+  - plugin 本体は `swiftbar/plugins/` にコミットした実ファイル（`colima.30s.sh`）
 
 ## Generated Files
 
@@ -150,6 +173,15 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/.config/lazygit/config.yml`
 - `~/.codex/AGENTS.md`
 - `~/.config/codex` (symlink to `~/.codex`)
+- `~/.config/claude/CLAUDE.md`
+- `~/.config/ghostty/config` と `~/Library/Application Support/com.mitchellh.ghostty/config`
+- `~/.config/herdr/config.toml`
+- `~/.config/starship.toml`
+- `~/.pi/agent/system-append.md` / `~/.pi/agent/model-router.json`
+- agent skills (`nix/modules/home/agent-skills.nix`)
+  - `~/.agents/skills`
+  - `~/.cursor/skills`
+  - `~/.config/claude/skills/dotfiles-shared-skills`
 
 ## link_force
 
@@ -164,20 +196,24 @@ Home Manager の activation で生成・差し替えされるもの。
   - `zsh/zshrc`
   - `bash/.bash_profile`
   - `bash/.bashrc`
-- `nix/modules/home/programs/neovim/default.nix`
+- `nix/modules/home/programs/neovim.nix`
   - `~/.config/nvim`
-- `nix/modules/home/programs/vscode/default.nix`
+- `nix/modules/home/programs/vscode.nix`
   - `~/Library/Application Support/Code/User/settings.json`
   - `~/Library/Application Support/Code/User/keybindings.json`
-- `nix/modules/home/programs/cursor/default.nix`
+- `nix/modules/home/programs/cursor-ide.nix`
   - `~/Library/Application Support/Cursor/User/settings.json`
   - `~/Library/Application Support/Cursor/User/keybindings.json`
+- `nix/modules/home/programs/ghostty.nix`
+  - `~/Library/Application Support/com.mitchellh.ghostty/config`
 
 ## Homebrew
 
 `nix-darwin` の `homebrew` 管理で入るもの。
 Brewfile は nix-darwin が生成するため、手元で `brew bundle install` / `brew bundle cleanup` は実行しない。
 
+- taps
+  - `modem-dev/tap`
 - brews
   - `pkg-config`
   - `cairo`

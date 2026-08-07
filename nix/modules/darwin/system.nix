@@ -57,7 +57,6 @@ in
     # 非自己更新 cask は従来どおり onActivation.upgrade で更新される。
     casks = [
       "alt-tab"
-      "aqua-voice"
       "anki"
       "arc"
       "bitwarden"
@@ -75,7 +74,8 @@ in
       "obsidian"
       "raycast"
       "slack"
-      "typeless"
+      "stats"
+      "swiftbar"
       "visual-studio-code"
       "zoom"
     ];
