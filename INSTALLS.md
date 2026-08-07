@@ -152,6 +152,9 @@
 - `swiftbar.nix`
   - `targets.darwin.defaults."com.ameba.SwiftBar".PluginDirectory` を `~/dotfiles/swiftbar/plugins` に固定
   - plugin 本体は `swiftbar/plugins/` にコミットした実ファイル（`colima.30s.sh`）
+- `ice.nix`
+  - `targets.darwin.defaults."com.jordanbaird.Ice"` に Ice の挙動スカラ値を宣言
+  - アイコンの仕分けは各アプリの `NSStatusItem Preferred Position` に入るため宣言対象外
 
 ## Generated Files
 

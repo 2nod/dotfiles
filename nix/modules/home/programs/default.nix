@@ -117,5 +117,6 @@
     (import ./swiftbar.nix {
       inherit dotfilesDir;
     })
+    ./ice.nix
   ];
 }
