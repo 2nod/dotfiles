@@ -114,5 +114,10 @@
         profile
         ;
     })
+    (import ./swiftbar.nix {
+      inherit dotfilesDir;
+    })
+    ./ice.nix
+    ./stats.nix
   ];
 }

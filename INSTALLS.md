@@ -37,7 +37,6 @@
 - `homebrew.onActivation.extraFlags = [ "--force-cleanup" ]`
 - `homebrew.casks`
   - `alt-tab`
-  - `aqua-voice`
   - `anki`
   - `arc`
   - `bitwarden`
@@ -47,15 +46,17 @@
   - `cursor`
   - `cursor-cli`
   - `discord`
+  - `ghostty`
   - `google-chrome`
+  - `jordanbaird-ice`
   - `karabiner-elements`
   - `nani`
   - `notion`
   - `obsidian`
-  - `orbstack`
   - `raycast`
   - `slack`
-  - `typeless`
+  - `stats`
+  - `swiftbar`
   - `visual-studio-code`
   - `zoom`
 - `nix.enable = false`
@@ -66,10 +67,14 @@
   - `ignoreShellProgramCheck = true`
 - `system.primaryUser = user`
 - `launchd.user.agents`
-  - `alt-tab`
-  - `raycast`
+  - `colima`
   - `karabiner-elements`
   - `bitwarden`
+  - アプリ自身にログイン登録の仕組みが無いものだけを置く。AltTab / Raycast /
+    Ice / SwiftBar / Stats は `LaunchAtLogin` (SMAppService) で BTM に登録する
+    ため、nix からは宣言できない。新しいマシンではアプリの設定画面で ON にする
+  - `open` を使う agent に `KeepAlive` は付けない（監視対象が `open` であって
+    アプリ本体ではないため無意味で、アプリ不在時だけ再試行ループになる）
 - `fonts.packages`
   - `udev-gothic`
   - `udev-gothic-nf`
@@ -94,25 +99,37 @@
 
 - `home.stateVersion = "24.11"`
 - `programs.home-manager.enable = true`
-- `home.packages`
+- `home.packages` (`nix/modules/home/packages.nix`)
   - `bat`
   - `bun`
-  - `claude-code`
   - `mise`
-  - `codex`
   - `deno`
   - `eza`
+  - `fzf`
   - `gh`
-  - `git`
+  - `ghq`
   - `lazygit`
+  - `colima`
+  - `docker_29`
   - `lazydocker`
+  - `google-cloud-sdk`
   - `pnpm`
   - `spotify`
+  - `starship`
   - `ripgrep`
+  - `roots`
   - `terraform`
+  - `pyright`
+  - `ruff`
   - `uv`
   - `wezterm`
   - `yazi`
+  - `zoxide`
+- ツール固有のパッケージは `nix/modules/home/programs/<tool>/` 側で入る
+  - `ai-tools.nix`: `cursor-agent` / `opencode` / `pi`
+  - `claude-code/`: `claude-code`
+  - `codex.nix`: `codex`
+  - `neovim.nix`: `efm-langserver` / `hadolint` / `oxfmt` / `oxlint` / `telescope-fzf-native-nvim` / `typescript-go`
 - `programs.git`
 - `programs.git.settings.core.hooksPath`
 - `programs.git` の pre-push hook で allowlist 以外の `main` / `master` への直接 push を拒否
@@ -122,9 +139,25 @@
 - `programs.delta`
 - `programs.lazygit`
 - `programs.vscode`
-- `programs.cursor`
+- `programs.cursor` / `cursor-ide.nix`
 - `programs.codex`
 - `programs.cmux`
+- `claude-code/`
+- `ghostty.nix`
+- `colima.nix`
+- `herdr.nix`
+- `pi.nix`
+- `starship.nix`
+- `ai-tools.nix`
+- `swiftbar.nix`
+  - `targets.darwin.defaults."com.ameba.SwiftBar".PluginDirectory` を `~/dotfiles/swiftbar/plugins` に固定
+  - plugin 本体は `swiftbar/plugins/` にコミットした実ファイル（`colima.30s.sh`）
+- `ice.nix`
+  - `targets.darwin.defaults."com.jordanbaird.Ice"` に Ice の挙動スカラ値を宣言
+  - アイコンの仕分けは各アプリの `NSStatusItem Preferred Position` に入るため宣言対象外
+- `stats.nix`
+  - `targets.darwin.defaults."eu.exelban.Stats".CombinedModules` のみ宣言
+  - ウィジェット構成は Stats 自身が同じドメインに書くため、意図的に広げていない
 
 ## Generated Files
 
@@ -150,6 +183,15 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/.config/lazygit/config.yml`
 - `~/.codex/AGENTS.md`
 - `~/.config/codex` (symlink to `~/.codex`)
+- `~/.config/claude/CLAUDE.md`
+- `~/.config/ghostty/config` と `~/Library/Application Support/com.mitchellh.ghostty/config`
+- `~/.config/herdr/config.toml`
+- `~/.config/starship.toml`
+- `~/.pi/agent/system-append.md` / `~/.pi/agent/model-router.json`
+- agent skills (`nix/modules/home/agent-skills.nix`)
+  - `~/.agents/skills`
+  - `~/.cursor/skills`
+  - `~/.config/claude/skills/dotfiles-shared-skills`
 
 ## link_force
 
@@ -164,20 +206,24 @@ Home Manager の activation で生成・差し替えされるもの。
   - `zsh/zshrc`
   - `bash/.bash_profile`
   - `bash/.bashrc`
-- `nix/modules/home/programs/neovim/default.nix`
+- `nix/modules/home/programs/neovim.nix`
   - `~/.config/nvim`
-- `nix/modules/home/programs/vscode/default.nix`
+- `nix/modules/home/programs/vscode.nix`
   - `~/Library/Application Support/Code/User/settings.json`
   - `~/Library/Application Support/Code/User/keybindings.json`
-- `nix/modules/home/programs/cursor/default.nix`
+- `nix/modules/home/programs/cursor-ide.nix`
   - `~/Library/Application Support/Cursor/User/settings.json`
   - `~/Library/Application Support/Cursor/User/keybindings.json`
+- `nix/modules/home/programs/ghostty.nix`
+  - `~/Library/Application Support/com.mitchellh.ghostty/config`
 
 ## Homebrew
 
 `nix-darwin` の `homebrew` 管理で入るもの。
 Brewfile は nix-darwin が生成するため、手元で `brew bundle install` / `brew bundle cleanup` は実行しない。
 
+- taps
+  - `modem-dev/tap`
 - brews
   - `pkg-config`
   - `cairo`

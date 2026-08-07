@@ -57,7 +57,6 @@ in
     # 非自己更新 cask は従来どおり onActivation.upgrade で更新される。
     casks = [
       "alt-tab"
-      "aqua-voice"
       "anki"
       "arc"
       "bitwarden"
@@ -69,13 +68,16 @@ in
       "discord"
       "ghostty"
       "google-chrome"
+      # menu bar manager。stats / swiftbar でアイコンが増える分をここで畳む。
+      "jordanbaird-ice"
       "karabiner-elements"
       "nani"
       "notion"
       "obsidian"
       "raycast"
       "slack"
-      "typeless"
+      "stats"
+      "swiftbar"
       "visual-studio-code"
       "zoom"
     ];
@@ -117,22 +119,24 @@ in
   system.primaryUser = user;
 
   # Launch apps at login for the primary user.
+  #
+  # ここに置くのは「アプリ自身にログイン登録の仕組みが無いもの」だけ。
+  # 自前で登録できるアプリはそちらに任せる。二重に持つと、アプリが後から勝手に
+  # 登録したときに宣言と実体がずれる（Ice で実際に起きた）。
+  #
+  # AltTab / Raycast / Ice / SwiftBar / Stats は自前で登録するのでここには無い。
+  # これらは LaunchAtLogin (SMAppService) 経由で BTM に入るため defaults では
+  # 書けず、nix から宣言できない。新しいマシンではアプリの設定画面で一度
+  # ON にする必要がある（Ice / AltTab / Raycast は初回起動時に自分で有効化する
+  # 実績があるが、SwiftBar と Stats は手動で入れた）。
+  # 状態の確認は `sfltool dumpbtm` の Disposition を見る。
+  #
+  # `open` を使う agent に KeepAlive は付けないこと。launchd が監視するのは
+  # `open` であってアプリ本体ではなく、`open` は起動を投げた直後に 0 で終わる。
+  # アプリが落ちても再起動されない一方、アプリが無いとき（cask 入れ替え中など）
+  # だけ非ゼロで終わって再試行ループに入る。効かない上に悪い時だけ悪さをする。
+  # colima の KeepAlive は `colima start --foreground` を直接監視するので有効。
   launchd.user.agents = {
-    "alt-tab" = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/open"
-          "-g"
-          "-a"
-          "AltTab"
-        ];
-        LimitLoadToSessionType = [ "Aqua" ];
-        RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
-      };
-    };
     colima = {
       serviceConfig = {
         EnvironmentVariables = {
@@ -146,20 +150,6 @@ in
           colima.vmType
         ]
         ++ lib.optionals colima.rosetta [ "--vz-rosetta" ];
-        RunAtLoad = true;
-        KeepAlive = {
-          SuccessfulExit = false;
-        };
-      };
-    };
-    raycast = {
-      serviceConfig = {
-        ProgramArguments = [
-          "/usr/bin/open"
-          "-g"
-          "/Applications/Raycast.app"
-        ];
-        LimitLoadToSessionType = [ "Aqua" ];
         RunAtLoad = true;
         KeepAlive = {
           SuccessfulExit = false;
@@ -228,6 +218,8 @@ in
       NSAutomaticPeriodSubstitutionEnabled = false; # Disable double-space period.
       NSAutomaticQuoteSubstitutionEnabled = false; # Disable smart quotes.
       NSAutomaticSpellingCorrectionEnabled = false; # Disable auto-correct.
+      # メニューバーのアイコン間隔。macOS 既定・8・4 と広げて試したが、どれも
+      # 間延びして見えたため 2 に戻した。Ice で畳むようになった後も好みは変わらず。
       NSStatusItemSpacing = 2; # Menu bar spacing.
       NSStatusItemSelectionPadding = 2; # Menu bar item padding.
     };
