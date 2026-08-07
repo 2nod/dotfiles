@@ -27,6 +27,36 @@ export DOCKER_HOST="unix://$HOME/.config/colima/default/docker.sock"
 COLIMA="$(command -v colima || true)"
 DOCKER="$(command -v docker || true)"
 LAZYDOCKER="$(command -v lazydocker || true)"
+WEZTERM="$(command -v wezterm || true)"
+
+# SwiftBar の terminal=true は Terminal.app 固定で、使う terminal を選ぶ設定が
+# ない。そこで wezterm があれば `wezterm start -- <cmd>` に投げ直す。
+# 引数は param1.. に1個ずつ渡す（値を引用符で囲むので空白入りでも壊れない）。
+# `wezterm start` に --hold 相当がないため、終了するコマンドは終わると同時に
+# window が閉じる。docker logs -f や lazydocker は居座るので問題にならない。
+#
+# usage: term_line "<label>" "<extra params>" <cmd> [args...]
+term_line() {
+  label="$1"
+  extra="$2"
+  shift 2
+
+  if [ -n "$WEZTERM" ]; then
+    line="$label | $extra bash=$WEZTERM param1=start param2=--"
+    i=3
+  else
+    line="$label | $extra terminal=true bash=$1"
+    shift
+    i=1
+  fi
+
+  for a in "$@"; do
+    line="$line param$i=\"$a\""
+    i=$((i + 1))
+  done
+
+  printf '%s\n' "$line"
+}
 
 if [ -z "$COLIMA" ]; then
   echo "colima | sfimage=exclamationmark.triangle sfcolor=red"
@@ -47,7 +77,7 @@ if [ "${status:-}" != "Running" ]; then
   echo "Colima: ${status:-Unknown} | sfimage=circle.fill sfcolor=gray"
   echo "$spec | size=12 color=gray"
   echo "---"
-  echo "Start colima | sfimage=play.fill bash=$COLIMA param1=start terminal=true refresh=true"
+  term_line "Start colima" "sfimage=play.fill refresh=true" "$COLIMA" start
   echo "Refresh | sfimage=arrow.clockwise refresh=true"
   exit 0
 fi
@@ -97,13 +127,13 @@ else
       fi
       echo "--$st | size=12 color=gray"
       echo "--$image | size=12 color=gray"
-      echo "--Logs | sfimage=doc.text bash=$DOCKER param1=logs param2=-f param3=\"$name\" terminal=true"
+      term_line "--Logs" "sfimage=doc.text" "$DOCKER" logs -f "$name"
     done <<<"$containers"
   fi
 fi
 
 echo "---"
-[ -n "$LAZYDOCKER" ] && echo "lazydocker | sfimage=terminal bash=$LAZYDOCKER terminal=true"
+[ -n "$LAZYDOCKER" ] && term_line "lazydocker" "sfimage=terminal" "$LAZYDOCKER"
 echo "Stop colima | sfimage=stop.fill bash=$COLIMA param1=stop terminal=false refresh=true"
-echo "Restart colima | sfimage=arrow.clockwise.circle bash=$COLIMA param1=restart terminal=true refresh=true"
+term_line "Restart colima" "sfimage=arrow.clockwise.circle refresh=true" "$COLIMA" restart
 echo "Refresh | sfimage=arrow.clockwise refresh=true"
