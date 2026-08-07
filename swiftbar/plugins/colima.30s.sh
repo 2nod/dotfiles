@@ -9,6 +9,10 @@
 # SwiftBar は最小限の PATH で plugin を起動するため、ここで解決先を明示する。
 # home-manager profile → nix-darwin の per-user profile → homebrew の順に探す。
 # 対象は colima の default profile のみ。
+#
+# 出力の "<title>| <params>" は `|` の前に空白を入れないこと。SwiftBar は params
+# だけ trim してタイトルは trim しないため (MenuLineParameters.swift)、"off | ..."
+# と書くとタイトルが "off " になってメニューバーで余分に幅を取る。
 
 set -u
 
@@ -46,10 +50,10 @@ term_line() {
   shift 2
 
   if [ -n "$WEZTERM" ]; then
-    line="$label | $extra terminal=false bash=$WEZTERM param1=start param2=--"
+    line="$label| $extra terminal=false bash=$WEZTERM param1=start param2=--"
     i=3
   else
-    line="$label | $extra terminal=true bash=$1"
+    line="$label| $extra terminal=true bash=$1"
     shift
     i=1
   fi
@@ -63,9 +67,9 @@ term_line() {
 }
 
 if [ -z "$COLIMA" ]; then
-  echo "colima | sfimage=exclamationmark.triangle sfcolor=red"
+  echo "colima| sfimage=exclamationmark.triangle sfcolor=red"
   echo "---"
-  echo "colima not found in PATH | color=red"
+  echo "colima not found in PATH| color=red"
   exit 0
 fi
 
@@ -76,13 +80,13 @@ IFS=' ' read -r _profile status arch cpus memory disk runtime address \
 spec="${arch:-?} / ${cpus:-?} CPU / ${memory:-?} / ${disk:-?}"
 
 if [ "${status:-}" != "Running" ]; then
-  echo "off | sfimage=shippingbox sfcolor=gray"
+  echo "off| sfimage=shippingbox sfcolor=gray"
   echo "---"
-  echo "Colima: ${status:-Unknown} | sfimage=circle.fill sfcolor=gray"
-  echo "$spec | size=12 color=gray"
+  echo "Colima: ${status:-Unknown}| sfimage=circle.fill sfcolor=gray"
+  echo "$spec| size=12 color=gray"
   echo "---"
   term_line "Start colima" "sfimage=play.fill refresh=true" "$COLIMA" start
-  echo "Refresh | sfimage=arrow.clockwise refresh=true"
+  echo "Refresh| sfimage=arrow.clockwise refresh=true"
   exit 0
 fi
 
@@ -99,38 +103,38 @@ else
 fi
 
 if [ -n "$docker_err" ]; then
-  echo "? | sfimage=shippingbox.fill sfcolor=orange"
+  echo "?| sfimage=shippingbox.fill sfcolor=orange"
   echo "---"
-  echo "Colima: Running | sfimage=circle.fill sfcolor=green"
-  echo "$spec / ${runtime:-?} | size=12 color=gray"
+  echo "Colima: Running| sfimage=circle.fill sfcolor=green"
+  echo "$spec / ${runtime:-?}| size=12 color=gray"
   echo "---"
-  echo "docker unreachable | color=orange"
-  echo "$docker_err | size=12 color=gray"
+  echo "docker unreachable| color=orange"
+  echo "$docker_err| size=12 color=gray"
 else
   total="$(printf '%s' "$containers" | grep -c . || true)"
   running="$(printf '%s' "$containers" | awk -F'\t' '$2 == "running"' | grep -c . || true)"
 
-  echo "$running/$total | sfimage=shippingbox.fill sfcolor=green"
+  echo "$running/$total| sfimage=shippingbox.fill sfcolor=green"
   echo "---"
-  echo "Colima: Running | sfimage=circle.fill sfcolor=green"
-  echo "$spec / ${runtime:-?} | size=12 color=gray"
-  [ -n "${address:-}" ] && echo "Address: $address | size=12 color=gray"
+  echo "Colima: Running| sfimage=circle.fill sfcolor=green"
+  echo "$spec / ${runtime:-?}| size=12 color=gray"
+  [ -n "${address:-}" ] && echo "Address: $address| size=12 color=gray"
   echo "---"
   if [ "$total" -eq 0 ]; then
-    echo "No containers | color=gray"
+    echo "No containers| color=gray"
   else
-    echo "Containers ($running/$total running) | size=12 color=gray"
+    echo "Containers ($running/$total running)| size=12 color=gray"
     while IFS=$'\t' read -r name state st image; do
       [ -n "$name" ] || continue
       if [ "$state" = "running" ]; then
-        echo "$name | sfimage=circle.fill sfcolor=green"
-        echo "--Stop | sfimage=stop.fill bash=$DOCKER param1=stop param2=\"$name\" terminal=false refresh=true"
+        echo "$name| sfimage=circle.fill sfcolor=green"
+        echo "--Stop| sfimage=stop.fill bash=$DOCKER param1=stop param2=\"$name\" terminal=false refresh=true"
       else
-        echo "$name | sfimage=circle sfcolor=gray"
-        echo "--Start | sfimage=play.fill bash=$DOCKER param1=start param2=\"$name\" terminal=false refresh=true"
+        echo "$name| sfimage=circle sfcolor=gray"
+        echo "--Start| sfimage=play.fill bash=$DOCKER param1=start param2=\"$name\" terminal=false refresh=true"
       fi
-      echo "--$st | size=12 color=gray"
-      echo "--$image | size=12 color=gray"
+      echo "--$st| size=12 color=gray"
+      echo "--$image| size=12 color=gray"
       term_line "--Logs" "sfimage=doc.text" "$DOCKER" logs -f "$name"
     done <<<"$containers"
   fi
@@ -138,6 +142,6 @@ fi
 
 echo "---"
 [ -n "$LAZYDOCKER" ] && term_line "lazydocker" "sfimage=terminal" "$LAZYDOCKER"
-echo "Stop colima | sfimage=stop.fill bash=$COLIMA param1=stop terminal=false refresh=true"
+echo "Stop colima| sfimage=stop.fill bash=$COLIMA param1=stop terminal=false refresh=true"
 term_line "Restart colima" "sfimage=arrow.clockwise.circle refresh=true" "$COLIMA" restart
-echo "Refresh | sfimage=arrow.clockwise refresh=true"
+echo "Refresh| sfimage=arrow.clockwise refresh=true"
