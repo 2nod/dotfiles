@@ -114,6 +114,14 @@ else
   total="$(printf '%s' "$containers" | grep -c . || true)"
   running="$(printf '%s' "$containers" | awk -F'\t' '$2 == "running"' | grep -c . || true)"
 
+  # 稼働コンテナがあるときだけ CPU / メモリを取る。docker stats は 1 サンプル
+  # 取るために待つので、running が 0 なら呼ばない（0 件なら即返るが、無駄な
+  # exec を避ける）。--no-stream でも件数に応じて1秒前後かかる。
+  dstats=""
+  if [ "$running" -gt 0 ]; then
+    dstats="$("$DOCKER" stats --no-stream --format '{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}' 2>/dev/null || true)"
+  fi
+
   echo "$running/$total| sfimage=shippingbox.fill sfcolor=green"
   echo "---"
   echo "Colima: Running| sfimage=circle.fill sfcolor=green"
@@ -123,11 +131,32 @@ else
   if [ "$total" -eq 0 ]; then
     echo "No containers| color=gray"
   else
-    echo "Containers ($running/$total running)| size=12 color=gray"
+    header="Containers ($running/$total running)"
+    if [ -n "$dstats" ]; then
+      # 稼働中の合計。CPU% は単純合計、メモリは MemUsage の使用側 (例 "12.3MiB")
+      # を MiB に正規化して合計する。
+      totals="$(printf '%s' "$dstats" | awk -F'\t' '
+        { gsub(/%/, "", $2); cpu += $2
+          split($3, m, " / "); v = m[1]
+          unit = v; gsub(/[0-9.]/, "", unit)
+          gsub(/[^0-9.]/, "", v)
+          if (unit == "GiB") v *= 1024
+          else if (unit == "KiB") v /= 1024
+          else if (unit == "B") v /= 1048576
+          mem += v }
+        END { if (mem >= 1024) printf "CPU %.1f%%  MEM %.2fGiB", cpu, mem / 1024
+              else printf "CPU %.1f%%  MEM %.1fMiB", cpu, mem }')"
+      header="$header  —  $totals"
+    fi
+    echo "$header| size=12 color=gray"
     while IFS=$'\t' read -r name state st image; do
       [ -n "$name" ] || continue
       if [ "$state" = "running" ]; then
         echo "$name| sfimage=circle.fill sfcolor=green"
+        # MemUsage は "332KiB / 23.42GiB" 形式。右側は VM 全体で全行同じなので落とす。
+        usage="$(printf '%s' "$dstats" | awk -F'\t' -v n="$name" \
+          '$1 == n { split($3, m, " / "); printf "CPU %s  MEM %s (%s)", $2, m[1], $4 }')"
+        [ -n "$usage" ] && echo "--$usage| size=12 color=gray"
         echo "--Stop| sfimage=stop.fill bash=$DOCKER param1=stop param2=\"$name\" terminal=false refresh=true"
       else
         echo "$name| sfimage=circle sfcolor=gray"
