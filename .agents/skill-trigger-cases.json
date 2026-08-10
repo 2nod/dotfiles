@@ -20,6 +20,11 @@
     "expected": ["software-development/pr-review-fix-workflow"]
   },
   {
+    "id": "pr-review-inline-generated-replies",
+    "prompt": "GitHub PRのgenerated inline review commentsに対して、修正内容と返信フォーマットを整えて",
+    "expected": ["software-development/pr-review-fix-workflow"]
+  },
+  {
     "id": "build-implementation-report-site",
     "prompt": "このPRの実装内容を、実コードの処理フローと変更前後の実測結果が分かるレビュー用Siteにまとめて",
     "expected": ["software-development/build-implementation-report-site"]
@@ -88,6 +93,31 @@
     "id": "meeting-agenda-from-slack",
     "prompt": "Slack threadとNotionの情報から、MTGの目的、前提、確認事項、時間配分、出口が揃ったシンプルなアジェンダを作って",
     "expected": ["productivity/meeting-agenda"]
+  },
+  {
+    "id": "daily-task-triage",
+    "prompt": "今日の仕事を整理して、優先3件と次の一手、完了条件を決めたい",
+    "expected": ["productivity/daily-task-triage"]
+  },
+  {
+    "id": "task-lifecycle-create-and-track",
+    "prompt": "新しいCodexタスクを作成して、未完了一覧にも登録して",
+    "expected": ["productivity/task-lifecycle"]
+  },
+  {
+    "id": "async-workflow-operations-completion",
+    "prompt": "Pub/Sub workerとcallbackを使う非同期Workflowが終わったか、artifactとjob状態まで確認して",
+    "expected": ["software-development/async-workflow-operations"]
+  },
+  {
+    "id": "notion-workspace-context-readonly",
+    "prompt": "studio配下のrepoで実装する前に、ローカルNotionの既存メモを読んで文脈を確認して",
+    "expected": ["knowledge-management/notion-workspace-context"]
+  },
+  {
+    "id": "notion-workspace-maintenance-local-markdown",
+    "prompt": "確認済みの知見をローカルNotionのMarkdownと_indexに残して",
+    "expected": ["knowledge-management/notion-workspace-maintenance"]
   },
   {
     "id": "git-worktree-cleanup-audit",
