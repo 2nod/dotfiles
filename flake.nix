@@ -165,6 +165,7 @@
                   unstable = import inputs.nixpkgs-unstable {
                     inherit (final) system;
                     config = final.config;
+                    overlays = [ (import ./nix/overlays/oxlint.nix) ];
                   };
                 })
               ];
