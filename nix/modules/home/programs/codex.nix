@@ -10,6 +10,9 @@ let
   codexXdgDir = "${config.xdg.configHome}/codex";
   codexDotfilesDir = "${dotfilesDir}/codex";
 
+  # agmsg hardcodes this path for its SQLite store, team registry, and run state.
+  agmsgSkillDir = "${config.home.homeDirectory}/.agents/skills/agmsg";
+
   tomlFormat = pkgs.formats.toml { };
 
   settings = {
@@ -27,6 +30,15 @@ let
       "inherit" = "all";
       experimental_use_profile = true;
     };
+
+    # agmsg writes outside the workspace, which the default workspace-write
+    # sandbox blocks. Its own installer patches this file, but writeCodexConfig
+    # below regenerates config.toml on every activation, so declare it here.
+    sandbox_workspace_write.writable_roots = [
+      "${agmsgSkillDir}/db"
+      "${agmsgSkillDir}/teams"
+      "${agmsgSkillDir}/run"
+    ];
 
     features = {
       goals = true;

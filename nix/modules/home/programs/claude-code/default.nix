@@ -27,12 +27,22 @@ let
     skipDangerousModePermissionPrompt = true;
     enabledPlugins = {
       "codex@openai-codex" = true;
+      # Cross-agent messaging over a shared SQLite store. The plugin only ships
+      # the skill; the engine and DB are bootstrapped into ~/.agents/skills/agmsg
+      # on first /agmsg run and kept there by agent-skills excludePatterns.
+      "agmsg@fujibee-agmsg" = true;
     };
     extraKnownMarketplaces = {
       openai-codex = {
         source = {
           source = "github";
           repo = "openai/codex-plugin-cc";
+        };
+      };
+      fujibee-agmsg = {
+        source = {
+          source = "github";
+          repo = "fujibee/agmsg";
         };
       };
     };
