@@ -193,6 +193,23 @@ Home Manager の activation で生成・差し替えされるもの。
   - `~/.cursor/skills`
   - `~/.config/claude/skills/dotfiles-shared-skills`
 
+## agmsg
+
+[agmsg](https://github.com/fujibee/agmsg) は CLI AI agent 間の messaging を SQLite で行うツールです。
+この repo は導入の土台だけを宣言し、engine 本体と DB は初回起動時に agmsg 自身が作ります。
+
+- `nix/modules/home/programs/claude-code/default.nix`
+  - marketplace `fujibee-agmsg` を登録し、plugin `agmsg@fujibee-agmsg` を有効化
+- `nix/modules/home/agent-skills.nix`
+  - `excludePatterns` に `/agmsg` を追加。
+    `~/.agents/skills` は `rsync -a --delete` で同期されるため、除外しないと activation のたびに DB ごと消えます。
+- `nix/modules/home/programs/codex.nix`
+  - `sandbox_workspace_write.writable_roots` に `~/.agents/skills/agmsg/{db,teams,run}` を追加。
+    agmsg の installer も同じ設定を書きますが、`config.toml` は activation で毎回上書きされるためここで宣言します。
+
+初回だけ、Claude Code で `/agmsg` を実行して bootstrap と team 登録を行ってください。
+engine は `~/.agents/skills/agmsg/` に作られ、以降は switch しても残ります。
+
 ## link_force
 
 `link_force` は既存ファイルを消してから symlink を張ります。

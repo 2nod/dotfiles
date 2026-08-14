@@ -67,6 +67,17 @@ in
       "installed"
     ];
 
+    # The agents target syncs with `rsync -a --delete`, so anything under
+    # ~/.agents/skills that this repo does not own is wiped on every activation.
+    # agmsg (https://github.com/fujibee/agmsg) hardcodes ~/.agents/skills/agmsg
+    # for its engine, SQLite store, and team registry, so exclude it to keep the
+    # message DB across switches. rsync --exclude also protects the destination
+    # from --delete, which is exactly the guarantee needed here.
+    excludePatterns = [
+      "/.system"
+      "/agmsg"
+    ];
+
     # home-manager targets run in agent-skills-nix's "global" mode, where dest
     # must expand to an absolute path ($HOME, ~, or ${VAR:-$HOME/...}); relative
     # paths are rejected at activation time.
