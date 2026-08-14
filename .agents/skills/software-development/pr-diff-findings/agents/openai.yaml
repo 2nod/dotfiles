@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Code Review Comments"
+  short_description: "Draft focused PR review findings"
+  default_prompt: "Use $pr-diff-findings to review this PR and draft prioritized inline findings."

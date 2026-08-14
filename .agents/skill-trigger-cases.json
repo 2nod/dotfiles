@@ -25,6 +25,11 @@
     "expected": ["software-development/pr-review-fix-workflow"]
   },
   {
+    "id": "pr-code-review-comment-draft",
+    "prompt": "GitHub PRの差分をレビューして、コードの意味と品質の観点からinline reviewコメント案を作って",
+    "expected": ["software-development/pr-diff-findings"]
+  },
+  {
     "id": "build-implementation-report-site",
     "prompt": "このPRの実装内容を、実コードの処理フローと変更前後の実測結果が分かるレビュー用Siteにまとめて",
     "expected": ["software-development/build-implementation-report-site"]
