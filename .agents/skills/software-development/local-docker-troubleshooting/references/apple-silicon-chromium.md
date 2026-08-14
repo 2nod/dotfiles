@@ -67,18 +67,18 @@ Apple Siliconだからという理由だけで`linux/arm64`へ切り替えない
 
 標準Compose、CI、productionの互換性を証明するものではない。
 
-## レンダラ検証とAPI変更を分ける
+## E2E検証とAPI変更を分ける
 
-line bbox、overflow、clean text round-tripが既存responseに含まれるなら、描画経路の成立はそれらで検証する。
+必要な観測値が既存logやresponseに含まれるなら、まずそれらで実行経路を検証する。
 
-「各行末のoffsetを保存していない」は、observabilityの不足であり、改行機能の不具合ではない。
+観測値が不足していることと、対象機能が失敗していることを区別する。
 
-一回限りの調査でoffsetが必要なら、次の順を優先する。
+一回限りの調査で追加計測が必要なら、次の順を優先する。
 
-1. 同じfont、bbox、alignmentのbrowser probeで行を観測する。
-2. 既存のbboxと既知の入力候補で結論を出せるか確認する。
+1. 既存log、response、artifactから結論を出せるか確認する。
+2. 対象serviceを直接呼ぶ最小probeで観測する。
 3. それでも必要な場合だけ、local-onlyの計測を使う。
 
 計測用fieldをAPI schemaへ追加した場合は、検証後に差分を戻す。
 
-artifactには入力、font hash、bbox、alignment、browser version、line bbox、overflowを記録する。
+artifactには入力、依存version、実行runtime、request、response、error、関連logを記録する。
