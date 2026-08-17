@@ -2,5 +2,5 @@
 
 - Repository: https://github.com/DietrichGebert/ponytail
 - Source file: https://github.com/DietrichGebert/ponytail/tree/main/skills/ponytail-audit
-- Pinned commit: `16f29800fd2681bdf24f3eb4ccffe38be3baec6b`
-- Pinned raw file: https://raw.githubusercontent.com/DietrichGebert/ponytail/16f29800fd2681bdf24f3eb4ccffe38be3baec6b/skills/ponytail-audit/SKILL.md
+- Pinned commit: `2ed6c52c9d7e5e56942508591085fd45dea277d3`
+- Pinned raw file: https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail-audit/SKILL.md
