@@ -125,6 +125,11 @@
     "expected": ["knowledge-management/notion-workspace-maintenance"]
   },
   {
+    "id": "notion-workspace-maintenance-behavior-mismatch",
+    "prompt": "検証中にローカルNotionの説明と実際のコードの挙動が食い違うと分かった。根拠を整理して訂正を提案して",
+    "expected": ["knowledge-management/notion-workspace-maintenance"]
+  },
+  {
     "id": "git-worktree-cleanup-audit",
     "prompt": "無駄なworktreeが残っていないか確認して、消してよさそうなものを分類して",
     "expected": ["software-development/git-worktree-cleanup"]
