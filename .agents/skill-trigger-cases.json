@@ -25,6 +25,11 @@
     "expected": ["software-development/pr-review-fix-workflow"]
   },
   {
+    "id": "pr-description-writing",
+    "prompt": "この差分とテスト結果から、背景、設計判断、確認項目、スコープ外が伝わるGitHub PR本文を作って",
+    "expected": ["software-development/pr-description-writing"]
+  },
+  {
     "id": "pr-code-review-comment-draft",
     "prompt": "GitHub PRの差分をレビューして、コードの意味と品質の観点からinline reviewコメント案を作って",
     "expected": ["software-development/pr-diff-findings"]

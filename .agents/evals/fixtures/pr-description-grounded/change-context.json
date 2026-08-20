@@ -1,0 +1,32 @@
+{
+  "problem": "監査担当者が archived レコードを明示的に選択しても、CSV export から除外される",
+  "impact": "監査担当者が対象レコードを手作業でCSVへ追加している",
+  "goal": "selected_ids に含まれる archived レコードだけをCSV exportへ含める",
+  "chosen_design": "ExportSelection で selected_ids の明示選択を先に保持し、archived filter は未選択候補だけに適用する",
+  "chosen_reason": "明示選択されたレコードを保持しつつ、未選択の archived レコードを従来どおり除外できる",
+  "rejected_option": "archived レコードをすべてexport対象にする",
+  "rejected_reason": "利用者が選択していないレコードまでCSVへ含まれ、export範囲が広がる",
+  "qa_checks": [
+    {
+      "behavior": "明示選択した archived レコードがCSVへ含まれる",
+      "status": "passed"
+    },
+    {
+      "behavior": "未選択の archived レコードはCSVへ含まれない",
+      "status": "passed"
+    },
+    {
+      "behavior": "active レコードの既存export結果は変わらない",
+      "status": "passed"
+    }
+  ],
+  "development_checks": [
+    {
+      "command": "npm test -- export-selection.test.ts",
+      "result": "12 passed"
+    }
+  ],
+  "out_of_scope": "archived レコードを自動的にすべてexportすること",
+  "related_links": [],
+  "changed_files": []
+}
