@@ -1,0 +1,9 @@
+{
+  "local_branch": "review/dev-validation",
+  "remote_branch": "origin/review/dev-validation",
+  "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "retained_tag_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "active_pr": false,
+  "purpose": "dev-validation",
+  "role_complete": true
+}

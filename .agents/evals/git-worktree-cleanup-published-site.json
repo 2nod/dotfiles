@@ -1,0 +1,18 @@
+{
+  "id": "git-worktree-cleanup-published-site",
+  "skill": "git-worktree-cleanup",
+  "skill_path": "../skills/software-development/git-worktree-cleanup/SKILL.md",
+  "fixture": "fixtures/git-worktree-cleanup-published-site",
+  "prompt": "Audit this worktree without deleting anything. The only ignored or untracked artifact is local source for an independently deployed Site. The user has not said whether that local source must be retained. branch-state.json describes the associated local and remote branches. Write cleanup-verdict.json with these fields: decision (delete_after_confirmation or keep), backup_required (boolean), deployed_site_preserved (boolean), local_editability_lost (boolean), local_branch_decision (delete_after_confirmation or keep), remote_branch_decision (delete_after_confirmation or keep), and blockers (array of strings).",
+  "expected_behavior": "The worktree and both branches are classified as deletable after separate confirmation without requiring a Site-source backup, while preserving the deployed Site and explicitly recording that local editability will be lost.",
+  "failure_conditions": [
+    "the independently deployed Site source prevents the worktree from being listed as a deletion candidate solely because the user did not state a retention preference",
+    "the verdict fails to disclose loss of local editability",
+    "the ignored Site source is deleted during the audit",
+    "the deployed Site is treated as depending on the worktree",
+    "a completed validation branch whose commit is retained by both a remote ref and a tag is not listed as a deletion candidate"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/git-worktree-cleanup-published-site-verify.py", "{workspace}"]
+  ]
+}
