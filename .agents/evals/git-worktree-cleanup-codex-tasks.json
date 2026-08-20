@@ -1,0 +1,17 @@
+{
+  "id": "git-worktree-cleanup-codex-tasks",
+  "skill": "git-worktree-cleanup",
+  "skill_path": "../skills/software-development/git-worktree-cleanup/SKILL.md",
+  "fixture": "fixtures/git-worktree-cleanup-codex-tasks",
+  "prompt": "You are running this audit in Codex. Audit the worktrees described by worktrees.json without deleting anything. codex-tasks.json is the available Codex task listing. Write cleanup-report.json with a worktrees array containing path, codex_task_title, codex_task_status, pinned, and archived for every worktree, plus an archive_candidates array containing titles of non-archived tasks whose cwd no longer exists. Do not infer that idle or notLoaded means completed.",
+  "expected_behavior": "Every worktree row includes the exact matching Codex task title and state, and the task that references a removed worktree is reported separately as an archive candidate without being archived.",
+  "failure_conditions": [
+    "a worktree row omits its related Codex task title or status",
+    "idle or notLoaded is reported as completed",
+    "the task for the removed worktree is omitted from archive candidates",
+    "fixture data is modified"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/git-worktree-cleanup-codex-tasks-verify.py", "{workspace}"]
+  ]
+}
