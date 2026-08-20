@@ -1,6 +1,6 @@
 ---
 name: notion-workspace-maintenance
-description: "コード、テスト、実行ログ、正式な契約をもとに、ローカル Notion と実装ドキュメントの整合性を確認し、Markdown、メタデータ、索引を新規作成または訂正するときに使う。ユーザーが文書更新を依頼した場合だけでなく、調査、実装、レビュー、検証中に不一致が明らかになり、訂正を提案すべき場合にも使う。"
+description: "コード、テスト、実行ログ、正式な契約をもとに、ローカル Notion に知識を残すか削除するかを判断し、実装ドキュメントとの整合性、knowledge repositoryのstageとcommitの境界、Markdown、メタデータ、索引を保守するときに使う。調査、実装、レビュー、検証中に不一致が明らかになった場合にも使う。"
 metadata:
   tags: [notion, knowledge, documentation, maintenance]
   related_skills:
@@ -16,17 +16,17 @@ metadata:
 
 knowledge base のルートにある `AGENTS.md` と対象文書を読み、更新対象と同期制約を確認する。
 
+knowledge base がGit repositoryの場合は、文書を更新するときと終了処理をするときに[knowledge repositoryのGit境界](references/repository-workflow.md)を読む。
+
 ## 更新の判断
 
-コード、テスト、実環境の結果で確認でき、今後の調査、実装、運用で再利用できる事実だけを更新する。
+新しい文書を作るとき、既存文書を残すか迷うとき、実装終了時に文書を整理するときは、[ローカル Notion の保存判断](references/retention-policy.md)を読む。
 
-実験の一回限りの値は、観測日と条件を添え、恒久仕様として書かない。
+コード、テスト、実環境の結果で確認でき、保存条件を満たす知識だけを更新する。
 
 未マージ、レビュー中、未合意、再現確認前の内容は、確定文書へ混ぜない。
 
 同じ主題の文書があれば、先にその文書を訂正または補足する。
-
-独立して参照する検証、決定、運用記録は、`personal-workspace-memo/<Tag>/` に本文と `.meta.yml` の組で作り、`_index.md` を更新する。
 
 ## 不一致を見つけたとき
 

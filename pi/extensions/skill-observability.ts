@@ -3,7 +3,6 @@ import { createHash, randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { mkdir, open, readFile, rename, rm } from "node:fs/promises";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const root =
 	process.env.AGENT_OBSERVABILITY_DIR ??
@@ -19,7 +18,7 @@ function skillFromPath(path: unknown): string | undefined {
 }
 
 async function persist(rawEvent: Record<string, unknown>): Promise<void> {
-	const event = { ...rawEvent, ts: new Date().toISOString() };
+	const event = { ...rawEvent, schema_version: 2, ts: new Date().toISOString() };
 	if (typeof event.cwd === "string") event.cwd = basename(event.cwd) || "?";
 	const skillPath = event.skill_path;
 	delete event.skill_path;
@@ -121,7 +120,7 @@ function verificationKind(toolName: string, args: any): string | undefined {
 	return undefined;
 }
 
-export default function (pi: ExtensionAPI) {
+export default function (pi: any) {
 	const verificationCalls = new Map<string, string>();
 	const pendingSkills = new Set<string>();
 	pi.on("session_start", async (_event, ctx) => {
@@ -169,11 +168,18 @@ export default function (pi: ExtensionAPI) {
 		verificationCalls.delete(event.toolCallId);
 		const result = (event as any).result;
 		const details = result?.details ?? {};
-		const diagnosticCount =
-			Number(details.totalDiagnostics) ||
-			(Number(details.totalBlocking) || 0) +
-				(Number(details.totalErrors) || 0) +
-				(Number(details.totalWarnings) || 0);
+		const listedErrors = Array.isArray(details.diagnostics)
+			? details.diagnostics.filter((item: any) =>
+					[1, "error", "Error"].includes(item?.severity),
+				).length
+			: 0;
+		const diagnosticCount = Math.max(
+			Number(details.totalBlocking) || 0,
+			Number(details.totalErrors) || 0,
+			listedErrors,
+			details.severity === "error" ? Number(details.totalDiagnostics) || 0 : 0,
+		);
+		const warningCount = Number(details.totalWarnings) || 0;
 		const diagnosticFailure =
 			verification === "diagnostics" &&
 			(diagnosticCount > 0 || details.unconfirmed || details.timedOut);
@@ -187,6 +193,7 @@ export default function (pi: ExtensionAPI) {
 						...(verification === "diagnostics"
 							? {
 									diagnostics: diagnosticCount,
+									warnings: warningCount,
 									unconfirmed: Boolean(details.unconfirmed),
 								}
 							: {}),

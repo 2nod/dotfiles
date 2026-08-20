@@ -130,6 +130,16 @@
     "expected": ["knowledge-management/notion-workspace-maintenance"]
   },
   {
+    "id": "notion-workspace-retention-decision",
+    "prompt": "PRごとのdev検証レポートやjob IDまでローカルNotionに保存すべきか、正本と実行証跡を分けて判断したい",
+    "expected": ["knowledge-management/notion-workspace-maintenance"]
+  },
+  {
+    "id": "notion-workspace-git-boundary",
+    "prompt": "製品repoの実装と一緒にローカルNotionも更新した。既存変更を巻き込まず、stageとlocal commitとSaaS同期の承認を分けたい",
+    "expected": ["knowledge-management/notion-workspace-maintenance"]
+  },
+  {
     "id": "git-worktree-cleanup-audit",
     "prompt": "無駄なworktreeが残っていないか確認して、消してよさそうなものを分類して",
     "expected": ["software-development/git-worktree-cleanup"]
@@ -157,6 +167,6 @@
       "software-development/git-worktree-cleanup",
       "knowledge-management/notion-workspace-maintenance"
     ],
-    "max_rank": 4
+    "max_rank": 5
   }
 ]

@@ -3,8 +3,9 @@
   "$id": "https://local/agent-observability/event.schema.json",
   "title": "Agent observability event",
   "type": "object",
-  "required": ["agent", "session_id", "event", "ts"],
+  "required": ["schema_version", "agent", "session_id", "event", "ts"],
   "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
     "agent": { "enum": ["pi", "codex"] },
     "session_id": { "type": "string", "minLength": 1 },
     "turn_id": { "type": "string" },
@@ -32,6 +33,7 @@
     "verification": { "enum": ["diagnostics", "test", "build"] },
     "status": { "enum": ["passed", "failed"] },
     "diagnostics": { "type": "number", "minimum": 0 },
+    "warnings": { "type": "number", "minimum": 0 },
     "unconfirmed": { "type": "boolean" }
   },
   "additionalProperties": true

@@ -112,7 +112,33 @@ class ObservabilityTest(unittest.TestCase):
             "tool_name": "Bash",
             "tool_input": {"command": "nix build"},
         }
-        for hook in (prompts, reads, test_run, build_run):
+        diagnostic_warning = {
+            **prompts,
+            "hook_event_name": "PreToolUse",
+            "tool_name": "lens_diagnostics",
+            "tool_input": {"mode": "all"},
+        }
+        warning_result = {
+            **diagnostic_warning,
+            "hook_event_name": "PostToolUse",
+            "tool_response": {"details": {"totalWarnings": 2}},
+        }
+        diagnostic_error = {**diagnostic_warning, "tool_use_id": "diagnostic-error"}
+        error_result = {
+            **diagnostic_error,
+            "hook_event_name": "PostToolUse",
+            "tool_response": {"details": {"totalErrors": 1}},
+        }
+        for hook in (
+            prompts,
+            reads,
+            test_run,
+            build_run,
+            diagnostic_warning,
+            warning_result,
+            diagnostic_error,
+            error_result,
+        ):
             subprocess.run(
                 [sys.executable, CODEX],
                 input=json.dumps(hook),
@@ -127,13 +153,30 @@ class ObservabilityTest(unittest.TestCase):
             ["ponytail", "ponytail"],
         )
         self.assertNotIn("secret material", json.dumps(events))
+        self.assertTrue(all(event.get("schema_version") == 2 for event in events))
         self.assertEqual(
             [
                 event["verification"]
                 for event in events
                 if event["event"] == "verification_started"
             ],
-            ["test", "build"],
+            ["test", "build", "diagnostics", "diagnostics"],
+        )
+        self.assertEqual(
+            [
+                event["status"]
+                for event in events
+                if event["event"] == "verification_finished"
+            ],
+            ["passed", "failed"],
+        )
+        self.assertEqual(
+            [
+                (event.get("diagnostics"), event.get("warnings"))
+                for event in events
+                if event["event"] == "verification_finished"
+            ],
+            [(0, 2), (1, 0)],
         )
 
     def test_ponytail_eval_fixture_and_dry_run(self) -> None:
@@ -349,6 +392,10 @@ class ObservabilityTest(unittest.TestCase):
                 }
             )
         self.record({**base, "event": "agent_end", "state": "idle"})
+        legacy = {**base, "session_id": "legacy-session", "schema_version": 1}
+        self.record({**legacy, "event": "agent_started", "state": "working"})
+        self.record({**legacy, "event": "skill_activated", "skill": "tdd"})
+        self.record({**legacy, "event": "agent_end", "state": "idle"})
 
         subprocess.run(
             [sys.executable, REPORTER, "--days", "1"],
@@ -361,9 +408,11 @@ class ObservabilityTest(unittest.TestCase):
         self.assertIn('<td data-label="失敗" class=bad>1</td>', report)
         self.assertIn('<td data-label="検証済" class=good>0</td>', report)
         self.assertIn(
-            '<td data-label="結果">検証失敗<small>diagnostics: 失敗（3件） / test: 成功</small>',
+            '<td data-label="結果">検証失敗<small>diagnostics: 失敗（error 3件） / test: 成功</small>',
             report,
         )
+        self.assertIn("旧形式 1", report)
+        self.assertIn('<td data-label="結果">旧形式', report)
 
 
 if __name__ == "__main__":

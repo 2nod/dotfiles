@@ -42,11 +42,21 @@ def documents_contract(path: pathlib.Path) -> bool:
     return all(token in text for token in ("tenant_id", "item_id", "legacy", "fallback"))
 
 
+def contains_execution_evidence(path: pathlib.Path) -> bool:
+    text = path.read_text(encoding="utf-8").lower()
+    return (
+        "v2099.01.01.00001.dev" in text
+        or "00000000-0000-0000-0000-000000000123" in text
+    )
+
+
 def main() -> int:
     workspace = pathlib.Path(sys.argv[1])
 
     if any((workspace / "docs" / "plans").glob("*.md")):
         return fail("completed implementation plan remains under docs/plans")
+    if (workspace / "docs" / "pr-123-dev-validation.md").exists():
+        return fail("one-off PR validation report remains in the repository")
 
     design = workspace / "docs" / "design" / "cache-keys.md"
     notion = workspace / "local-notion" / "cache-keys.md"
@@ -54,6 +64,13 @@ def main() -> int:
         return fail("canonical design does not describe the implemented key contract")
     if not notion.is_file() or not documents_contract(notion):
         return fail("local Notion mirror is inconsistent with the implemented contract")
+    if contains_execution_evidence(notion):
+        return fail("one-off execution evidence was copied into local Notion")
+    if any(
+        path.name != "cache-keys.md"
+        for path in (workspace / "local-notion").glob("*.md")
+    ):
+        return fail("a separate local Notion validation report was created")
 
     if (workspace / "docs" / "adr").exists():
         return fail("an ADR was created even though no lasting decision required one")
