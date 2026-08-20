@@ -15,10 +15,11 @@ plan を他の開発者と相談する必要がある場合は、作業 branch �
 - 将来の変更を拘束する設計判断と選択理由は `docs/adr` に残す。
 - 安定した構造、契約、処理フローは `docs/design` に残す。
 - 狭い実装詳細は、対象コードの近くにある README、docstring、テストへ残す。
-- 複数リポジトリから参照する確定知識は、`notion-workspace-maintenance` でローカル Notion との整合を確認する。
+- 複数repositoryを横断する確定知識は、`notion-workspace-maintenance`の保存判断を満たす場合だけローカル Notionへ残す。
 
 plan 全体を正本へコピーしない。
 実装中だけ意味を持つ手順、進捗、未採用案を除き、確定した判断と契約だけを移す。
+PR別の検証結果、job ID、deploy tagはPR、CI、実行ログに残し、ローカル Notionへ昇格しない。
 
 ## 終了処理
 
