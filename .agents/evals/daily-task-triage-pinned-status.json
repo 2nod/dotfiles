@@ -1,0 +1,17 @@
+{
+  "id": "daily-task-triage-pinned-status",
+  "skill": "daily-task-triage",
+  "skill_path": "../skills/productivity/daily-task-triage/SKILL.md",
+  "fixture": "fixtures/daily-task-triage-pinned-status",
+  "prompt": "You are reviewing today's Codex tasks. codex-tasks.json contains the available task listing and evidence. Do not modify the fixture. Write daily-triage.json with candidate_source, doing, pending, completion_candidates, and excluded_unpinned. Each category except candidate_source must be an array of exact task titles.",
+  "expected_behavior": "Pinned tasks are the default candidate set. Work evidence, not Codex execution status, separates doing from pending; explicitly completed work is separated, and an active but unpinned task is not silently added.",
+  "failure_conditions": [
+    "an unpinned task is included in doing or pending only because it is active",
+    "idle, active, or notLoaded is used as the work-state classification",
+    "a completed pinned task is included as unfinished",
+    "fixture data is modified"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/daily-task-triage-pinned-status-verify.py", "{workspace}"]
+  ]
+}
