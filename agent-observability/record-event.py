@@ -29,6 +29,7 @@ def record_event(event: dict[str, object]) -> int:
     event.setdefault(
         "ts", now.isoformat(timespec="milliseconds").replace("+00:00", "Z")
     )
+    event.setdefault("schema_version", 2)
     cwd = event.get("cwd")
     if isinstance(cwd, str):
         event["cwd"] = pathlib.Path(cwd).name or "?"

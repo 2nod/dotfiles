@@ -32,6 +32,7 @@ class Turn:
     project: str
     model: str
     started: datetime
+    schema_version: int | None = None
     ended: datetime | None = None
     skills: set[str] = field(default_factory=set)
     versions: dict[str, str] = field(default_factory=dict)
@@ -48,6 +49,7 @@ class SkillStats:
     failed: int = 0
     unverified: int = 0
     ongoing: int = 0
+    legacy: int = 0
     tools: int = 0
     tool_counts: dict[str, int] = field(default_factory=dict)
     durations: list[float] = field(default_factory=list)
@@ -56,6 +58,8 @@ class SkillStats:
 
 
 def turn_outcome(turn: Turn) -> str:
+    if turn.schema_version != 2:
+        return "旧形式"
     if not turn.ended:
         return "進行中"
     if turn.verification_status and all(
@@ -410,6 +414,11 @@ def build_turns(events: list[dict[str, object]]) -> list[Turn]:
                 project=pathlib.Path(str(event.get("cwd", ""))).name or "?",
                 model=str(event.get("model", "?")),
                 started=timestamp,
+                schema_version=(
+                    cast(int, event["schema_version"])
+                    if isinstance(event.get("schema_version"), int)
+                    else None
+                ),
             )
             active[owner] = turn
             turns.append(turn)
@@ -427,6 +436,11 @@ def build_turns(events: list[dict[str, object]]) -> list[Turn]:
                 project=pathlib.Path(str(event.get("cwd", ""))).name or "?",
                 model=str(event.get("model", "?")),
                 started=timestamp,
+                schema_version=(
+                    cast(int, event["schema_version"])
+                    if isinstance(event.get("schema_version"), int)
+                    else None
+                ),
             )
             active[owner] = turn
             turns.append(turn)
@@ -452,7 +466,10 @@ def build_turns(events: list[dict[str, object]]) -> list[Turn]:
                 details = []
                 diagnostics = event.get("diagnostics")
                 if isinstance(diagnostics, (int, float)) and diagnostics:
-                    details.append(f"{diagnostics:g}件")
+                    details.append(f"error {diagnostics:g}件")
+                warnings = event.get("warnings")
+                if isinstance(warnings, (int, float)) and warnings:
+                    details.append(f"warning {warnings:g}件")
                 if event.get("unconfirmed"):
                     details.append("未確認")
                 if details:
@@ -479,7 +496,9 @@ def aggregate(turns: list[Turn]) -> dict[str, SkillStats]:
             version = turn.versions.get(skill)
             if version:
                 stats.versions.add(version)
-            if not turn.ended:
+            if turn.schema_version != 2:
+                stats.legacy += 1
+            elif not turn.ended:
                 stats.ongoing += 1
             elif turn.verification_status and all(
                 status == "passed" for status in turn.verification_status.values()
@@ -620,7 +639,7 @@ def render_overview(days: int, turns: list[Turn], stats: dict[str, SkillStats]) 
         detail = (
             "<details><summary>詳細</summary>"
             f"<small>{html.escape(version[:19])} · {skill_status(skill, locations)}</small>"
-            f"<small>平均tool {item.tools / item.uses:.1f} · 時間中央値 {median_seconds:.0f}s</small>"
+            f"<small>平均tool {item.tools / item.uses:.1f} · 時間中央値 {median_seconds:.0f}s · 旧形式 {item.legacy}</small>"
             f"<small>{format_tool_counts(item.tool_counts)}</small></details>"
         )
         skill_rows.append(
@@ -685,7 +704,7 @@ def render_overview(days: int, turns: list[Turn], stats: dict[str, SkillStats]) 
 <tbody>{"".join(skill_rows)}</tbody></table></div>
 <h2>最近の利用</h2><div class=table-scroll><table class=recent-table><thead><tr><th>時刻</th><th>Agent</th><th>Project</th><th>Skills</th><th>結果</th></tr></thead>
 <tbody>{"".join(recent_rows)}</tbody></table></div>{toggle}
-<p class=note>検証率は、skillを使った終了済みturnのうち、各検証カテゴリの最後の結果がすべて成功した割合です。</p>"""
+<p class=note>検証率はschema v2の終了済みturnだけを対象とし、各検証カテゴリの最後の結果がすべて成功した割合です。旧形式のturnは集計から除外します。</p>"""
     return render_page("Agent Skill Report", days, generated, "overview", body)
 
 

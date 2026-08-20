@@ -77,6 +77,27 @@ def number_value(value: Any) -> float:
         return 0
 
 
+def diagnostic_counts(details: Any) -> tuple[float, float]:
+    if not isinstance(details, dict):
+        return 0, 0
+    errors = max(
+        number_value(details.get("totalBlocking")),
+        number_value(details.get("totalErrors")),
+    )
+    diagnostics = details.get("diagnostics", [])
+    if isinstance(diagnostics, list):
+        errors = max(
+            errors,
+            sum(
+                isinstance(item, dict) and item.get("severity") in {1, "error", "Error"}
+                for item in diagnostics
+            ),
+        )
+    if details.get("severity") == "error":
+        errors = max(errors, number_value(details.get("totalDiagnostics")))
+    return errors, number_value(details.get("totalWarnings"))
+
+
 def verification_kind(tool_name: str, tool_input: Any) -> str | None:
     lowered = tool_name.lower()
     if lowered in {"lsp_diagnostics", "lens_diagnostics"}:
@@ -151,17 +172,9 @@ def main() -> int:
         else:
             response = hook.get("tool_response")
             details = response.get("details", {}) if isinstance(response, dict) else {}
-            diagnostic_count = 0
-            if isinstance(details, dict):
-                diagnostic_count = sum(
-                    number_value(details.get(key))
-                    for key in (
-                        "totalDiagnostics",
-                        "totalBlocking",
-                        "totalErrors",
-                        "totalWarnings",
-                    )
-                )
+            if not isinstance(details, dict):
+                details = {}
+            diagnostic_count, warning_count = diagnostic_counts(details)
             failed = isinstance(response, dict) and bool(
                 response.get("is_error")
                 or response.get("isError")
@@ -180,7 +193,11 @@ def main() -> int:
                 tool=tool,
                 status="failed" if failed else "passed",
                 **({"verification": kind} if kind else {}),
-                **({"diagnostics": diagnostic_count} if kind == "diagnostics" else {}),
+                **(
+                    {"diagnostics": diagnostic_count, "warnings": warning_count}
+                    if kind == "diagnostics"
+                    else {}
+                ),
             )
     elif event == "Stop":
         emit(base, event="agent_end", state="idle")

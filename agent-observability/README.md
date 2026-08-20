@@ -7,7 +7,7 @@ pi と Codex の skill 利用イベントを、prompt や推論本文を保存�
 - `~/.local/share/agent-observability/events/YYYY-MM-DD.jsonl`: 追記専用の正本
 - `~/.local/share/agent-observability/live/*.json`: SwiftBar 用の現在状態
 
-保存するのは agent、model、session ID、skill 名とハッシュ、tool 種別、検証結果、時刻だけ。
+保存するのはschema version、agent、model、session ID、project名、skill名とハッシュ、tool種別、検証結果、時刻だけ。
 Codex の prompt、tool input、tool response、assistant message は保存しない。
 
 ## Reporter
@@ -23,7 +23,7 @@ Codex App hook は重複実行を避けるため `hooks.json` に集約し、Her
 `swiftbar/plugins/agent-skills.10s.py` が30分以内に更新されたlive stateを表示する。
 `Open report` は直近30日のJSONLを集計し、日常監視用の`report.html`を開く。caseと比較評価は同時生成される`evals.html`へ分離し、両ページのナビゲーションから移動できる。
 レポートとSwiftBarのskill名は実際に読むローカル`SKILL.md`へリンクする。共有skillは`shared · authored/installed`、Codex同梱skillは`codex-system · bundled`と表示する。installed skillのupstream情報は`SOURCE.md`で管理する。
-検証率は、skillを使った終了済みturnのうち、記録された検証カテゴリ（test・build・diagnostics）の最終結果がすべて成功した割合です。検証イベントがないturnは未検証です。skillなしとの因果比較ではありません。
+検証率は、schema v2でskillを使った終了済みturnのうち、記録された検証カテゴリ（test・build・diagnostics）の最終結果がすべて成功した割合です。diagnosticsはerror・blocking・timeout・未確認を失敗とし、warningだけなら成功として件数を記録します。検証イベントがないturnは未検証、旧schemaのturnは集計対象外です。skillなしとの因果比較ではありません。
 
 ## 比較評価
 
