@@ -1,0 +1,5 @@
+{
+  "url": "https://review-site.example.test/report",
+  "status": "deployed",
+  "independent_of_worktree": true
+}

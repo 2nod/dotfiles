@@ -28,11 +28,17 @@ metadata:
    - **かなり消してよさそう**：clean で、`main` または `origin/main` に対する独自 commit がなく、branch が merge 済み、upstream gone、または別 worktree と重複している。
    - **差分を捨てるなら消せる**：package manager の一時 metadata、scratch docs など、軽微または使い捨てだと判断できる local diff だけがある。
    - **今は残す**：source/test の未 commit 変更、ahead commit、多数の独自 commit、不明な upstream/base 関係がある。
+   - 公開済み Site のローカル原本だけが ignored / untracked artifact として残っている場合、ユーザーから保存方針の明示がなくても「差分を捨てるなら消せる」削除候補にする。
+     Site が worktree から独立して公開済みであることを確認し、削除候補の報告ではローカル原本と再編集可能性が失われることを伝える。実際の削除には手順5の明示確認が必要である。
+     この例外は未 push commit、通常の source/test、`docs/plans`、または Site 以外の未保存成果物には適用しない。
 5. 既存 worktree を消す前、または local change を捨てる前に、必ずユーザーの明示確認を取る。
 6. clean な worktree は `git -C <primary-repo> worktree remove <path>` で消す。
    `--force` は、捨てる差分を列挙し、ユーザーが同意した場合だけ使う。
-7. worktree を削除した後で、local branch と remote branch を別々の削除対象として示す。
-   branch 削除は、merge 済みで独自 commit がないことを再確認し、それぞれ明示許可を得てから行う。
+7. worktree を削除した後で、local branch と remote branch を別々に分類する。
+   - local branch は、全 commit が `origin/main`、対応する remote branch、または保持する tag のいずれかから到達可能なら、merge 状態にかかわらず原則として削除候補にする。
+   - remote branch は、active PR がなく、全 commit が `origin/main` または保持する tag から到達可能で、merge 済みまたは役目を終えた一時・検証用 branch なら削除候補にする。
+   - 保存先のない commit、active PR、用途が不明な branch は残す。
+   local branch と remote branch の実際の削除は別操作として示し、それぞれ明示許可を得てから行う。
 8. 削除後は `git worktree list --porcelain`、`git worktree prune --dry-run --verbose`、branch、path の存在確認で取りこぼしを確認する。
 
 ## 実装完了時の確認
