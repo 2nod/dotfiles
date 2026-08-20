@@ -1,0 +1,46 @@
+[
+  {
+    "title": "Implement billing export",
+    "pinned": true,
+    "archived": false,
+    "execution_status": "idle",
+    "evidence": {
+      "work_started": true,
+      "completed": false,
+      "next_action": "Run the integration test"
+    }
+  },
+  {
+    "title": "Choose analytics vendor",
+    "pinned": true,
+    "archived": false,
+    "execution_status": "active",
+    "evidence": {
+      "work_started": false,
+      "completed": false,
+      "waiting_for": "product decision"
+    }
+  },
+  {
+    "title": "Retire legacy flag",
+    "pinned": true,
+    "archived": false,
+    "execution_status": "notLoaded",
+    "evidence": {
+      "work_started": true,
+      "completed": true,
+      "completion_note": "Merged and verified"
+    }
+  },
+  {
+    "title": "Investigate flaky test",
+    "pinned": false,
+    "archived": false,
+    "execution_status": "active",
+    "evidence": {
+      "work_started": true,
+      "completed": false,
+      "next_action": "Inspect CI logs"
+    }
+  }
+]
