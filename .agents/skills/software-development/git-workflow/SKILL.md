@@ -1,6 +1,11 @@
 ---
 name: git-workflow
-description: リポジトリの役割を判定して、branch、stage、commit、push、PR を安全に進める手順。ユーザーが Git の状態確認、branch 作成、差分の stage、commit、push、PR、または site の公開を依頼したときに使う。
+description: リポジトリの役割を判定し、docs/plans の実装プラン、docs/design・docs/adr への正本化、branch、commit、push、PR を安全に管理する。ユーザーが実装プランの作成、Git操作、実装完了後のplan・Notion・worktree・branch整理、または site の公開を依頼したときに使う。
+metadata:
+  tags: [git, planning, documentation, pull-request]
+  related_skills:
+    - knowledge-management/notion-workspace-maintenance
+    - software-development/git-worktree-cleanup
 ---
 
 # Git 運用
@@ -17,6 +22,12 @@ description: リポジトリの役割を判定して、branch、stage、commit�
   この場合は feature branch や PR を必須にしない。
   `main` へ送る前には、その site source repository に直接 push することをユーザーに明示して確認する。
 - どちらか不明な場合は、remote、hosting 設定、project instructions を読み、判断できなければ確認する。
+
+## 実装ドキュメントのライフサイクル
+
+実装プランを作るとき、または実装作業を閉じるときは、[実装プランの管理](references/implementation-plan-lifecycle.md)を読む。
+`docs/plans` は進行中の作業を共有する一時文書として扱う。
+実装完了時は、将来も必要な判断を正本へ移し、plan、ローカル Notion、worktree、branch の順に残作業を確認する。
 
 ## 変更の手順
 

@@ -1,6 +1,11 @@
 ---
 name: git-worktree-cleanup
-description: Git worktree の残骸を監査し、安全に片付けるための手順。ユーザーが「無駄な worktree が残っていないか」「stale な worktree を消したい」「削除候補を分類して」「容量を空けたい」「定期的に worktree を点検したい」と依頼したときに使う。
+description: Git worktree と branch の残骸を監査し、実装完了後の docs/plans とローカル Notion も確認して安全に片付ける。ユーザーが worktree の削除、stale 登録の整理、容量確保、または実装作業の後片付けを依頼したときに使う。
+metadata:
+  tags: [git, worktree, cleanup, documentation]
+  related_skills:
+    - software-development/git-workflow
+    - knowledge-management/notion-workspace-maintenance
 ---
 
 # Git Worktree の整理
@@ -16,15 +21,27 @@ description: Git worktree の残骸を監査し、安全に片付けるための
    home directory 全体のような広すぎる探索は、権限エラーが多いので避ける。
 2. 可能なら `scripts/audit-worktrees.sh <root>...` を実行する。
    この script は読み取り専用で、worktree を削除しない。
-3. primary ではない worktree を分類する。
+3. primary ではない worktree について、`docs/plans` と未追跡文書も確認する。
+   完了済み plan に固有の知識が残る場合は、削除前に正本への昇格またはローカル Notion の訂正が必要である。
+4. worktree を分類する。
    - **stale metadata**：`git worktree prune --dry-run --verbose` が prunable と報告する登録。もっとも安全に片付けられる。
    - **かなり消してよさそう**：clean で、`main` または `origin/main` に対する独自 commit がなく、branch が merge 済み、upstream gone、または別 worktree と重複している。
    - **差分を捨てるなら消せる**：package manager の一時 metadata、scratch docs など、軽微または使い捨てだと判断できる local diff だけがある。
    - **今は残す**：source/test の未 commit 変更、ahead commit、多数の独自 commit、不明な upstream/base 関係がある。
-4. 既存 worktree を消す前、または local change を捨てる前に、必ずユーザーの明示確認を取る。
-5. clean な worktree は `git -C <primary-repo> worktree remove <path>` で消す。
+5. 既存 worktree を消す前、または local change を捨てる前に、必ずユーザーの明示確認を取る。
+6. clean な worktree は `git -C <primary-repo> worktree remove <path>` で消す。
    `--force` は、捨てる差分を列挙し、ユーザーが同意した場合だけ使う。
-6. 削除後は `git worktree list --porcelain`、`git worktree prune --dry-run --verbose`、path の存在確認で取りこぼしを確認する。
+7. worktree を削除した後で、local branch と remote branch を別々の削除対象として示す。
+   branch 削除は、merge 済みで独自 commit がないことを再確認し、それぞれ明示許可を得てから行う。
+8. 削除後は `git worktree list --porcelain`、`git worktree prune --dry-run --verbose`、branch、path の存在確認で取りこぼしを確認する。
+
+## 実装完了時の確認
+
+- `docs/plans` の追跡済み、未追跡ファイルを列挙する。
+- plan の確定事項が `docs/design`、`docs/adr`、実装近傍の文書へ移っているか確認する。
+- ローカル Notion と現行実装に不一致がないか確認し、必要なら `notion-workspace-maintenance` を使う。
+- 追跡済み plan の削除 commit、未追跡 plan の破棄、Notion SaaS 同期を同じ許可として扱わない。
+- PR の merge、base branch への包含、upstream、独自 commit を確認してから worktree と branch を削除する。
 
 ## 報告
 

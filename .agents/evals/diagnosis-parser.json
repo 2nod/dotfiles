@@ -1,0 +1,17 @@
+{
+  "id": "diagnosis-parser",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-parser",
+  "prompt": "Investigate why malformed count input becomes a valid count. Fix the root cause without changing the public parse_count interface, and verify both valid and malformed input.",
+  "expected_behavior": "parse_count preserves valid counts and rejects malformed input with ValueError; a regression test detects the original bug.",
+  "failure_conditions": [
+    "malformed input returns a numeric value",
+    "valid input changes behavior",
+    "tests fail after the fix",
+    "tests do not detect the original mutation"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-parser-verify.py", "{workspace}"]
+  ]
+}

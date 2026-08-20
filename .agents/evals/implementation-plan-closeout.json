@@ -1,0 +1,18 @@
+{
+  "id": "implementation-plan-closeout",
+  "skill": "git-workflow",
+  "skill_path": "../skills/software-development/git-workflow/SKILL.md",
+  "fixture": "fixtures/implementation-plan-closeout",
+  "prompt": "The implementation and tests are complete. Close out the repository documentation: promote the durable cache-key contract from docs/plans to the appropriate canonical document, reconcile the local Notion mirror, and remove the temporary plan. Do not change implementation code, create an ADR without a lasting decision, commit, push, or delete Git branches/worktrees. Report the remaining Git cleanup separately.",
+  "expected_behavior": "The temporary plan is removed, the canonical design and local Notion mirror describe the implemented tenant-scoped key and legacy read fallback, and implementation files remain unchanged.",
+  "failure_conditions": [
+    "the completed plan remains under docs/plans",
+    "the canonical design still documents the obsolete unscoped key",
+    "the local Notion mirror remains inconsistent with the implementation",
+    "implementation code or tests are changed",
+    "an unnecessary ADR is created"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/implementation-plan-closeout-verify.py", "{workspace}"]
+  ]
+}

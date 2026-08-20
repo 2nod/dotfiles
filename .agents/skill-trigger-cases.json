@@ -148,5 +148,15 @@
     "id": "git-workflow-safe-push",
     "prompt": "この変更をbranchを切ってcommitして、pushからPR作成まで安全に進めて",
     "expected": ["software-development/git-workflow"]
+  },
+  {
+    "id": "implementation-plan-closeout",
+    "prompt": "docs/plansに実装プランを作って進め、完了したらdesignかADRへ正本を昇格し、ローカルNotionとの整合を確認してbranchとworktreeまで片付けたい",
+    "expected": [
+      "software-development/git-workflow",
+      "software-development/git-worktree-cleanup",
+      "knowledge-management/notion-workspace-maintenance"
+    ],
+    "max_rank": 4
   }
 ]
