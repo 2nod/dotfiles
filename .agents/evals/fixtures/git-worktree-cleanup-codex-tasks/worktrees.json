@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/workspace/.codex/worktrees/alpha/project",
+    "branch": "feature/alpha",
+    "dirty": 0
+  },
+  {
+    "path": "/workspace/.codex/worktrees/beta/project",
+    "branch": "feature/beta",
+    "dirty": 2
+  }
+]

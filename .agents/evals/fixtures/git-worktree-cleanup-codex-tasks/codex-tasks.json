@@ -1,0 +1,23 @@
+[
+  {
+    "cwd": "/workspace/.codex/worktrees/alpha/project",
+    "title": "Alpha validation",
+    "status": "idle",
+    "pinned": true,
+    "archived": false
+  },
+  {
+    "cwd": "/workspace/.codex/worktrees/beta/project",
+    "title": "Beta implementation",
+    "status": "active",
+    "pinned": false,
+    "archived": false
+  },
+  {
+    "cwd": "/workspace/.codex/worktrees/removed/project",
+    "title": "Removed experiment",
+    "status": "notLoaded",
+    "pinned": false,
+    "archived": false
+  }
+]
