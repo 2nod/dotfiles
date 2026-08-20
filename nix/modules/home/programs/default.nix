@@ -10,6 +10,12 @@
 {
   imports = [
     ./ai-tools.nix
+    (import ./agent-observability.nix {
+      inherit
+        config
+        dotfilesDir
+        ;
+    })
     (import ./herdr.nix {
       inherit
         config

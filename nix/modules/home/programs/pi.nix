@@ -19,6 +19,8 @@ in
       config.lib.file.mkOutOfStoreSymlink "${piDotfilesDir}/system-append.md";
     ".pi/agent/model-router.json".source =
       config.lib.file.mkOutOfStoreSymlink "${piDotfilesDir}/model-router.json";
+    ".pi/agent/extensions/skill-observability.ts".source =
+      config.lib.file.mkOutOfStoreSymlink "${piDotfilesDir}/extensions/skill-observability.ts";
   };
 
   # fish 関数（pi ラッパ / pi-review）は `fish/functions/*.fish` にコミット済み実ファイルとして置く。

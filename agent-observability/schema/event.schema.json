@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/agent-observability/event.schema.json",
+  "title": "Agent observability event",
+  "type": "object",
+  "required": ["agent", "session_id", "event", "ts"],
+  "properties": {
+    "agent": { "enum": ["pi", "codex"] },
+    "session_id": { "type": "string", "minLength": 1 },
+    "turn_id": { "type": "string" },
+    "event": {
+      "enum": [
+        "session_started",
+        "agent_started",
+        "skill_activated",
+        "tool_started",
+        "tool_finished",
+        "verification_started",
+        "verification_finished",
+        "agent_end",
+        "session_ended"
+      ]
+    },
+    "ts": { "type": "string", "format": "date-time" },
+    "cwd": { "type": "string" },
+    "model": { "type": "string" },
+    "state": { "enum": ["working", "idle"] },
+    "skill": { "type": "string" },
+    "skill_version": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "invocation": { "enum": ["explicit", "read"] },
+    "tool": { "type": "string" },
+    "verification": { "enum": ["diagnostics", "test", "build"] },
+    "status": { "enum": ["passed", "failed"] },
+    "diagnostics": { "type": "number", "minimum": 0 },
+    "unconfirmed": { "type": "boolean" }
+  },
+  "additionalProperties": true
+}
