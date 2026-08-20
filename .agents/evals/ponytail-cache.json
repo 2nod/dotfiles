@@ -1,0 +1,16 @@
+{
+  "id": "ponytail-cache",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-cache",
+  "prompt": "Fix the pricing module so repeated requests for the same currency do not perform redundant fetches. Preserve the public functions and verify the behavior.",
+  "expected_behavior": "Repeated requests for one currency fetch once; different currencies still fetch independently.",
+  "failure_conditions": [
+    "same currency triggers more than one fetch",
+    "different currencies share an incorrect value",
+    "verifier fails after the fix"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/ponytail-cache-verify.py", "{workspace}"]
+  ]
+}

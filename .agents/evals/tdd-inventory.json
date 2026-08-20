@@ -1,0 +1,17 @@
+{
+  "id": "tdd-inventory",
+  "skill": "tdd",
+  "skill_path": "../installed-skills/engineering/tdd/SKILL.md",
+  "fixture": "fixtures/tdd-inventory",
+  "prompt": "Fix the Inventory.reserve behavior for invalid quantities without changing its public interface. Preserve valid reservations and verify the result with the existing test command.",
+  "expected_behavior": "Inventory.reserve rejects invalid quantities without changing stock, and a regression test detects the original bug.",
+  "failure_conditions": [
+    "invalid quantity is accepted",
+    "stock changes after rejection",
+    "tests fail after the fix",
+    "tests do not detect the original mutation"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/tdd-inventory-verify.py", "{workspace}"]
+  ]
+}

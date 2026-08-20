@@ -1,6 +1,6 @@
 ---
 name: notion-workspace-maintenance
-description: "コード、テスト、実行ログ、正式な契約で確定した知見をもとに、ローカル Notion knowledge base の Markdown、メタデータ、索引を新規作成または訂正するときに使う。ユーザーが文書更新を依頼した場合だけでなく、調査、実装、レビュー、検証中にローカル Notion の記述と実際の挙動や契約の不一致が明らかになり、訂正を提案すべき場合にも使う。"
+description: "コード、テスト、実行ログ、正式な契約をもとに、ローカル Notion と実装ドキュメントの整合性を確認し、Markdown、メタデータ、索引を新規作成または訂正するときに使う。ユーザーが文書更新を依頼した場合だけでなく、調査、実装、レビュー、検証中に不一致が明らかになり、訂正を提案すべき場合にも使う。"
 metadata:
   tags: [notion, knowledge, documentation, maintenance]
   related_skills:
