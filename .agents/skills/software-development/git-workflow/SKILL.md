@@ -6,6 +6,7 @@ metadata:
   related_skills:
     - knowledge-management/notion-workspace-maintenance
     - software-development/git-worktree-cleanup
+    - software-development/pr-description-writing
 ---
 
 # Git 運用
@@ -38,7 +39,8 @@ metadata:
 4. commit 前に、対象、内容、検証結果を短く示して明示許可を得る。
 5. push 前にも、送信先 branch と外部共有の意味を示して明示許可を得る。
    専用 site source repository では、承認済みなら `HEAD:main` を公開元へ送る。
-6. push 後は branch と remote の状態を確認する。
+6. PR本文を作成または更新するときは `software-development/pr-description-writing` を使い、現在の差分と検証結果に一致させる。
+7. push 後は branch と remote の状態を確認する。
    site はビルド済みの commit と同じ source を配布し、限定公開を優先する。
 
 ## 安全策
