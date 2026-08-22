@@ -32,15 +32,17 @@ let
     pkgs.llm-agents.codex
   ];
 
-  # package manager が PATH に置くのは 1 つの名前で、bin/ の中身ではない。
-  # upstream の bin/codex-router がその dispatcher なので、それを runtime 付きで叩く。
+  # upstream の dispatcher を実体の path で起動しつつ、対話 shell の初期化に
+  # 依存しない runtime を渡す。これにより launchd や automation から呼ばれても
+  # node / git / uv / codex を確実に解決できる。
   codex-router = pkgs.writeShellScriptBin "codex-router" ''
     export PATH=${runtimePath}''${PATH:+:$PATH}
     exec ${installDir}/bin/codex-router "$@"
   '';
 in
 {
-  home.packages = [ codex-router ];
+  # ~/.local/bin を入口にしつつ、参照先は runtime 付きの Nix wrapper にする。
+  home.file.".local/bin/codex-router".source = "${codex-router}/bin/codex-router";
 
   # home-manager は activation の各ブロックを 1 つの bash script に連結する。
   # そのため素の `exit` は activation 全体を打ち切ってしまう。ここでの失敗は
