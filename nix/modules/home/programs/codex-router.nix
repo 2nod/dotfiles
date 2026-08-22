@@ -90,18 +90,26 @@ in
     )
   '';
 
-  # codex.nix の writeCodexConfig が config.toml を毎回作り直すため、setup/enable が
-  # 書いた codex-router-managed ブロックはそのたびに必ず消える。消えた時だけ
-  # enable を叩き直して復元する。
+  # codex.nix の writeCodexConfig が config.toml を毎回作り直すため、setup が書いた
+  # codex-router-managed ブロックは switch のたびに必ず消える。ここで書き戻す。
   #
   # ブロックの base_url には router の caller token が入る。dotfiles は git 管理下
-  # なので、中身を codex.nix の settings に転記してはいけない。enable に生成し直させる
-  # のが唯一の正しい復元方法で、秘密が repository に入らない理由でもある。
+  # なので、中身を codex.nix の settings に転記してはいけない。書き戻しを
+  # codex-router 自身にやらせるのが唯一の正しい方法で、秘密が repository に
+  # 入らない理由でもある。
   #
-  # enable は catalog の再構築と service の再インストールまで行うので軽くはない。
-  # marker の有無で判定して、消えた時だけに限定する。
-  # provider が未設定だと enable は失敗するので、state ごと無い
-  # (まだ setup していない) 段階では何もしない。
+  # 呼ぶのは bin/enable ではなく config-manager.mjs 単体。bin/enable は catalog の
+  # 再構築、service の再インストール、health 待ちまで行い 16 秒かかる上に、
+  # codex-router と無関係な switch のたびに router を再起動してしまう。ここで要るのは
+  # config.toml を書く一段だけで、それは 0.1 秒で終わる。
+  #
+  # 自前でブロックを保存・復元しないのは、貼る位置が TOML の構造に依存するから。
+  # codex-router-managed は table header より前の最上位キーで、
+  # multi-agent-v2-managed は [features] の内側に入る。位置を間違えると
+  # 壊れたことに気付けないまま設定だけが効かなくなる。upstream の配置ロジックに
+  # 任せる。
+  #
+  # 未 setup の段階では state ごと無く、書くべきブロックも無いので何もしない。
   home.activation.codexRouterEnable =
     lib.hm.dag.entryAfter
       [
@@ -116,13 +124,13 @@ in
           if [ ! -d "${codexHome}/codex-router" ] || [ ! -e "${codexHome}/config.toml" ]; then
             exit 0
           fi
-          if grep -q 'BEGIN codex-router-managed' "${codexHome}/config.toml"; then
+          if grep -q 'BEGIN codex-router' "${codexHome}/config.toml"; then
             exit 0
           fi
 
-          echo "codex-router: restoring the managed config block that writeCodexConfig replaced." >&2
-          $DRY_RUN_CMD "${installDir}/bin/codex-router" enable || {
-            echo "codex-router: enable failed; run 'codex-router enable' by hand." >&2
+          $DRY_RUN_CMD ${pkgs.nodejs_24}/bin/node "${installDir}/src/config-manager.mjs" enable >/dev/null || {
+            echo "codex-router: could not restore the managed config block." >&2
+            echo "codex-router: Codex is on native models until 'codex-router enable' is run." >&2
             exit 0
           }
         )
