@@ -101,6 +101,26 @@ in
         'HOMEBREW_XDG_CONFIG_HOME=/Users/${user}/.config' \
         > /opt/homebrew/etc/homebrew/brew.env
     fi
+
+    # flake.nix の nixConfig が指定する cache.numtide.com を、この user が
+    # trusted-user でなくても使えるようにする。
+    #
+    # substituter と公開鍵は restricted setting で、trusted-user 以外が
+    # client 側から指定しても無視される。そのままだと llm-agents のように
+    # numtide の cache から配られる前提の package が source build に落ちる。
+    #
+    # trusted-users に user を足す方法は取らない。あれは任意の substituter を
+    # 受け入れる権限になる。ここでは鍵の分かっている 1 つの cache だけを許す。
+    #
+    # 書き先は nix.custom.conf。/etc/nix/nix.conf は Determinate Nix が
+    # 所有し「変更するな、置き換える」と宣言しており、user の追記は
+    # nix.custom.conf に置くよう !include されている。
+    mkdir -p /etc/nix
+    printf '%s\n' \
+      '# Managed by nix-darwin (dotfiles).' \
+      'extra-trusted-substituters = https://cache.numtide.com' \
+      'extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=' \
+      > /etc/nix/nix.custom.conf
   '';
 
   # Determinate Nix manages the daemon; disable nix-darwin's Nix management.
