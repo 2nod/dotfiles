@@ -1,11 +1,12 @@
 {
   description = "Example nix-darwin system flake";
 
+  # 公開鍵をここに書かない。trusted-public-keys は restricted setting で、
+  # trusted-user でない client からは設定できず、毎回 warning になるだけになる。
+  # 鍵は nix/modules/darwin/system.nix が /etc/nix/nix.custom.conf へ書く。
+  # substituter の選択はそこで trusted-substituters に載せてあるので通る。
   nixConfig = {
     extra-substituters = [ "https://cache.numtide.com" ];
-    extra-trusted-public-keys = [
-      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
-    ];
   };
 
   inputs = {
