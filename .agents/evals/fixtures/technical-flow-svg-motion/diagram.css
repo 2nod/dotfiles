@@ -1,0 +1,9 @@
+.flow-wire {
+  stroke: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-diagram {
+    display: none;
+  }
+}
