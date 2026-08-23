@@ -1,0 +1,4 @@
+interface:
+  display_name: "Technical Flow Diagrams"
+  short_description: "Design readable technical SVG diagrams and motion"
+  default_prompt: "Use technical-flow-diagrams to design a technical implementation diagram."

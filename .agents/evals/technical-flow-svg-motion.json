@@ -1,0 +1,16 @@
+{
+  "id": "technical-flow-svg-motion",
+  "skill": "technical-flow-diagrams",
+  "skill_path": "../skills/software-development/technical-flow-diagrams/SKILL.md",
+  "fixture": "fixtures/technical-flow-svg-motion",
+  "prompt": "Fix the SVG data-flow diagram so the moving chips stay aligned with the wire after future path edits. When prefers-reduced-motion is enabled, preserve the readable static structure.",
+  "expected_behavior": "The wire and animateMotion share one path source; reduced motion hides only the moving chips.",
+  "failure_conditions": [
+    "wire and animateMotion use separately maintained path strings",
+    "reduced motion hides the wire or the whole diagram",
+    "verifier fails after the fix"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/technical-flow-svg-motion-verify.py", "{workspace}"]
+  ]
+}

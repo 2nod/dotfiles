@@ -6,6 +6,7 @@ metadata:
   related_skills:
     - software-development/git-workflow
     - software-development/pr-review-fix-workflow
+    - software-development/technical-flow-diagrams
 ---
 
 # 実装レポートSite作成
@@ -18,7 +19,7 @@ metadata:
 1. baseと変更後のSHA、差分、設計、実装、テスト、計測成果物を確認する。
 2. レポートで保証する内容と保証しない内容を分ける。推定、実測、設定値、上限、通常の目安を混同しない。
 3. `templates/report-outline.md` を使い、全体像、処理フロー、実装対応、検証、レビュー観点の順に情報を配置する。
-4. 実行順に沿って、分岐、ループ、早期終了、計画と適用を図示する。
+4. 図を作るときは `software-development/technical-flow-diagrams` を使い、domain state → timeline/event → view model → SVGの順で設計する。実行順に沿って、分岐、ループ、早期終了、計画と適用を図示する。
 5. 変更前後は標語だけで済ませず、変わった責務または関数を示す。全ファイルは列挙しない。
 6. 計測は分母と計数範囲を併記する。初回処理と追加処理、ケース合計とケースあたり、通常値と安全上限を分ける。
 7. Siteをビルドし、表示テスト、lint、デスクトップとモバイルの実表示を確認する。
@@ -41,5 +42,6 @@ commit、push、Site公開は対象リポジトリの手順に従い、ユーザ
 ## 参照
 
 - 構成を作るときは [templates/report-outline.md](templates/report-outline.md) を使う。
+- 技術図、SVGモーション、時間付き図を実装するときは `software-development/technical-flow-diagrams` を使う。
 - 初稿前に [references/failure-patterns.md](references/failure-patterns.md) を読む。
 - 公開前の監査では [references/review-checklist.md](references/review-checklist.md) を読む。
