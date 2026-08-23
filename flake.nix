@@ -78,6 +78,9 @@
           global.excludes = [
             ".git/**"
             "result/**"
+            # eval の fixture は skill に読ませる入力そのもの。整形すると
+            # レビュー対象の差分が変わってしまうので、書いたまま固定する。
+            ".agents/evals/fixtures/**"
           ];
           formatter = {
             fish-indent = {

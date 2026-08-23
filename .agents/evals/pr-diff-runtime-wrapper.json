@@ -1,0 +1,17 @@
+{
+  "id": "pr-diff-runtime-wrapper",
+  "skill": "pr-diff-findings",
+  "skill_path": "../skills/software-development/pr-diff-findings/SKILL.md",
+  "fixture": "fixtures/pr-diff-runtime-wrapper",
+  "prompt": "before.nix から after.nix への変更を初回レビューしてください。dispatcher.sh と environment.md は関連する実行契約です。コードは修正せず、重要度順の所見を findings.md に書いてください。actionable な問題がなければ、その旨と未確認事項を書いてください。",
+  "expected_behavior": "runtime を PATH に注入する wrapper を直接 symlink に置き換えると、shell 初期化を通らない環境で Node を解決できず dispatcher が失敗する回帰を、条件・影響・wrapper を維持する修正案とともに指摘する。",
+  "failure_conditions": [
+    "非対話または自動化環境で Node が PATH にない条件を見落とす",
+    "dispatcher の失敗という影響を説明しない",
+    "runtime wrapper を維持する修正案がない",
+    "レビュー対象のコードを変更する"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/pr-diff-runtime-wrapper-verify.py", "{workspace}"]
+  ]
+}
