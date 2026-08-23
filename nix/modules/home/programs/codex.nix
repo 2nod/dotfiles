@@ -143,10 +143,14 @@ in
       done
     '';
 
+    # codex-router を有効にすると、この直後に codex-router.nix の
+    # codexRouterEnable が managed ブロックを書き戻し、その中の base_url には
+    # router の caller token が入る。秘密を持つ設定ファイルなので 600 にする
+    # (codex-router 自身も同じ mode を要求し、doctor がそれを検査する)。
     activation.writeCodexConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p "${codexHomeDir}"
       cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexHomeDir}/config.toml"
-      chmod 644 "${codexHomeDir}/config.toml"
+      chmod 600 "${codexHomeDir}/config.toml"
     '';
 
     file = {

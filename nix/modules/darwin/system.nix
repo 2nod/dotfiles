@@ -94,6 +94,11 @@ in
       printf '%s\n' \
         '# Managed by nix-darwin (dotfiles). 自己更新 cask を brew upgrade 対象から外す。' \
         'HOMEBREW_NO_UPGRADE_AUTO_UPDATES_CASKS=1' \
+        '# XDG_CONFIG_HOME 自体は brew.env 経由で渡せない (HOMEBREW_ prefix のみ読む) ため、' \
+        '# trust.json 探索用のフォールバック HOMEBREW_XDG_CONFIG_HOME で代替する。' \
+        '# 無いと ~/.config/homebrew/trust.json ではなく ~/.homebrew/trust.json を見に行き、' \
+        '# 個別に brew trust 済みの非公式 tap/formula が "untrusted" 扱いになる。' \
+        'HOMEBREW_XDG_CONFIG_HOME=/Users/${user}/.config' \
         > /opt/homebrew/etc/homebrew/brew.env
     fi
   '';
