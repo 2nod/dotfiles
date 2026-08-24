@@ -1,0 +1,17 @@
+{
+  "id": "pr-description-final-design",
+  "skill": "pr-description-writing",
+  "skill_path": "../skills/software-development/pr-description-writing/SKILL.md",
+  "fixture": "fixtures/pr-description-final-design",
+  "prompt": "review-notes.jsonを根拠に、レビューへそのまま提出できる日本語のPR本文をpr-body.mdへ作成してください。Git操作は行わないでください。",
+  "expected_behavior": "PR本文がレビュー経緯を追記した構成ではなく、確定したidempotency keyの契約、処理、検証を最終設計として説明する。",
+  "failure_conditions": [
+    "前回、追加対応、訂正など、会話や作業経緯を前提にした表現が残る",
+    "廃止したjob_id単体の案を現行設計として説明する",
+    "event_idとchannelからidempotency keyを作る最終契約が復元できない",
+    "確認済みの再試行とチャネル分離の検証結果が欠ける"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/pr-description-final-design-verify.py", "{workspace}"]
+  ]
+}
