@@ -1,0 +1,29 @@
+{
+  "problem": "通知workerの再試行で同じ通知が重複送信される",
+  "impact": "受信者に同じ内容のメールが複数届く",
+  "notes": [
+    {
+      "stage": "initial_proposal",
+      "detail": "job_idをidempotency keyにする案を作った"
+    },
+    {
+      "stage": "review_correction",
+      "detail": "再試行ごとにjob_idが変わるため重複を防げず、event_idを使う方針へ訂正した"
+    },
+    {
+      "stage": "additional_finding",
+      "detail": "emailとwebhookが同じevent_idを共有するため、channelもキーへ追加した"
+    }
+  ],
+  "final_design": {
+    "input": "event_idとchannel",
+    "processing": "event_id:channelをidempotency keyとして送信前に保存し、同じキーの再試行を送信済みとして扱う",
+    "output": "同じイベントの同じチャネルは一度だけ送信し、異なるチャネルはそれぞれ送信する"
+  },
+  "verification": [
+    "同じevent_idとchannelの再試行では通知が1件だけ送信された",
+    "同じevent_idでもemailとwebhookはそれぞれ1件送信された",
+    "npm test -- notification-idempotency.test.ts: 18 passed"
+  ],
+  "out_of_scope": "送信済みキーの保持期間を変更すること"
+}
