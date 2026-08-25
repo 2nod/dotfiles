@@ -1,0 +1,17 @@
+{
+  "id": "diagnosis-event-alignment",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-event-alignment",
+  "prompt": "A future-action label is consistently classified one tick late. Diagnose the root cause, fix it, and add a regression test.",
+  "expected_behavior": "Each observation is paired with the action selected from it and the following action; a regression test detects the original one-tick shift.",
+  "failure_conditions": [
+    "the current action remains shifted by one tick",
+    "the following action remains shifted by one tick",
+    "tests fail after the fix",
+    "tests do not detect the original mutation"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-event-alignment-verify.py", "{workspace}"]
+  ]
+}

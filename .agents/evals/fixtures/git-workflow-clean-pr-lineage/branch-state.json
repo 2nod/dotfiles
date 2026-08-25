@@ -1,0 +1,47 @@
+{
+  "base_branch": "main",
+  "base_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "source_branch": "codex/task",
+  "source_tip": "dddddddddddddddddddddddddddddddddddddddd",
+  "commit_graph": [
+    {
+      "oid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "parents": [],
+      "subject": "base"
+    },
+    {
+      "oid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "parents": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+      "subject": "unrelated experiment"
+    },
+    {
+      "oid": "cccccccccccccccccccccccccccccccccccccccc",
+      "parents": ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+      "subject": "task report"
+    },
+    {
+      "oid": "dddddddddddddddddddddddddddddddddddddddd",
+      "parents": ["cccccccccccccccccccccccccccccccccccccccc"],
+      "subject": "record old PR"
+    }
+  ],
+  "task_commits": [
+    "cccccccccccccccccccccccccccccccccccccccc",
+    "dddddddddddddddddddddddddddddddddddddddd"
+  ],
+  "task_files": ["docs/task-report.md"],
+  "old_pr": {
+    "number": 17,
+    "state": "OPEN",
+    "files": [
+      "configs/experiment.json",
+      "docs/task-report.md",
+      "scripts/train_experiment.py"
+    ]
+  },
+  "forbidden_files": [
+    "configs/experiment.json",
+    "scripts/train_experiment.py"
+  ],
+  "clean_branch": "codex/task-clean"
+}

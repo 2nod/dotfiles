@@ -1,0 +1,18 @@
+{
+  "id": "tdd-rng-action-extension",
+  "skill": "tdd",
+  "skill_path": "../installed-skills/engineering/tdd/SKILL.md",
+  "fixture": "fixtures/tdd-rng-action-extension",
+  "prompt": "Extend the actor from four to six actions without changing the existing four actor columns or critic for the same model seed. Keep the base public interface unchanged, initialize only the two new columns from a deterministic versioned seed stream, make model fingerprints distinguish base and extended models, and add regression tests that detect a naive row-major shape expansion.",
+  "expected_behavior": "the extended actor preserves the base actor columns and critic byte-for-byte, new columns are deterministic, fingerprints differ, and tests fail for naive shape expansion",
+  "failure_conditions": [
+    "existing actor columns change for the same seed",
+    "critic changes for the same seed",
+    "new columns are nondeterministic",
+    "base and extended fingerprints are equal",
+    "tests do not detect naive row-major shape expansion"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/tdd-rng-action-extension-verify.py", "{workspace}"]
+  ]
+}

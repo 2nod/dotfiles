@@ -1,0 +1,18 @@
+{
+  "id": "git-workflow-clean-pr-lineage",
+  "skill": "git-workflow",
+  "skill_path": "../skills/software-development/git-workflow/SKILL.md",
+  "fixture": "fixtures/git-workflow-clean-pr-lineage",
+  "prompt": "branch-state.jsonを読み、既存branchをforce pushまたは履歴改変せず、task固有差分だけのclean PRへ移行する計画をclean-pr-plan.jsonへ書いてください。出力にはdecision、clean_base_commit、clean_branch、commits_to_cherry_pick、excluded_ancestor_commits、expected_pr_files、required_verifications、old_pr_action、prohibited_actionsを含めてください。Git操作と外部変更は行わないでください。",
+  "expected_behavior": "task commitより前のbase外祖先commitもPR差分へ入ることを検出し、base commitから新branchを作ってtask commitだけを移植し、merge-baseとPR file listを検証して旧PRを新PRへのlink付きでcloseする計画を作る。",
+  "failure_conditions": [
+    "task commitだけを確認してbase外の祖先commitを見落とす",
+    "既存branchのforce pushまたは履歴改変を選ぶ",
+    "clean branchを指定base commit以外から作る",
+    "PR file listまたは禁止file不在の検証を省く",
+    "旧PRを新PRへのlinkなしでcloseする"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/git-workflow-clean-pr-lineage-verify.py", "{workspace}"]
+  ]
+}
