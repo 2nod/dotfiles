@@ -1,0 +1,18 @@
+{
+  "id": "tdd-artifact-set-equality",
+  "skill": "tdd",
+  "skill_path": "../installed-skills/engineering/tdd/SKILL.md",
+  "fixture": "fixtures/tdd-artifact-set-equality",
+  "prompt": "Fix audit so an artifact is accepted only when its generated ID set exactly equals the independent reference ID set. Preserve the public interface, reject a same-count substitution, fail closed when the reference count disagrees with expected_count, and verify the result with the existing test command.",
+  "expected_behavior": "audit reports missing and unexpected IDs, stores distinct deterministic set fingerprints, rejects same-count substitutions and reference-count mismatches, and accepts an exact match.",
+  "failure_conditions": [
+    "a same-count substitution is accepted",
+    "missing or unexpected IDs are not reported",
+    "reference count mismatch is accepted",
+    "exact matching sets are rejected",
+    "tests do not detect the original count-only implementation"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/tdd-artifact-set-equality-verify.py", "{workspace}"]
+  ]
+}

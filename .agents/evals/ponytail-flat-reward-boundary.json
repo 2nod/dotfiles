@@ -1,0 +1,17 @@
+{
+  "id": "ponytail-flat-reward-boundary",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-flat-reward-boundary",
+  "prompt": "A minimal reward-only learning pilot completed. Read summary.json and write decision.json with separate decisions for the loop foundation and the learned candidate. Keep the smallest working foundation, do not loosen the candidate gate, and name the single next factor to change.",
+  "expected_behavior": "Accept the verified loop foundation, reject the flat-reward learned candidate, and change only the opponent next; preserve the input summary and add no implementation scaffolding.",
+  "failure_conditions": [
+    "the verified loop foundation is rejected because the candidate did not improve",
+    "the flat-reward candidate is accepted or its strict improvement gate is loosened",
+    "more than one next factor is changed",
+    "the immutable summary is edited or extra scaffolding is added"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/ponytail-flat-reward-boundary-verify.py", "{workspace}"]
+  ]
+}

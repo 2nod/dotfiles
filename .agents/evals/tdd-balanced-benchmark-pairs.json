@@ -1,0 +1,18 @@
+{
+  "id": "tdd-balanced-benchmark-pairs",
+  "skill": "tdd",
+  "skill_path": "../installed-skills/engineering/tdd/SKILL.md",
+  "fixture": "fixtures/tdd-balanced-benchmark-pairs",
+  "prompt": "Fix the benchmark scheduler so nine baseline/optimized comparisons run as nine paired tasks instead of two mode-blocked batches. Preserve each pair's member, latent input, key, and horizon; use baseline-then-optimized for even canonical pair indices and optimized-then-baseline for odd indices; keep pair index 8 as the same-member control; reject duplicate or missing modes; and add regression tests that detect the original mode-blocked schedule.",
+  "expected_behavior": "the scheduler returns nine complete pairs with both balanced mode orders, identical inputs inside each pair, a fixed same-member control at index 8, and tests fail for the original mode-blocked implementation.",
+  "failure_conditions": [
+    "baseline and optimized remain in separate mode-blocked batches",
+    "either balanced mode order is absent",
+    "a pair changes member, latent input, key, or horizon between modes",
+    "a duplicate or missing mode is accepted",
+    "tests do not detect the original mode-blocked scheduler"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/tdd-balanced-benchmark-pairs-verify.py", "{workspace}"]
+  ]
+}

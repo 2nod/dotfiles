@@ -1,0 +1,16 @@
+{
+  "foundation_checks": {
+    "checkpointless_boot": true,
+    "deterministic_artifact": true,
+    "updated_policy_rerollout": true,
+    "fallback": true,
+    "seed_split": true
+  },
+  "initial_mean_reward": 0.0,
+  "final_mean_reward": 0.0,
+  "baseline_mean_reward": 0.0,
+  "candidate_gate": {
+    "not_below_baseline": true,
+    "strictly_better_than_initial": false
+  }
+}
