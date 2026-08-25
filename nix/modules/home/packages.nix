@@ -11,6 +11,7 @@
     pkgs.fzf
     pkgs.gh
     pkgs.ghq
+    pkgs.git-worktreeinclude
     pkgs.lazygit
     pkgs.colima
     pkgs.docker_29

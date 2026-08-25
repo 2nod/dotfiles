@@ -165,6 +165,7 @@
                   llm-agents = llm-agents.packages.${final.stdenv.hostPlatform.system};
                 })
                 (import ./nix/overlays/roots.nix)
+                (import ./nix/overlays/git-worktreeinclude.nix)
                 (final: _prev: {
                   unstable = import inputs.nixpkgs-unstable {
                     inherit (final) system;
