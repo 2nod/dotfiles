@@ -89,6 +89,12 @@ in
         echo "codex-router: --prepare-only failed; run it by hand to see why." >&2
         exit 0
       }
+
+      if [ ! -e "${config.home.homeDirectory}/Applications/Model Router.app" ]; then
+        $DRY_RUN_CMD "${installDir}/bin/model-router-tray" || {
+          echo "codex-router: tray install failed; run model-router-tray by hand to retry." >&2
+        }
+      fi
     )
   '';
 
