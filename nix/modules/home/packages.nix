@@ -20,6 +20,7 @@
     pkgs.pnpm
     pkgs.spotify
     pkgs.starship
+    pkgs.rclone
     pkgs.ripgrep
     pkgs.roots
     pkgs.terraform
