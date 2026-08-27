@@ -17,6 +17,19 @@ is_site_source_repo() {
   [[ -f "$repo_root/.openai/hosting.json" ]]
 }
 
+# 共有しない remote には PR の相手がいない。worktree 間の push や検証用の
+# clone がここに当たる。scp 形式 (host:path) と紛れないよう、URL に scheme が
+# 付くものは file:// だけを対象にする。
+is_local_remote() {
+  case "$remote_url" in
+    file://*) return 0 ;;
+    *://*) return 1 ;;
+    *:*/*) return 1 ;; # git@host:owner/repo のような scp 形式
+    /*|./*|../*|~*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 is_allowlisted_remote() {
   local allowed_remote_url
 
@@ -39,6 +52,16 @@ is_allowlisted_remote() {
 while read -r local_ref local_sha remote_ref remote_sha; do
   case "$remote_ref" in
     refs/heads/main|refs/heads/master)
+      # remote 側にまだ branch が無い。上書きする既存の履歴が存在しないので、
+      # 守る対象そのものが無い。git init 直後の初回 push がこれに当たる。
+      if [[ "$remote_sha" =~ ^0+$ ]]; then
+        continue
+      fi
+
+      if is_local_remote; then
+        continue
+      fi
+
       if is_allowlisted_remote; then
         continue
       fi
