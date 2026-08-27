@@ -7,6 +7,29 @@ remote_url="${2:-}"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 allowlist_file="${HOOK_ALLOWLIST_FILE:-$script_dir/pre-push.allowlist}"
 
+# 限定公開 site の配布元 repository は main が公開元そのものなので、feature
+# branch と PR を挟む前提が成り立たない。目印は .openai/hosting.json の存在。
+# remote URL の allowlist と違い、site repository が増えても登録作業が要らない。
+is_site_source_repo() {
+  local repo_root
+
+  repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || return 1
+  [[ -f "$repo_root/.openai/hosting.json" ]]
+}
+
+# 共有しない remote には PR の相手がいない。worktree 間の push や検証用の
+# clone がここに当たる。scp 形式 (host:path) と紛れないよう、URL に scheme が
+# 付くものは file:// だけを対象にする。
+is_local_remote() {
+  case "$remote_url" in
+    file://*) return 0 ;;
+    *://*) return 1 ;;
+    *:*/*) return 1 ;; # git@host:owner/repo のような scp 形式
+    /*|./*|../*|~*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 is_allowlisted_remote() {
   local allowed_remote_url
 
@@ -29,7 +52,24 @@ is_allowlisted_remote() {
 while read -r local_ref local_sha remote_ref remote_sha; do
   case "$remote_ref" in
     refs/heads/main|refs/heads/master)
+      # remote 側にまだ branch が無い。上書きする既存の履歴が存在しないので、
+      # 守る対象そのものが無い。git init 直後の初回 push がこれに当たる。
+      if [[ "$remote_sha" =~ ^0+$ ]]; then
+        continue
+      fi
+
+      if is_local_remote; then
+        continue
+      fi
+
       if is_allowlisted_remote; then
+        continue
+      fi
+
+      # 例外を通したことは黙らせない。site repository への直接 push は
+      # 公開操作なので、起きたことが見えている必要がある。
+      if is_site_source_repo; then
+        echo "pre-push: allowing $remote_ref: this is a site source repository (.openai/hosting.json)." >&2
         continue
       fi
 
