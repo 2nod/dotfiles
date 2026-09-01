@@ -1,6 +1,6 @@
 ---
 name: notion-workspace-maintenance
-description: "コード、テスト、実行ログ、正式な契約をもとに、ローカル Notion に知識を残すか削除するかを判断し、実装ドキュメントとの整合性、knowledge repositoryのstageとcommitの境界、Markdown、メタデータ、索引を保守するときに使う。調査、実装、レビュー、検証中に不一致が明らかになった場合にも使う。"
+description: "コード、テスト、実行ログ、正式な契約をもとに、ローカルNotionのMarkdown本文と_index.mdへ確認済みの知見を残すか削除するかを判断するときに使う。実装ドキュメントとの整合性、knowledge repositoryのstageとcommitの境界、メタデータ、索引を保守する場合、実装完了時にローカルNotionと正本の整合を確認する場合、調査、実装、レビュー、検証中に不一致が明らかになった場合にも使う。"
 metadata:
   tags: [notion, knowledge, documentation, maintenance]
   related_skills:

@@ -95,6 +95,11 @@
     "expected": ["engineering/grill-with-docs"]
   },
   {
+    "id": "grilling-stress-test",
+    "prompt": "この計画をgrillして。前提と意思決定を厳しくstress-testしたい",
+    "expected": ["productivity/grilling"]
+  },
+  {
     "id": "shared-skill-deploy-failure",
     "prompt": "Claude Codeにshared skillsが見えない。dotfilesのskills-dir pluginとdeploy先を検証して",
     "expected": ["agent-management/skill-maintenance"]
@@ -172,6 +177,6 @@
       "software-development/git-worktree-cleanup",
       "knowledge-management/notion-workspace-maintenance"
     ],
-    "max_rank": 5
+    "max_rank": 3
   }
 ]
