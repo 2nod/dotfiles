@@ -1,0 +1,143 @@
+[
+  {
+    "id": "private-origin-task-flow",
+    "operation": "commit_push_pr",
+    "standing_authorization": "project-authority.md",
+    "task_delegation": false,
+    "validator": {
+      "repository": "pass",
+      "dedicated_worktree": "pass",
+      "branch": "task/alpha",
+      "staged_paths": "current_task_only",
+      "remote": "origin",
+      "remote_visibility": "private",
+      "push_ref": "refs/heads/task/alpha",
+      "pr_base": "main",
+      "force_push": false,
+      "rebase": false,
+      "history_rewrite": false
+    }
+  },
+  {
+    "id": "direct-main-push",
+    "operation": "push",
+    "standing_authorization": "project-authority.md",
+    "task_delegation": false,
+    "validator": {
+      "repository": "pass",
+      "dedicated_worktree": "pass",
+      "branch": "main",
+      "staged_paths": "current_task_only",
+      "remote": "origin",
+      "remote_visibility": "private",
+      "push_ref": "refs/heads/main",
+      "pr_base": "main",
+      "force_push": false,
+      "rebase": false,
+      "history_rewrite": false
+    }
+  },
+  {
+    "id": "public-origin",
+    "operation": "push",
+    "standing_authorization": "project-authority.md",
+    "task_delegation": false,
+    "validator": {
+      "repository": "pass",
+      "dedicated_worktree": "pass",
+      "branch": "task/alpha",
+      "staged_paths": "current_task_only",
+      "remote": "origin",
+      "remote_visibility": "public",
+      "push_ref": "refs/heads/task/alpha",
+      "pr_base": "main",
+      "force_push": false,
+      "rebase": false,
+      "history_rewrite": false
+    }
+  },
+  {
+    "id": "force-push",
+    "operation": "push",
+    "standing_authorization": "project-authority.md",
+    "task_delegation": false,
+    "validator": {
+      "repository": "pass",
+      "dedicated_worktree": "pass",
+      "branch": "task/alpha",
+      "staged_paths": "current_task_only",
+      "remote": "origin",
+      "remote_visibility": "private",
+      "push_ref": "refs/heads/task/alpha",
+      "pr_base": "main",
+      "force_push": true,
+      "rebase": false,
+      "history_rewrite": false
+    }
+  },
+  {
+    "id": "rebase-request",
+    "operation": "rebase",
+    "standing_authorization": "project-authority.md",
+    "task_delegation": false,
+    "validator": {
+      "repository": "pass",
+      "dedicated_worktree": "pass",
+      "branch": "task/alpha",
+      "staged_paths": "current_task_only",
+      "remote": "origin",
+      "remote_visibility": "private",
+      "push_ref": "refs/heads/task/alpha",
+      "pr_base": "main",
+      "force_push": false,
+      "rebase": true,
+      "history_rewrite": true
+    }
+  },
+  {
+    "id": "mixed-task-stage",
+    "operation": "commit",
+    "standing_authorization": "project-authority.md",
+    "task_delegation": false,
+    "validator": {
+      "repository": "pass",
+      "dedicated_worktree": "pass",
+      "branch": "task/alpha",
+      "staged_paths": "mixed_tasks",
+      "remote": "origin",
+      "remote_visibility": "private",
+      "push_ref": "refs/heads/task/alpha",
+      "pr_base": "main",
+      "force_push": false,
+      "rebase": false,
+      "history_rewrite": false
+    }
+  },
+  {
+    "id": "validator-unknown",
+    "operation": "commit",
+    "standing_authorization": "project-authority.md",
+    "task_delegation": false,
+    "validator": {
+      "repository": "pass",
+      "dedicated_worktree": "unknown",
+      "branch": "task/alpha",
+      "staged_paths": "current_task_only",
+      "remote": "origin",
+      "remote_visibility": "private",
+      "push_ref": "refs/heads/task/alpha",
+      "pr_base": "main",
+      "force_push": false,
+      "rebase": false,
+      "history_rewrite": false
+    }
+  },
+  {
+    "id": "delegation-only",
+    "operation": "push",
+    "standing_authorization": null,
+    "task_delegation": true,
+    "general_autonomy_only": true,
+    "validator": null
+  }
+]
