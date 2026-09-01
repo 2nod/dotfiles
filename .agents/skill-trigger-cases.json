@@ -135,6 +135,11 @@
     "expected": ["knowledge-management/notion-workspace-maintenance"]
   },
   {
+    "id": "notion-workspace-post-merge-update",
+    "prompt": "作業branchで判明した知見はローカルNotionへまだ書かず、mainへmergeした後に既定branchを読み直して更新して",
+    "expected": ["knowledge-management/notion-workspace-maintenance"]
+  },
+  {
     "id": "notion-workspace-maintenance-behavior-mismatch",
     "prompt": "検証中にローカルNotionの説明と実際のコードの挙動が食い違うと分かった。根拠を整理して訂正を提案して",
     "expected": ["knowledge-management/notion-workspace-maintenance"]

@@ -6,12 +6,15 @@
 最初にknowledge repositoryの`AGENTS.md`、current branch、remote、既存変更を確認する。
 repository固有の指示がこのreferenceと異なる場合は、repository固有の指示を優先する。
 
+製品repositoryの作業branchで得た知識を反映する場合は、先にその変更が`main`またはrepositoryの既定branchへマージされていることを確認する。
+未マージならknowledge repositoryを変更せず、更新候補を製品repositoryの一時文書または作業報告へ残す。
+
 ## 操作の境界
 
 | 操作 | 基本方針 |
 | --- | --- |
 | 既存メモの参照と一次情報との照合 | 依頼に必要なら行う |
-| 本文、`.meta.yml`、索引の更新 | 依頼範囲なら行う |
+| 本文、`.meta.yml`、索引の更新 | 作業branch由来なら製品repository側のマージ条件を満たし、依頼範囲なら行う |
 | `git diff --check`と文書間の整合確認 | 更新後に行う |
 | stage | commit準備を依頼された場合だけ、対象pathを限定して行う |
 | local commit | 差分と対象を示し、明示承認を得てから行う |
