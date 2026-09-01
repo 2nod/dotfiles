@@ -24,7 +24,7 @@ knowledge base がGit repositoryの場合は、文書を更新するときと終
 
 コード、テスト、実環境の結果で確認でき、保存条件を満たす知識だけを更新する。
 
-製品repositoryの作業branchで得た知識は、その変更が`main`またはrepositoryの既定branchへマージされるまで、ローカルNotionのMarkdownへ反映しない。
+知識の根拠となるrepositoryの作業branchで得た知識は、その変更が`main`またはrepositoryの既定branchへマージされるまで、ローカルNotionのMarkdownへ反映しない。
 更新候補は`docs/plans`などの一時文書または作業報告へ残す。
 
 マージ後は、既定branch上のコード、テスト、Design、ADRを読み直し、現在も成立する知識だけをローカルNotionへ反映する。

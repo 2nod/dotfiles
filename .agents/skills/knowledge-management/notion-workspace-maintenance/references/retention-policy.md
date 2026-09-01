@@ -54,7 +54,7 @@ repositoryに正本がある場合は、ローカル Notionへ全文を複製し
 
 次の順に判断する。
 
-1. 製品repositoryの作業branchで得た知識なら、その変更が`main`または既定branchへマージされているか確認する。
+1. 知識の根拠となるrepositoryの作業branchで得た知識なら、その変更が`main`または既定branchへマージされているか確認する。
 2. repositoryの正本へ置くべき情報は正本へ移す。
 3. PR、CI、ログに残る実行証跡はローカル Notionへ複製しない。
 4. 既定branchのrevisionを読み直し、保存条件を満たす横断知識だけを既存文書へ反映する。
