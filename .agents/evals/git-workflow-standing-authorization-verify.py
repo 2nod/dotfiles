@@ -20,8 +20,8 @@ def main() -> int:
     workspace = pathlib.Path(sys.argv[1])
     decisions_path = workspace / "authority-decisions.json"
     expected_inputs = {
-        "project-authority.md": "64c55cb5f487640b434d0cb7e1755b324b47073ae83f290b7e181f63a55eacdd",
-        "operation-cases.json": "584be8e1a4625df6d2c4a54bfa6b4e5acd4af31cf3921010e3bbc6dd57532ec7",
+        "project-authority.md": "59b554ac8838b3f69dc603dd3b90d465517d4d676cffa0a5e66e6fcd76b3ead9",
+        "operation-cases.json": "ee0ae49480853aa5c0377fc394b1437a5683ece0896c9a668e8228932b18f24a",
     }
     for relative_path, expected_hash in expected_inputs.items():
         path = workspace / relative_path
@@ -38,7 +38,17 @@ def main() -> int:
 
     expected = [
         {
-            "id": "private-origin-task-flow",
+            "id": "allow-commit",
+            "decision": "allow",
+            "reason": "all_constraints_pass",
+        },
+        {
+            "id": "allow-push",
+            "decision": "allow",
+            "reason": "all_constraints_pass",
+        },
+        {
+            "id": "allow-pr-create",
             "decision": "allow",
             "reason": "all_constraints_pass",
         },
@@ -53,14 +63,24 @@ def main() -> int:
             "reason": "remote_visibility",
         },
         {
+            "id": "non-main-pr-base",
+            "decision": "deny",
+            "reason": "pr_base",
+        },
+        {
             "id": "force-push",
             "decision": "deny",
-            "reason": "force_push",
+            "reason": "force",
+        },
+        {
+            "id": "amend-commit",
+            "decision": "deny",
+            "reason": "amend",
         },
         {
             "id": "rebase-request",
             "decision": "deny",
-            "reason": "rebase",
+            "reason": "operation_not_authorized",
         },
         {
             "id": "mixed-task-stage",
@@ -74,6 +94,11 @@ def main() -> int:
         },
         {
             "id": "delegation-only",
+            "decision": "deny",
+            "reason": "no_standing_authorization",
+        },
+        {
+            "id": "task-record-only",
             "decision": "deny",
             "reason": "no_standing_authorization",
         },

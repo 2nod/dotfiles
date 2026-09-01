@@ -26,18 +26,19 @@ These skills are discovered at startup from multiple local sources. Each entry i
 ## Git change authority
 
 - By default, ask the user for explicit permission immediately before `git commit` and again immediately before `git push`.
-- A repository-local instruction may supply that explicit permission as standing authorization only when it names the permitted operations and constrains them tightly enough to resolve the concrete command operands: repository, task branch and worktree, staged task paths, remote name and visibility, push ref, PR base, and prohibited history-changing options.
-  This is command-shaped authorization: the repository-local rules and referenced task records determine every operand of the proposed command before it runs.
-- Before relying on standing authorization, run a read-only preflight that resolves every declared constraint against the current repository state.
-  Treat the authorization as valid for the concrete operation only when every required check passes.
-  A missing constraint, unknown value, validator failure, scope mismatch, or mixed-task staged change is a denial and requires fresh user permission.
+- An applicable repository-local instruction may supply that permission as standing authorization only for operations it explicitly names and only within these limits:
+  - Commit task-owned staged paths from the current task's dedicated worktree and task branch, without `--amend`.
+  - Push `HEAD` to the same branch on private `origin`, without force options.
+  - Create a PR from the same branch with base `main`.
+  Direct commits or pushes to `main` or `master`, rebase, reset, and any history rewrite are outside standing authorization.
+- Referenced task records may bind expected worktree, branch, and path values, but cannot grant operations or widen repository-local authority.
+- Before each authorized operation, run a read-only preflight validator.
+  Use the validator named by that instruction when one exists; otherwise compare the instruction and task records with read-only Git state and provider repository metadata.
+  Every condition applicable to the operation must pass, including task-only staged or branch changes, exact refs, and private remote visibility reported by the provider.
+  A missing constraint, unknown value, validator failure, scope mismatch, or mixed-task change is a denial and requires fresh user permission.
 - A parent agent request, task delegation, or general instruction to work autonomously is not standing authorization.
-  Do not infer Git write authority from the fact that another agent assigned the task.
 - Repository-local standing authorization does not override system or developer instructions, tool safety review, authentication, access control, or remote-provider policy.
   Do not retry through a different route when one of those controls rejects the operation.
-- Never use repository-local standing authorization to push directly to `main` or `master`.
-  Require fresh user permission for that exact destination.
-  A standing authorization may permit only the task branch, remote, and operation it names.
 
 ## skill eval case の継続追加
 

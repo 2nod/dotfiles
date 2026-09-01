@@ -36,10 +36,10 @@ metadata:
 2. 実装依頼がない限り、状態を報告するだけに留める。
 3. stage は対象ファイルを明示して行う。
    `git add .` は、対象が明確で未追跡ファイルを含める必要がある場合だけ使う。
-4. commit 前に、対象、内容、検証結果と、適用される Git change authority を確認する。
-   repo-local規約がcommitをstanding authorizationの対象として具体的に宣言していない場合は、ユーザーの明示許可を得る。
-5. push 前にも、送信先branchと外部共有の意味に加えて、適用されるGit change authorityを確認する。
-   repo-local規約がpushをstanding authorizationの対象として具体的に宣言していない場合は、ユーザーの明示許可を得る。
+4. commit 前に、対象、内容、検証結果と、適用されるGit操作権限を確認する。
+   後述のstanding authorizationがcommitに成立しない場合は、ユーザーの明示許可を得る。
+5. push 前にも、送信先branch、外部共有の意味、適用されるGit操作権限を確認する。
+   後述のstanding authorizationがpushに成立しない場合は、ユーザーの明示許可を得る。
    専用 site source repository では、承認済みなら `HEAD:main` を公開元へ送る。
 6. PR本文を作成または更新するときは `software-development/pr-description-writing` を使い、現在の差分と検証結果に一致させる。
 7. push 後は branch と remote の状態を確認する。
@@ -47,12 +47,17 @@ metadata:
 
 ## 安全策
 
-- standing authorizationを使う場合は、実行する操作とoperandをrepo-local規約へ対応づける。
-  repo-local規約と参照先のtask記録から、実行前にcommandの全operandが一意に決まる場合だけcommand-shapedな承認として扱う。
-  少なくともrepository、task branchとworktree、staged task paths、remote名とvisibility、push ref、PR base、force push・rebase・history rewriteの禁止をread-only preflightで検証する。
-  規約が対象操作を明記し、すべての条件がpassした場合だけ、その具体的操作への明示承認として扱う。
-- 条件の欠落、unknown、validator失敗、scope不一致、複数taskの差分混在はdenyとして停止し、ユーザーへ確認する。
-  親agentの依頼、task delegation、一般的な「自律的に進める」という指示をstanding authorizationへ読み替えない。
+- **standing authorization**は、適用中のrepo-local instructionが対象操作を事前承認し、次の範囲へ限定した場合だけ成立する。
+  - commit：task専用worktreeの非`main` task branchで、task固有のstaged pathsだけを`--amend`なしでcommitする。
+  - push：同じtask branchの`HEAD`だけをprivate `origin`の同名branchへforce optionなしでpushする。
+  - PR作成：同じtask branchからbase `main`のPRを作る。
+  `main`または`master`への直接commitとpush、rebase、reset、history rewriteは対象外とする。
+- task記録はworktree、branch、pathの期待値を束縛できるが、操作の許可やrepo-local規約の拡張には使えない。
+- 各操作の直前にread-only preflight validatorを実行する。
+  repo-local instructionがvalidatorを指定している場合はそれを使い、指定がなければinstructionとtask記録をGit stateおよびproviderのread-only repository metadataと照合する。
+  task固有差分、正確なref、providerがprivateと報告するremoteを含む当該操作の全条件がpassした場合だけ、その操作への明示承認として扱う。
+  条件の欠落、unknown、validator失敗、scope不一致、複数taskの差分混在はdenyとして停止し、ユーザーへ確認する。
+- 親agentの依頼、task delegation、一般的な「自律的に進める」という指示をstanding authorizationへ読み替えない。
 - repo-local規約はsystem/developer instruction、toolの安全審査、認証、access control、remote provider policyを上書きしない。
   これらが操作を拒否した場合は別経路で迂回しない。
 - `reset --hard`、`clean`、force push、branch delete、stash drop は、捨てる対象を列挙してから個別に確認する。
