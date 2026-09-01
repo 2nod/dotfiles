@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: リポジトリの役割を判定し、docs/plans の実装プラン、docs/design・docs/adr への正本化、branch、commit、push、PR を安全に管理する。ユーザーが実装プランの作成、Git操作、実装完了後のplan・Notion・worktree・branch整理、または site の公開を依頼したときに使う。
+description: リポジトリの役割を判定し、docs/plans の実装プラン、docs/design・docs/adr への正本化、branch、commit、push、PR を安全に管理する。ユーザーがbranchを切ってcommitし、pushからPR作成まで安全に進めるよう依頼したとき、実装プランの作成、Git操作、実装完了後のplan・Notion・worktree・branch整理、または site の公開を依頼したときに使う。
 metadata:
   tags: [git, planning, documentation, pull-request]
   related_skills:
