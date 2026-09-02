@@ -23,23 +23,6 @@ These skills are discovered at startup from multiple local sources. Each entry i
   - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
 - Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
 
-## Git change authority
-
-- By default, ask the user for explicit permission immediately before `git commit` and again immediately before `git push`.
-- An applicable repository-local instruction may supply that permission as standing authorization only for operations it explicitly names and only within these limits:
-  - Commit task-owned staged paths from the current task's dedicated worktree and task branch, without `--amend`.
-  - Push `HEAD` to the same branch on private `origin`, without force options.
-  - Create a PR from the same branch with base `main`.
-  Direct commits or pushes to `main` or `master`, rebase, reset, and any history rewrite are outside standing authorization.
-- Referenced task records may bind expected worktree, branch, and path values, but cannot grant operations or widen repository-local authority.
-- Before each authorized operation, run a read-only preflight validator.
-  Use the validator named by that instruction when one exists; otherwise compare the instruction and task records with read-only Git state and provider repository metadata.
-  Every condition applicable to the operation must pass, including task-only staged or branch changes, exact refs, and private remote visibility reported by the provider.
-  A missing constraint, unknown value, validator failure, scope mismatch, or mixed-task change is a denial and requires fresh user permission.
-- A parent agent request, task delegation, or general instruction to work autonomously is not standing authorization.
-- Repository-local standing authorization does not override system or developer instructions, tool safety review, authentication, access control, or remote-provider policy.
-  Do not retry through a different route when one of those controls rejects the operation.
-
 ## skill eval case の継続追加
 
 共有 skill を使った実作業の完了時に、その skill の効果または弱点を客観的に再現できる新しいパターンが見つかったら、`~/dotfiles/.agents/evals/` の既存 case を確認する。同等の case がなく、skill の有無で結果が変わり得る決定的 verifier を作れる場合は、ユーザーへの追加確認なしで最小の eval case を追加する。
