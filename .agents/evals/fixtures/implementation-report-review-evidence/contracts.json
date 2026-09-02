@@ -1,0 +1,36 @@
+{
+  "fields": [
+    {
+      "name": "resultArtifact",
+      "role": "raw callback result used for audit and later reruns",
+      "scope": "full and rerun callbacks"
+    },
+    {
+      "name": "targetItem",
+      "role": "null means full run; an integer means targeted rerun",
+      "scope": "job creation, callback, context publication"
+    }
+  ],
+  "locale_aliases": {
+    "fr-FR": "fr"
+  },
+  "unsupported_locales": ["zh-TW"],
+  "invariants": [
+    {
+      "id": "INV-MOVED-ITEM",
+      "rule": "moving the target item after the source run counts as a source change"
+    },
+    {
+      "id": "INV-REPLAY-REPAIR",
+      "rule": "a replayed success callback preserves the existing inference and repairs only missing artifacts"
+    },
+    {
+      "id": "INV-EXACT-OUTPUT",
+      "rule": "callback output IDs must exactly match the target item IDs"
+    },
+    {
+      "id": "INV-REVISION-CAS",
+      "rule": "a changed current revision rejects the apply"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "runs": [
+    {
+      "status": "superseded",
+      "tests": "9 / 9",
+      "note": "measured before replay protection"
+    },
+    {
+      "status": "current",
+      "tests": "12 / 12",
+      "note": "includes locking, replay repair, exact output, and revision conflict"
+    }
+  ]
+}

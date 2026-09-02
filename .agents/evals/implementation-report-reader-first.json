@@ -1,0 +1,20 @@
+{
+  "id": "implementation-report-reader-first",
+  "skill": "build-implementation-report-site",
+  "skill_path": "../skills/software-development/build-implementation-report-site/SKILL.md",
+  "fixture": "fixtures/implementation-report-reader-first",
+  "prompt": "change-facts.json、base、src、legacy-report.htmlを確認し、実装もPRやissueの会話も知らないレビュワーが、対象の役割から変更の効果と根拠まで迷わず追えるHTMLレポートへ再構成してください。実装コードとfixtureは変更せず、最終レポートは../implementation-report/index.htmlへ置いてください。commitやpushはしないでください。",
+  "expected_behavior": "冒頭では対象の役割、利用者、発火条件、代表的な入力と出力を説明し、内部名を読者向けの名称へ対応付ける。その後に変更前、変更後、目的、変えていない境界を示し、製品挙動と証拠の変更を分ける。分類記号を使う場合は初出で定義し、BeforeとAfterをbase SHAおよびworking treeへ追跡できるようにする。",
+  "failure_conditions": [
+    "対象の役割、利用者、発火条件、代表的な入力と出力のいずれかがない",
+    "対象IDを読者向けに定義せずに使う",
+    "コードの変更から利用者または運用への効果を追えない",
+    "変更内容より先にA/BやH1/P1/U1が現れる",
+    "分類記号を使っているのに、その定義がない",
+    "製品挙動の変更と証拠の変更が混ざる",
+    "BeforeとAfterをbase SHAおよびworking treeへ追跡できない"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/implementation-report-reader-first-verify.py", "{workspace}"]
+  ]
+}
