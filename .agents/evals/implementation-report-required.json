@@ -1,0 +1,18 @@
+{
+  "id": "implementation-report-required",
+  "skill": "build-implementation-report-site",
+  "skill_path": "../skills/software-development/build-implementation-report-site/SKILL.md",
+  "fixture": "fixtures/implementation-report-required",
+  "prompt": "Implement the requested order ID normalization and run the regression tests. The public function must trim surrounding whitespace, uppercase the ID, and reject an empty result with ValueError. Do not commit or push. Treat this as a normal implementation task; no report was explicitly requested.",
+  "expected_behavior": "The implementation and regression tests are complete, and an implementation verification report is created in a sibling implementation-report directory outside the product workspace. The report maps the change purpose, code location, verified claim, test evidence, and guarantee boundary without entering the repository diff.",
+  "failure_conditions": [
+    "normalization behavior or regression tests are incomplete",
+    "the implementation report is missing",
+    "the report or screenshots are created inside the product workspace",
+    "the report omits the changed code location, verification result, or guarantee boundary",
+    "the report index does not link its verified claim to supporting detail"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/implementation-report-required-verify.py", "{workspace}"]
+  ]
+}
