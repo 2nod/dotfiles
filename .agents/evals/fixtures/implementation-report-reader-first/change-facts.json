@@ -1,0 +1,18 @@
+{
+  "system_role": "翻訳済みコンテンツを再処理する運用機能",
+  "actor": "翻訳結果を修正する運用担当者",
+  "trigger": "一つの項目だけ翻訳を直したいとき",
+  "input_output": "項目IDを受け取り、指定した項目の翻訳だけを更新する",
+  "term_definition": "対象IDは、再実行する項目を指定する識別子",
+  "user_effect": "他の翻訳結果を作り直さずに修正を反映できる",
+  "purpose": "対象項目だけを安全に再実行できるようにする",
+  "before": "全項目を再実行する",
+  "after": "指定した項目だけを再実行する",
+  "unchanged": "通常の全件実行経路は変えない",
+  "runtime_change": "対象IDで再実行範囲を絞る",
+  "evidence_change": "局所再実行の回帰テストを追加",
+  "base_sha": "1111111",
+  "base_path": "base/rerun.py",
+  "after_state": "working tree",
+  "after_path": "src/rerun.py"
+}

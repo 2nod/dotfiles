@@ -1,0 +1,18 @@
+{
+  "id": "implementation-report-review-evidence",
+  "skill": "build-implementation-report-site",
+  "skill_path": "../skills/software-development/build-implementation-report-site/SKILL.md",
+  "fixture": "fixtures/implementation-report-review-evidence",
+  "prompt": "実装済みの差分、contracts.json、verification.json、legacy-report.htmlを確認し、実装を知らないレビュワー向けのHTMLレポートへ抜本的に再構成してください。会話や改稿経緯は残さず、現在の実装と検証結果を正本にしてください。実装コードとfixtureは変更せず、最終レポートは../implementation-report/index.htmlへ置いてください。commitやpushはしないでください。",
+  "expected_behavior": "最初の画面で変更と判断事項を短く示し、詳細は必要なときだけ追える形にする。責務・ガード・状態遷移を示す実コードBefore / After、列挙値を含む契約、複数箇所で成立する安全性不変条件をレビュー可能な粒度で維持し、古い検証値だけを現行結果へ更新する。",
+  "failure_conditions": [
+    "実コードBefore / Afterが概念説明またはファイルリンクだけへ圧縮される",
+    "契約のフィールド、locale alias、非対応値のいずれかが失われる",
+    "競合、再送、完全一致、revision CASの不変条件が分散または欠落する",
+    "supersededの検証件数を現行結果として掲載する",
+    "レポートをfixture内へ作成する"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/implementation-report-review-evidence-verify.py", "{workspace}"]
+  ]
+}
