@@ -1,0 +1,85 @@
+{
+  "question": "Does bounded translation resolve more overlaps without extra font shrink?",
+  "runs": [
+    {
+      "id": "run-font-32",
+      "status": "superseded",
+      "fixed_conditions": {"font_size_px": 32, "font_min_px": 10},
+      "cases": [
+        {
+          "case_id": "legacy-01",
+          "baseline": {"artifact": "legacy/base.svg"},
+          "candidate": {"artifact": "legacy/candidate.svg"}
+        }
+      ]
+    },
+    {
+      "id": "run-font-24",
+      "status": "evaluation-target",
+      "fixed_conditions": {
+        "font_size_px": 24,
+        "font_min_px": 14,
+        "renderer": "synthetic-renderer-v3"
+      },
+      "variants": [
+        {"id": "baseline-a13f000", "display_name": "main", "source_revision": "a13f000"},
+        {"id": "candidate-b27e000", "display_name": "translation search", "source_revision": "b27e000"}
+      ],
+      "metrics": {
+        "compute_ms": {"scope": "resolver-only", "unit": "ms"},
+        "wall_ms": {"scope": "end-to-end", "unit": "ms"},
+        "render_count": {"scope": "resolver-additional", "unit": "count"}
+      },
+      "cases": [
+        {
+          "case_id": "case-01",
+          "input_artifact": "artifacts/case-01-input.svg",
+          "baseline": {
+            "artifact": "artifacts/case-01-baseline.svg",
+            "resolved": true,
+            "end_phase": "font_shrink",
+            "initial_font_px": 24,
+            "final_font_px": 18,
+            "render_count": 1,
+            "compute_ms": 4,
+            "wall_ms": 20
+          },
+          "candidate": {
+            "artifact": "artifacts/case-01-candidate.svg",
+            "resolved": true,
+            "end_phase": "local_translation",
+            "initial_font_px": 24,
+            "final_font_px": 24,
+            "render_count": 1,
+            "compute_ms": 5,
+            "wall_ms": 22
+          }
+        },
+        {
+          "case_id": "case-02",
+          "input_artifact": "artifacts/case-02-input.svg",
+          "baseline": {
+            "artifact": "artifacts/case-02-baseline.svg",
+            "resolved": false,
+            "end_phase": "font_minimum",
+            "initial_font_px": 24,
+            "final_font_px": 14,
+            "render_count": 2,
+            "compute_ms": 8,
+            "wall_ms": 35
+          },
+          "candidate": {
+            "artifact": "artifacts/case-02-candidate.svg",
+            "resolved": true,
+            "end_phase": "last_resort_translation",
+            "initial_font_px": 24,
+            "final_font_px": 14,
+            "render_count": 3,
+            "compute_ms": 10,
+            "wall_ms": 42
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -33,3 +33,12 @@ These skills are discovered at startup from multiple local sources. Each entry i
 - `agent-observability-eval <case> --runs 1 --dry-run` まで実行する。有料の比較評価は自動実行しない。
 - 安全に縮約できない、客観的 verifier がない、既存 case と重複する場合は追加しない。
 - `agent-observability-eval` が起動した評価 run では追加しない。
+
+## 実装完了時の検証レポート
+
+製品コード、設定、APIやDB契約、運用スクリプトを実装または修正した場合は、最終回答の前に `software-development/build-implementation-report-site` を使って実装・検証レポートを作成または更新する。
+
+- レポートと検証画像は製品リポジトリ外へ保存する。
+- レポートを `git add`、commit、push、PRへ含めない。
+- 最終回答にレポートの絶対パスまたはURLを示す。
+- 調査、回答、docsだけの変更、生成物更新だけの作業は対象外とする。

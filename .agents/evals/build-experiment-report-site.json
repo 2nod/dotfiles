@@ -1,0 +1,18 @@
+{
+  "id": "build-experiment-report-site",
+  "skill": "build-experiment-report-site",
+  "skill_path": "../skills/software-development/build-experiment-report-site/SKILL.md",
+  "fixture": "fixtures/build-experiment-report-site",
+  "prompt": "experiment-source.jsonだけを根拠に、比較実験のreport.htmlとreport-data.jsonを作成してください。run-font-32はfixture前提を変更する前の履歴であり、評価対象run-font-24との集計を混ぜないでください。report-data.jsonにはactive_run_id、variants、metrics、cases、summaryを置き、summaryにはcase_count、baseline_resolved_count、candidate_resolved_count、baseline_compute_ms_median、candidate_compute_ms_medianを含めてください。report.htmlでは評価対象の全ケースについて入力、baseline、candidateの画像、終了段階、font size、render回数、resolver-onlyの計算時間、end-to-endのwall-clockを比較できるようにしてください。Git操作は行わないでください。",
+  "expected_behavior": "変更後のfixtureを別runとして扱い、不変のvariant IDと計測scopeを明示し、全ケースの機械可読resultから集計とHTML比較を作る。",
+  "failure_conditions": [
+    "前提変更前のrunを評価対象の集計へ混ぜる",
+    "mainや新版などの相対名だけでvariantを識別する",
+    "resolver-onlyとend-to-endの時間を区別しない",
+    "一部のケースまたは比較画像を省く",
+    "report-data.jsonの集計がケース別resultと一致しない"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/build-experiment-report-site-verify.py", "{workspace}"]
+  ]
+}
