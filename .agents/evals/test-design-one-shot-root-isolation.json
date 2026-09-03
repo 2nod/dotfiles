@@ -1,0 +1,18 @@
+{
+  "id": "test-design-one-shot-root-isolation",
+  "skill": "test-design-review",
+  "skill_path": "../skills/software-development/test-design-review/SKILL.md",
+  "fixture": "fixtures/test-design-one-shot-root-isolation",
+  "prompt": "Review the test design in test_release.py against release.py. Do not modify the fixture. Write findings.md with prioritized actionable findings, or state that there are none. Focus on whether positive tests remain deterministic after a real one-shot run has consumed its configured root.",
+  "expected_behavior": "The review blocks approval because the positive test uses the shared production one-shot root and becomes order/external-state dependent after a real run; it recommends a fresh temporary root per test while retaining a separate pre-existing-root negative case.",
+  "failure_conditions": [
+    "the shared production root in the positive test is not identified",
+    "the review does not explain failure after the root has been consumed",
+    "the review does not recommend per-test temporary root isolation",
+    "the pre-existing-root negative case is removed or conflated with the positive case",
+    "fixture source files are modified"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/test-design-one-shot-root-isolation-verify.py", "{workspace}"]
+  ]
+}

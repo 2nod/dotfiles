@@ -1,0 +1,18 @@
+{
+  "id": "diagnosis-manifest-ledger-parity",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-manifest-ledger-parity",
+  "prompt": "Diagnose why a checked-in task manifest with active/進行中 is treated as fresh against a pr_open/PR準備中 ledger. Fix the state boundary so mismatches and missing receipts fail closed, while a valid merged receipt projects effective reconciled state, and add regression tests.",
+  "expected_behavior": "Manifest and ledger lifecycle/display_status must match before a receipt is accepted; valid merged receipt yields reconciled effective state; missing receipt remains stale/fail-closed.",
+  "failure_conditions": [
+    "active/pr_open mismatch is accepted as fresh",
+    "missing receipt is accepted",
+    "valid merged receipt does not project reconciled effective state",
+    "tests fail after the fix",
+    "tests do not detect the original mismatch acceptance"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-manifest-ledger-parity-verify.py", "{workspace}"]
+  ]
+}

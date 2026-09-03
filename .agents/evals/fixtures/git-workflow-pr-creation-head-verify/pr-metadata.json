@@ -1,0 +1,15 @@
+{
+  "pr": {
+    "number": 256,
+    "url": "https://example.invalid/pull/256"
+  },
+  "short_oid": "1a086a4",
+  "creation_head": "1a086a4f3af1bc75fec390ba6220a524628f325c",
+  "implementation_head": "1a086a4f3af1bc75fec390ba6220a524628f325c",
+  "current_pr_head": "309d3b58246899416ff27bd58710ae1c2a7e001e",
+  "commit_objects": [
+    "1a086a460d0c23030ac0f0f451683ed672088d30",
+    "309d3b58246899416ff27bd58710ae1c2a7e001e"
+  ],
+  "handoff_entry_count": 1
+}
