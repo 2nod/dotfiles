@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ja">
+  <body>
+    <h1>Targeted rerun implementation report</h1>
+    <section>
+      <h2>Code Before / After</h2>
+      <pre>def create_job(store, translation_id, request):</pre>
+      <pre>with tx.lock_translation(translation_id):</pre>
+      <pre>if current_revision_id != expected_revision_id:</pre>
+      <pre>if job.target_item is None:</pre>
+    </section>
+    <section>
+      <h2>Contract</h2>
+      <table><tr><td>resultArtifact</td><td>targetItem</td><td>fr-FR → fr</td><td>zh-TW unsupported</td></tr></table>
+    </section>
+    <section>
+      <h2>Safety invariants</h2>
+      <p>INV-MOVED-ITEM INV-REPLAY-REPAIR INV-EXACT-OUTPUT INV-REVISION-CAS</p>
+    </section>
+    <section>
+      <h2>Verification</h2>
+      <p>9 / 9 tests passed before replay protection.</p>
+    </section>
+  </body>
+</html>

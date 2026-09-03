@@ -40,6 +40,21 @@
     "expected": ["software-development/build-implementation-report-site"]
   },
   {
+    "id": "build-experiment-report-site",
+    "prompt": "3つの設定候補を全ケースで比較した実験レポートを作って。仮説、固定条件、ケース別画像、計測時間、再現手順が分かるSiteにして",
+    "expected": ["software-development/build-experiment-report-site"]
+  },
+  {
+    "id": "implementation-report-code-flow-boundary",
+    "prompt": "比較実験の詳細ではなく、このPRでコードの責務と最終的な処理フローがどう変わったかを実装レポートSiteにして",
+    "expected": ["software-development/build-implementation-report-site"]
+  },
+  {
+    "id": "implementation-completion-report-required",
+    "prompt": "このAPI修正を実装して、回帰テストとローカルE2Eまで完了して",
+    "expected": ["software-development/build-implementation-report-site"]
+  },
+  {
     "id": "ponytail-simplest-solution",
     "prompt": "ponytailで見て。これ、もっと最小構成にできない？",
     "expected": ["software-development/ponytail"]
@@ -95,6 +110,11 @@
     "expected": ["engineering/grill-with-docs"]
   },
   {
+    "id": "grilling-stress-test",
+    "prompt": "この計画をgrillして。前提と意思決定を厳しくstress-testしたい",
+    "expected": ["productivity/grilling"]
+  },
+  {
     "id": "shared-skill-deploy-failure",
     "prompt": "Claude Codeにshared skillsが見えない。dotfilesのskills-dir pluginとdeploy先を検証して",
     "expected": ["agent-management/skill-maintenance"]
@@ -127,6 +147,11 @@
   {
     "id": "notion-workspace-maintenance-local-markdown",
     "prompt": "確認済みの知見をローカルNotionのMarkdownと_indexに残して",
+    "expected": ["knowledge-management/notion-workspace-maintenance"]
+  },
+  {
+    "id": "notion-workspace-post-merge-update",
+    "prompt": "作業branchで判明した知見はローカルNotionへまだ書かず、mainへmergeした後に既定branchを読み直して更新して",
     "expected": ["knowledge-management/notion-workspace-maintenance"]
   },
   {
@@ -172,6 +197,6 @@
       "software-development/git-worktree-cleanup",
       "knowledge-management/notion-workspace-maintenance"
     ],
-    "max_rank": 5
+    "max_rank": 3
   }
 ]

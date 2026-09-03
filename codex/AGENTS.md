@@ -22,9 +22,6 @@ These skills are discovered at startup from multiple local sources. Each entry i
   - Avoid deeply nested references; prefer one-hop files explicitly linked from `SKILL.md`.
   - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
 - Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
-- Before running any `git commit`, always ask the user for explicit permission. Never commit automatically.
-- Before running any `git push`, always ask the user for explicit permission. Never push automatically.
-- Never push directly to `main` or `master`. Always use a branch and open a PR unless the user explicitly instructs otherwise.
 
 ## skill eval case の継続追加
 
@@ -36,3 +33,12 @@ These skills are discovered at startup from multiple local sources. Each entry i
 - `agent-observability-eval <case> --runs 1 --dry-run` まで実行する。有料の比較評価は自動実行しない。
 - 安全に縮約できない、客観的 verifier がない、既存 case と重複する場合は追加しない。
 - `agent-observability-eval` が起動した評価 run では追加しない。
+
+## 実装完了時の検証レポート
+
+製品コード、設定、APIやDB契約、運用スクリプトを実装または修正した場合は、最終回答の前に `software-development/build-implementation-report-site` を使って実装・検証レポートを作成または更新する。
+
+- レポートと検証画像は製品リポジトリ外へ保存する。
+- レポートを `git add`、commit、push、PRへ含めない。
+- 最終回答にレポートの絶対パスまたはURLを示す。
+- 調査、回答、docsだけの変更、生成物更新だけの作業は対象外とする。

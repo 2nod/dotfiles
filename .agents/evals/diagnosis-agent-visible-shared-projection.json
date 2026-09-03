@@ -1,0 +1,17 @@
+{
+  "id": "diagnosis-agent-visible-shared-projection",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-agent-visible-shared-projection",
+  "prompt": "Diagnose why the public prefix collector rejects the second seat before either controller runs. The engine stores schema-shared fields only in raw seat 0, while each controller must receive the agent-visible projection. Fix the shared observation boundary once, preserve seat-private fields, and keep a public regression test that detects the original failure.",
+  "expected_behavior": "The public collector projects schema-shared fields from raw seat 0 into both seat views, preserves each seat's private field, and verifies the shared clock before invoking controllers.",
+  "failure_conditions": [
+    "raw seat 1 is rejected because its shared step is absent",
+    "seat 0 private data leaks into seat 1",
+    "the fix is applied only in a controller or test helper instead of the shared collector boundary",
+    "the public regression test does not detect the original raw-read implementation"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-agent-visible-shared-projection-verify.py", "{workspace}"]
+  ]
+}

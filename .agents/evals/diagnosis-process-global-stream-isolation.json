@@ -1,0 +1,18 @@
+{
+  "id": "diagnosis-process-global-stream-isolation",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-process-global-stream-isolation",
+  "prompt": "Diagnose why the public batch fails with `ValueError: I/O operation on closed file` only when workers=4, while workers=1 succeeds. Each engine call temporarily redirects process-global stderr. Keep workers=4, isolate every engine job in a fresh OS process, keep the parent as the only result collector, and preserve PID/exit accounting. Add or retain a public regression check for the original batch.",
+  "expected_behavior": "The batch launches one fresh OS process per engine job, returns every result through the parent, records distinct child PIDs and successful exits, and no longer overlaps process-global stream redirection in one interpreter.",
+  "failure_conditions": [
+    "the batch still runs engine jobs concurrently in threads in one interpreter",
+    "workers are reduced to one or a global serialization lock hides the race",
+    "child processes write the parent result artifact",
+    "PID or exit accounting is missing",
+    "the public regression check does not exercise all four jobs"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-process-global-stream-isolation-verify.py", "{workspace}"]
+  ]
+}
