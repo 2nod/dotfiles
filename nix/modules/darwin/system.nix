@@ -24,6 +24,7 @@ in
     enable = true;
     taps = [
       "modem-dev/tap"
+      "stablyai/orca"
     ];
     onActivation = {
       cleanup = "uninstall";
@@ -74,6 +75,7 @@ in
       "nani"
       "notion"
       "obsidian"
+      "orca"
       "raycast"
       "slack"
       "stats"
