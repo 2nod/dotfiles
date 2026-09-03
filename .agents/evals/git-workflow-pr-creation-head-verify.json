@@ -1,0 +1,18 @@
+{
+  "id": "git-workflow-pr-creation-head-verify",
+  "skill": "git-workflow",
+  "skill_path": "../skills/software-development/git-workflow/SKILL.md",
+  "fixture": "fixtures/git-workflow-pr-creation-head-verify",
+  "prompt": "pr-metadata.jsonを読み、記録されたPR creation headがcommit_objectsに実在するか検証してください。誤っている場合はshort_oidを推測で40桁化せず、short_oidに一意一致する実在commitへcreation_headとimplementation_headだけを訂正し、corrected-pr-metadata.jsonへ書いてください。PR URL/number、current_pr_head、履歴は変更せず、force push、rebase、追加handoffを提案しないでください。",
+  "expected_behavior": "存在しない40桁SHAを拒否し、短縮SHAに一意一致する実在commitをGit object正本としてcreation/implementation headへ記録する。current/final PR headはrepo metadataへ転記しない。",
+  "failure_conditions": [
+    "存在しない40桁SHAを有効として保持する",
+    "short_oidの残り桁を推測する",
+    "current_pr_headをcreation_headとして記録する",
+    "PR URL/numberまたは履歴を変更する",
+    "force push、rebase、追加handoffを選ぶ"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/git-workflow-pr-creation-head-verify-verify.py", "{workspace}"]
+  ]
+}

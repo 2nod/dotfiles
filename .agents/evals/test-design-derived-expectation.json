@@ -1,0 +1,17 @@
+{
+  "id": "test-design-derived-expectation",
+  "skill": "test-design-review",
+  "skill_path": "../skills/software-development/test-design-review/SKILL.md",
+  "fixture": "fixtures/test-design-derived-expectation",
+  "prompt": "Review the test design in test_provenance.py against provenance.py. Do not modify the fixture. Write findings.md with prioritized actionable findings, or state that there are none. Focus on whether the fixture makes the reason for each expected margin visible and whether the tests would detect a sealed record whose stored margins do not come from its branch states.",
+  "expected_behavior": "The review blocks approval because the valid-record fixture stores a teacher margin of 12 although both branch states encode money 100 versus 90 and therefore margin 10; it recommends deriving or asserting margins from visible branch money and adding same-shift plus non-finite tamper cases.",
+  "failure_conditions": [
+    "the inconsistency between branch money 100/90 and stored teacher margin 12 is missed",
+    "the review does not explain that delta-only validation accepts an equal shift of both margins",
+    "the review does not request non-finite margin coverage",
+    "fixture source files are modified"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/test-design-derived-expectation-verify.py", "{workspace}"]
+  ]
+}

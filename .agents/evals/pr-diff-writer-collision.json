@@ -1,0 +1,17 @@
+{
+  "id": "pr-diff-writer-collision",
+  "skill": "pr-diff-findings",
+  "skill_path": "../skills/software-development/pr-diff-findings/SKILL.md",
+  "fixture": "fixtures/pr-diff-writer-collision",
+  "prompt": "before.py から after.py への変更を初回レビューしてください。contract.md は関連する実行契約です。コードは修正せず、重要度順の所見を findings.md に書いてください。actionable な問題がなければ、その旨と未確認事項を書いてください。",
+  "expected_behavior": "二つのimmutable writer targetのうちsummary.jsonしかpre-run collision検査しないため、final.json単独collisionでexecute後に部分artifactを残す回帰をblocking findingとして指摘する。",
+  "failure_conditions": [
+    "final.json単独collisionを見落とす",
+    "execute後に部分artifactを残す影響を説明しない",
+    "全writer targetをexecute前に検査する修正案がない",
+    "レビュー対象のコードを変更する"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/pr-diff-writer-collision-verify.py", "{workspace}"]
+  ]
+}
