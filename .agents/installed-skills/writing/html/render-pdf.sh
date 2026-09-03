@@ -16,11 +16,11 @@
 set -euo pipefail
 
 INPUT="${1:-}"
-if [[ -z "$INPUT" ]]; then
+if [[ -z $INPUT ]]; then
   echo "usage: $0 <html-file>" >&2
   exit 64
 fi
-if [[ ! -f "$INPUT" ]]; then
+if [[ ! -f $INPUT ]]; then
   echo "not found: $INPUT" >&2
   exit 66
 fi
@@ -35,12 +35,12 @@ CHROME_CANDIDATES=(
 )
 CHROME=""
 for c in "${CHROME_CANDIDATES[@]}"; do
-  if [[ -x "$c" ]]; then
+  if [[ -x $c ]]; then
     CHROME="$c"
     break
   fi
 done
-if [[ -z "$CHROME" ]]; then
+if [[ -z $CHROME ]]; then
   echo "Chrome / Chromium not found in standard macOS locations." >&2
   echo "Looked at:" >&2
   for c in "${CHROME_CANDIDATES[@]}"; do
