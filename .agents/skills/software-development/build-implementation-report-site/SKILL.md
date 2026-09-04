@@ -13,41 +13,37 @@ metadata:
 
 # レビュー用実装ブリーフ作成
 
-`writing/html` をHTML作成の共通基盤として使い、実装もPRやissueの会話も知らないレビュワーが5分程度で、変更箇所の全体での役割、何をなぜどのように変えたか、根拠、判断事項を追えるHTMLを作る。
-設計書や作業日誌にせず、最初の画面に結論を置き、詳細は必要なときだけ開く。
-レポートは実装タスクの完了条件であり、製品リポジトリとPRには含めない。
-比較実験の詳細は `software-development/build-experiment-report-site` に分け、このレポートには結論と参照先を置く。
+`writing/html`を表示基盤として、変更を知らないレビュワーが5分程度で、変更の役割、理由、実装、根拠、判断事項を追えるHTMLを作る。
+設計書や作業日誌にはせず、最初の画面に結論を置く。
+比較実験の詳細は`software-development/build-experiment-report-site`へ分ける。
 
 ## Skillの階層
 
-- `writing/html` は、静的HTML、共通デザインシステム、目次、図、コード、数式、印刷を扱う表示基盤である。
-- このskillは、実装差分をレビューするための情報構成、コード根拠、検証結果、保存先を扱う。
-- 内容の順序、証拠、保存先はこのskillを優先し、HTMLの部品と表現は `writing/html` に従う。
-- HTMLを作る前に `writing/html/design-system/component-samples.html` を確認し、同梱の `document.css` と必要なアセットを使う。ページ固有のCSSは配置調整に限る。
+- 内容、証拠、保存先はこのskill、HTML部品は`writing/html`に従う。
+- 作成前に`writing/html/design-system/component-samples.html`を確認し、共有CSSと必要なアセットを使う。
+- ページ固有CSSは配置調整に限る。
 
 ## 完了条件と保存先
 
-- 実装と必要な検証を終えた後、最終回答の前にレポートを作成または更新する。
-- 既定の保存先は `$CODEX_HOME/visualizations/<日付>/<task-id>/<report-name>/index.html` とする。利用できない環境では、製品リポジトリ外の一時ディレクトリを使う。
-- レポート、画像、検証用HTMLを製品リポジトリへ置かない。`git add`、commit、push、PR対象にしない。
+- 実装と必要な検証後、最終回答の前に作成または更新する。
+- 既定は`$CODEX_HOME/visualizations/<日付>/<task-id>/<report-name>/index.html`へ保存する。
+- レポートと画像は製品リポジトリ、stage、commit、push、PRへ含めない。
 - 最終回答ではレポートの絶対パスまたはURLを示す。
 
 ## 作業手順
 
-1. base SHAと変更後の参照を確認する。変更後が未commitならworking treeとdirty状態、commit済みならSHAを記録し、trackedとuntrackedの差分、設計、実装、テスト、計測成果物を確認する。
-2. `git diff --name-status <base>...<after>` 相当の変更一覧と関連するディレクトリ構成を確認する。変更ファイルを責務ごとにまとめ、追加、削除、移動を含む変更箇所と、その箇所が全体で担う役割を把握する。全リポジトリのtreeは作らず、入口、呼び出し先、契約、テストなど変更を理解する近接要素だけを残す。
-3. 各変更責務へ短い安定IDを付け、同じIDを全体の処理経路、変更マップ、責務別の詳細で共通して使う。実行経路には必要だが差分で挙動を変えていない処理は、変更責務と分けて「既存境界」と明記する。その上で `templates/report-outline.md` からレビュー内容を組み立て、`writing/html` でHTMLへ実装する。変更目的と判断事項、読み始めるための文脈、変更マップ、責務別の変更、検証と未確認事項の順に示す。
-4. 読者向けの語を先に使い、内部名は対応付けてから出す。変更領域ごとに、全体での役割、変更前、変更後、目的、変更方法、影響と未変更境界、コードと検証を一つの変更単位へまとめる。各レビュー項目には重要度、状態、理由、根拠を付ける。この変更単位を詳細への唯一の導線とし、同じ要約表を別に作らない。
-5. 責務、ガード、契約、状態遷移が変わる重要箇所だけ、baseと変更後の実コードをBefore / Afterで並べる。importや周辺ノイズ、全ファイルの機械的な比較は省く。
-6. schema、API、設定、正規化の列挙値が変わるときだけ契約表を置く。複数箇所のガードが一つの保証を作るときだけ、不変条件を一覧化する。
-7. 検証はコマンド、ケース別結果、手動確認手順、未確認範囲を短く示す。UIや実環境を含む場合は、各手順の期待結果と起きてはいけない結果を書く。
-8. 既存レポートを再構成するときは、現在も有効なコード、契約、検証根拠を棚卸しし、古い結果だけを更新する。必要な根拠を説明文へ圧縮したり無言で落としたりしない。
-9. 保証する範囲と保証しない範囲を一致させる。推定、実測、設定値、上限を混同しない。
-10. 見出し、順序、余白、ラベル、段階的開示で重要度と情報階層を表す。色だけに意味を持たせない。詳細は必要なものだけを折りたたみ、図は文章とコードより短く責務の関係や処理経路を示せる場合に限る。
-11. HTMLを実ブラウザで開き、リンク、ID重複、横溢れ、デスクトップとモバイルの表示を確認する。
+1. base SHA、afterのSHAまたはdirty working tree、trackedとuntrackedの差分、設計、テスト、計測成果物を確認する。
+2. 変更ファイルを責務へまとめ、入口、呼び出し先、契約、テストだけの変更マップを作る。
+3. `templates/report-outline.md`で、概要、文脈、変更マップ、責務別変更、検証の順に組み立てる。
+4. 各変更単位を`入力 → 判定・防御 → 出力 → Before / After → テスト証拠`に統一する。実装、自動テスト、ローカルE2E、未確認を分ける。
+5. 重要な責務、ガード、契約、状態遷移だけを実コードBefore / Afterで示す。横断的な保証は概要の少数の不変条件からコードとテストへつなぐ。
+6. 目的と共通の操作は変更単位に一度、前提と期待結果はテストケースごとに示し、実ファイルpathへつなぐ。テストが直接保証する範囲を越えてUIや運用の成立を断定しない。
+7. 複数の変更単位には、役割、検証状態、anchorを持つ右サイドナビを置く。用語集は本文の文脈内で折りたたむ。
+8. 既存レポートの再構成では有効な根拠を落とさず、古い結果だけを更新する。
+9. 実ブラウザでリンク、ID重複、横溢れ、デスクトップとモバイルを確認する。
 
 ## 参照
 
-- 構成を作るときは [templates/report-outline.md](templates/report-outline.md) を使う。
-- 初稿前に [references/failure-patterns.md](references/failure-patterns.md) を読む。
-- 完了前に [references/review-checklist.md](references/review-checklist.md) で監査する。
+- 構成は[templates/report-outline.md](templates/report-outline.md)を使う。
+- 初稿前に[references/failure-patterns.md](references/failure-patterns.md)を読む。
+- 完了前に[references/review-checklist.md](references/review-checklist.md)で監査する。

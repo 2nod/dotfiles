@@ -14,14 +14,23 @@ class ReportParser(HTMLParser):
         self.text: list[str] = []
         self.pre_blocks: list[list[str]] = []
         self.table_blocks: list[list[str]] = []
+        self.aside_blocks: list[list[str]] = []
+        self.aside_hrefs: list[str] = []
         self._pre: list[str] | None = None
         self._table: list[str] | None = None
+        self._aside: list[str] | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag == "pre":
             self._pre = []
         elif tag == "table":
             self._table = []
+        elif tag == "aside":
+            self._aside = []
+        elif tag == "a" and self._aside is not None:
+            href = dict(attrs).get("href")
+            if href and href.startswith("#"):
+                self.aside_hrefs.append(href[1:])
 
     def handle_endtag(self, tag: str) -> None:
         if tag == "pre" and self._pre is not None:
@@ -30,6 +39,9 @@ class ReportParser(HTMLParser):
         elif tag == "table" and self._table is not None:
             self.table_blocks.append(self._table)
             self._table = None
+        elif tag == "aside" and self._aside is not None:
+            self.aside_blocks.append(self._aside)
+            self._aside = None
 
     def handle_data(self, data: str) -> None:
         self.text.append(data)
@@ -37,6 +49,8 @@ class ReportParser(HTMLParser):
             self._pre.append(data)
         if self._table is not None:
             self._table.append(data)
+        if self._aside is not None:
+            self._aside.append(data)
 
 
 def fail(message: str) -> int:
@@ -86,6 +100,36 @@ def main() -> int:
     missing_invariants = [token for token in invariant_ids if token not in visible]
     if missing_invariants:
         return fail(f"report is missing safety invariants: {missing_invariants}")
+    if "入力" not in visible:
+        return fail("change units must describe their inputs")
+    if max(visible.index(token) for token in invariant_ids) > visible.index("入力"):
+        return fail("cross-cutting invariants must appear before the change-unit details")
+
+    unit_order = ("役割", "目的", "入力", "判定・防御", "出力", "Before / After", "テスト証拠")
+    cursor = 0
+    for _ in range(2):
+        for token in unit_order:
+            position = visible.find(token, cursor)
+            if position < 0:
+                return fail(f"two change units must use the same evidence order: missing {token}")
+            cursor = position + len(token)
+
+    if not parser.aside_blocks or len(set(parser.aside_hrefs)) < 2:
+        return fail("a right-side change-unit navigation with at least two anchors is required")
+    aside = compact(" ".join(parser.aside_blocks[0]))
+    status_tokens = ("実装", "自動テスト", "ローカルE2E", "未確認")
+    missing_status = [token for token in status_tokens if token not in aside]
+    if missing_status:
+        return fail(f"navigation must separate implementation and verification status: {missing_status}")
+
+    test_evidence = ("前提（Arrange）", "共通の操作（Act）", "期待結果（Assert）", "tests/test_job_flow.py")
+    missing_test_evidence = [token for token in test_evidence if token not in visible]
+    if missing_test_evidence:
+        return fail(f"test evidence must use AAA and an actual file path: {missing_test_evidence}")
+    if visible.count("共通の操作（Act）") != 2:
+        return fail("each of the two change units must state its shared Act exactly once")
+    if visible.count("前提（Arrange）") < 3 or visible.count("期待結果（Assert）") < 3:
+        return fail("Arrange and Assert must be stated for each of the three test cases")
 
     if "12 / 12" not in visible or "9 / 9" in visible:
         return fail("report must use current verification and remove the superseded count")

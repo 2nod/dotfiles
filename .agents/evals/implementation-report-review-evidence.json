@@ -3,12 +3,16 @@
   "skill": "build-implementation-report-site",
   "skill_path": "../skills/software-development/build-implementation-report-site/SKILL.md",
   "fixture": "fixtures/implementation-report-review-evidence",
-  "prompt": "実装済みの差分、contracts.json、verification.json、legacy-report.htmlを確認し、実装を知らないレビュワー向けのHTMLレポートへ抜本的に再構成してください。会話や改稿経緯は残さず、現在の実装と検証結果を正本にしてください。実装コードとfixtureは変更せず、最終レポートは../implementation-report/index.htmlへ置いてください。commitやpushはしないでください。",
-  "expected_behavior": "最初の画面で変更と判断事項を短く示し、詳細は必要なときだけ追える形にする。責務・ガード・状態遷移を示す実コードBefore / After、列挙値を含む契約、複数箇所で成立する安全性不変条件をレビュー可能な粒度で維持し、古い検証値だけを現行結果へ更新する。",
+  "prompt": "実装済みの差分、tests、contracts.json、verification.json、legacy-report.htmlを確認し、実装を知らないレビュワー向けのHTMLレポートへ抜本的に再構成してください。会話や改稿経緯は残さず、現在の実装と検証結果を正本にしてください。実装コードとfixtureは変更せず、最終レポートは../implementation-report/index.htmlへ置いてください。commitやpushはしないでください。",
+  "expected_behavior": "最初の画面で変更、判断事項、横断的な安全性不変条件を短く示す。各変更単位では役割と目的を分け、入力、判定・防御、出力、Before / After、テスト証拠の順に統一し、実装、自動テスト、ローカルE2E、未確認を分ける。複数の変更単位へ移動できる右サイドナビを置く。テスト証拠は共通の操作を変更単位に一度、前提と期待結果をケースごとに示し、実ファイルpathへつなぐ。実コードBefore / After、列挙値を含む契約を維持し、古い検証値だけを現行結果へ更新する。",
   "failure_conditions": [
     "実コードBefore / Afterが概念説明またはファイルリンクだけへ圧縮される",
     "契約のフィールド、locale alias、非対応値のいずれかが失われる",
     "競合、再送、完全一致、revision CASの不変条件が分散または欠落する",
+    "変更単位の説明順が統一されず、実装と検証状態が一つにまとめられる",
+    "変更単位への右サイドナビがない",
+    "役割と目的が混ざる、またはテスト証拠で共通の操作をケースごとに繰り返す",
+    "テスト証拠からケース別の前提、期待結果、実ファイルpathを追えない",
     "supersededの検証件数を現行結果として掲載する",
     "レポートをfixture内へ作成する"
   ],
