@@ -23,7 +23,6 @@ in
   homebrew = {
     enable = true;
     taps = [
-      "modem-dev/tap"
       "stablyai/orca"
     ];
     onActivation = {
@@ -75,7 +74,10 @@ in
       "nani"
       "notion"
       "obsidian"
-      "orca"
+      # tap 名まで書く。homebrew/cask 本体にも同名の orca (plotly) があり、
+      # そちらは 2026-09-01 に Gatekeeper 不合格で disabled になった。
+      # 短縮名は本体側に解決されるため brew bundle が必ず失敗する。
+      "stablyai/orca/orca"
       "raycast"
       "slack"
       "stats"
