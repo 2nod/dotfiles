@@ -34,7 +34,7 @@ metadata:
 
 ## 作業手順
 
-1. baseと変更後のSHA、trackedとuntrackedの差分、設計、実装、テスト、計測成果物を確認する。
+1. base SHAと変更後の参照を確認する。変更後が未commitならworking treeとdirty状態、commit済みならSHAを記録し、trackedとuntrackedの差分、設計、実装、テスト、計測成果物を確認する。
 2. `templates/report-outline.md` でレビュー内容を組み立て、`writing/html` でHTMLへ実装する。00の冒頭で、対象の役割、利用者または運用者、発火条件、代表的な入力と出力を説明してから、変更目的、Before / After、未変更範囲、判断事項を示す。
 3. 読者向けの語を先に使い、内部名は対応付けてから出す。主張ごとに、コードの責務、挙動が変わる理由、テストまたは実測、保証範囲を一行で結ぶ。H/P/Uは導線を短くする場合だけ使う。
 4. 責務、ガード、契約、状態遷移が変わる重要箇所だけ、baseと変更後の実コードをBefore / Afterで並べる。importや周辺ノイズ、全ファイルの機械的な比較は省く。

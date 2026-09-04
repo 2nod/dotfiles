@@ -30,12 +30,12 @@ metadata:
 ## 作業手順
 
 1. [references/experiment-contract.md](references/experiment-contract.md) を使い、問い、仮説、判定基準、比較対象、条件、変数、指標を定義する。
-2. 比較対象に不変のIDを付け、commit SHA、設定、環境、外部サービスの版を記録する。「旧版」「現在」「main」だけで識別しない。
-3. fixture、フォント、rendererなどの固定条件を変えた場合は、新しい実行IDで記録する。
-4. ケース別結果をJSONやCSVへ保存し、集計、表、画像説明をそこから生成する。HTMLへ数値を手入力しない。
+2. 比較対象に不変のIDを付け、該当するsource revisionまたはartifact digest、設定、環境、外部サービスの版を記録する。「旧版」「現在」「main」だけで識別しない。
+3. 入力、fixture、評価器、実行環境などの固定条件を変えた場合は、新しい実行IDで記録する。
+4. ケース別結果をJSONやCSVへ保存し、集計、表、グラフ、画像キャプションを同じresultから生成する。HTMLへ数値や可視化データを手入力しない。
 5. 時間と回数に計測範囲、単位、分母、集計方法を付ける。計算、外部I/O、wall-clock、初回、追加処理を混ぜない。
 6. [templates/report-outline.md](templates/report-outline.md) で実験契約、結果、ケース比較、解釈、制約、再現手順を組み立て、`writing/html` でHTMLへ実装する。
-7. 全ケースの入力、基準、候補を同じ条件で並べ、画像または適切な可視化と指標を対応付ける。終了段階、変更量、品質、回数、時間を、結果の差が読み取れる形で示す。
+7. 全ケースを機械可読なresultへ保持し、Siteから検索、フィルター、詳細表示などで到達可能にする。本文では分布、最悪、悪化、代表ケースを優先し、小規模な実験、明示要求、画像品質が主題の場合は全ケースの入力、基準、候補を並置する。画像または適切な可視化と指標を対応付け、結果の差が読み取れる形で示す。
 8. 分布、最悪値、未解決、悪化を確認し、[references/failure-patterns.md](references/failure-patterns.md) と [references/review-checklist.md](references/review-checklist.md) で公開前に監査する。
 
 ## 成果物の扱い
