@@ -4,14 +4,22 @@ description: 実装案、設定値、モデルなどの比較実験を、仮説�
 metadata:
   tags: [experiment-report, benchmark, reproducibility, site, visualization]
   related_skills:
+    - writing/html
     - software-development/build-implementation-report-site
     - software-development/technical-flow-diagrams
 ---
 
 # 実験レポートSite作成
 
-第三者が根拠を追跡し、同じ条件で再実行できるSiteを作る。
+`writing/html` をHTML作成の共通基盤として使い、第三者が実験結果を画像、可視化、指標から理解し、根拠を追跡して同じ条件で再実行できるSiteを作る。
 本文より先に、実験条件と機械可読な結果を確定する。
+
+## Skillの階層
+
+- `writing/html` は、静的HTML、共通デザインシステム、目次、図、コード、数式、印刷を扱う表示基盤である。
+- このskillは、実験契約、機械可読な結果、比較方法、指標、再現手順を扱う。
+- 内容の順序、データの正本、保存と公開の判断はこのskillを優先し、HTMLの部品と表現は `writing/html` に従う。
+- HTMLを作る前に `writing/html/design-system/component-samples.html` を確認し、同梱の `document.css` と必要なアセットを使う。ページ固有のCSSは可視化の配置調整に限る。
 
 ## 実装レポートとの境界
 
@@ -26,8 +34,8 @@ metadata:
 3. fixture、フォント、rendererなどの固定条件を変えた場合は、新しい実行IDで記録する。
 4. ケース別結果をJSONやCSVへ保存し、集計、表、画像説明をそこから生成する。HTMLへ数値を手入力しない。
 5. 時間と回数に計測範囲、単位、分母、集計方法を付ける。計算、外部I/O、wall-clock、初回、追加処理を混ぜない。
-6. [templates/report-outline.md](templates/report-outline.md) を使い、実験契約、結果、ケース比較、解釈、制約、再現手順の順に構成する。
-7. 全ケースの入力、基準、候補を同じ条件で並べ、終了段階、変更量、品質、回数、時間を示す。
+6. [templates/report-outline.md](templates/report-outline.md) で実験契約、結果、ケース比較、解釈、制約、再現手順を組み立て、`writing/html` でHTMLへ実装する。
+7. 全ケースの入力、基準、候補を同じ条件で並べ、画像または適切な可視化と指標を対応付ける。終了段階、変更量、品質、回数、時間を、結果の差が読み取れる形で示す。
 8. 分布、最悪値、未解決、悪化を確認し、[references/failure-patterns.md](references/failure-patterns.md) と [references/review-checklist.md](references/review-checklist.md) で公開前に監査する。
 
 ## 成果物の扱い
