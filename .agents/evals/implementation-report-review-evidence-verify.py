@@ -122,12 +122,14 @@ def main() -> int:
     if missing_status:
         return fail(f"navigation must separate implementation and verification status: {missing_status}")
 
-    test_evidence = ("前提（Arrange）", "共通の操作（Act）", "期待結果（Assert）", "tests/test_job_flow.py")
+    test_evidence = ("検証意図", "前提（Arrange）", "共通の操作（Act）", "期待結果（Assert）", "tests/test_job_flow.py")
     missing_test_evidence = [token for token in test_evidence if token not in visible]
     if missing_test_evidence:
         return fail(f"test evidence must use AAA and an actual file path: {missing_test_evidence}")
     if visible.count("共通の操作（Act）") != 2:
         return fail("each of the two change units must state its shared Act exactly once")
+    if visible.count("検証意図") < 3:
+        return fail("a case-specific verification intent is required for each of the three test cases")
     if visible.count("前提（Arrange）") < 3 or visible.count("期待結果（Assert）") < 3:
         return fail("Arrange and Assert must be stated for each of the three test cases")
 
