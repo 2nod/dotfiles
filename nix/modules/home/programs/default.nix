@@ -86,13 +86,6 @@
         dotfilesDir
         ;
     })
-    (import ./codex-router.nix {
-      inherit
-        pkgs
-        lib
-        config
-        ;
-    })
     (import ./claude-code {
       inherit
         pkgs
