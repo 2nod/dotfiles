@@ -20,7 +20,7 @@ import sys
 import shlex
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from eval_contracts import contract_version, tree_version, execution_preflight
+from eval_contracts import contract_version, tree_version, execution_preflight, dependency_paths
 from isolated_tools import ToolSandbox, fixture_files, IMAGE
 from datetime import datetime, timezone
 from typing import cast
@@ -118,7 +118,7 @@ def diff_metrics(
 
 
 def pi_command(
-    prompt: str, skill_path: pathlib.Path | None, model: str | None
+    prompt: str, skill_path: pathlib.Path | None, model: str | None, skill_root="/skills"
 ) -> list[str]:
     command = [
         "pi",
@@ -149,10 +149,10 @@ def pi_command(
         command += [
             "--append-system-prompt",
             "Apply this skill for this task. Supporting files are relative to "
-            + "/skills (read-only; workspace is /workspace)"
-            + ". The skill entry is /skills/SKILL.md; for example, "
-            + "references/example.md resolves to /skills/references/example.md. "
-            + "Do not insert the skill name or category into that path. "
+            + skill_root + " (read-only; workspace is /workspace)"
+            + ". The skill entry is " + skill_root + "/SKILL.md; for example, "
+            + "references/example.md resolves to " + skill_root + "/references/example.md. "
+            + "Resolve sibling references relative to this directory. "
             + "If a reference is missing, list /skills before assuming it is absent."
             + "\n"
             + skill_path.read_text(),
@@ -257,6 +257,25 @@ def persist_artifacts(
     return str(directory), version
 
 
+def load_case_skills(worker, case, case_path, target, variant):
+    dependencies = dependency_paths(case, case_path, target)
+    if variant == "control":
+        return "/skills"
+    if not dependencies:
+        worker.load_skill(target.parent)
+        return "/skills"
+    bundles = {target.parent.name: target.parent, **dependencies}
+    contents, executable = {}, set()
+    for name, root in bundles.items():
+        for relative, data in fixture_files(root).items():
+            key = name + "/" + relative
+            contents[key] = data
+            if (root / relative).stat().st_mode & 0o111:
+                executable.add(key)
+    worker.load_readonly(contents, executable)
+    return "/skills/" + target.parent.name
+
+
 def run_once(
     case,
     case_path,
@@ -276,6 +295,8 @@ def run_once(
     )
     version = contract_version(case, case_path)
     fixture_files(fixture)  # Reject aliases before any model or host copy.
+    for dependency in dependency_paths(case, case_path, target).values():
+        fixture_files(dependency)
     with (
         tempfile.TemporaryDirectory(prefix="skill-eval-") as temp,
         ToolSandbox(shutil.which("docker") or "") as worker,
@@ -283,11 +304,10 @@ def run_once(
         workspace = pathlib.Path(temp) / "workspace"
         shutil.copytree(fixture, workspace)
         worker.load_fixture(fixture)
-        if variant != "control":
-            worker.load_skill(target.parent)
+        skill_root = load_case_skills(worker, case, case_path, target, variant)
         before = worker.snapshot()
         command = pi_command(
-            str(case["prompt"]), target if variant != "control" else None, model
+            str(case["prompt"]), target if variant != "control" else None, model, skill_root
         )
         env = {
             **os.environ,
@@ -436,6 +456,7 @@ def run_once(
             "experiment_id": experiment_id,
             "contract_version": version,
             "skill_version": tree_version(target.parent),
+            "dependency_versions": {name: tree_version(path) for name, path in dependency_paths(case, case_path, target).items()},
             "candidate_version": tree_version(candidate.parent) if candidate else None,
             "success": success,
             "outcome_success": outcome,
@@ -510,13 +531,15 @@ def main() -> int:
                     "contract_version": contract_version(case, case_path),
                     "rubric": case.get("rubric", []),
                     "candidate_command": pi_command(
-                        str(case["prompt"]), candidate, args.model
+                        str(case["prompt"]), candidate, args.model,
+                        "/skills/" + candidate.parent.name if dependency_paths(case, case_path, candidate) else "/skills"
                     )
                     if candidate
                     else None,
                     "runs": plan,
                     "treatment_command": pi_command(
-                        str(case["prompt"]), skill_path, args.model
+                        str(case["prompt"]), skill_path, args.model,
+                        "/skills/" + skill_path.parent.name if dependency_paths(case, case_path, skill_path) else "/skills"
                     ),
                     "control_command": pi_command(
                         str(case["prompt"]), None, args.model

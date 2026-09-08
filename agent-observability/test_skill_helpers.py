@@ -2,6 +2,8 @@
 import importlib.util
 from pathlib import Path
 import shutil
+import os
+import subprocess
 import tempfile
 import unittest
 
@@ -86,6 +88,26 @@ class SkillHelpersTest(unittest.TestCase):
         for args in [(6, 2, 2), (0, 0, 0), (6, -1, 2), (6, 1, 7), (float('nan'), 0, 1), (6, False, 1)]:
             with self.subTest(args=args), self.assertRaises(ValueError):
                 motion.window(*args)
+
+
+class WorktreeAuditTests(unittest.TestCase):
+    def test_failed_stat_output_does_not_pollute_fallback_timestamp(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = root / 'repo'
+            subprocess.run(['git', 'init', str(repo)], check=True, capture_output=True)
+            binary = root / 'bin'
+            binary.mkdir()
+            stat = binary / 'stat'
+            stat.write_text('#!/bin/sh\nif [ "$1" = "-f" ]; then\n  echo "filesystem diagnostic"\n  exit 1\nfi\nprintf "2026-01-02 03:04:05.000000000 +0000\\n"\n')
+            stat.chmod(0o755)
+            result = subprocess.run(
+                ['bash', str(ROOT / 'software-development/git-worktree-cleanup/scripts/audit-worktrees.sh'), str(repo)],
+                env={**os.environ, 'PATH': str(binary) + os.pathsep + os.environ['PATH']},
+                capture_output=True, text=True, check=True,
+            )
+            self.assertNotIn('filesystem diagnostic', result.stdout)
+            self.assertIn(' mtime: 2026-01-02 03:04:05\n', result.stdout)
 
 
 if __name__ == '__main__':

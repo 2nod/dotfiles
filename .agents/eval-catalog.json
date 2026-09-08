@@ -1,46 +1,6 @@
 {
   "schema_version": 2,
   "skills": {
-    "ask-claude": {
-      "purpose": "独立した第二意見を得て根拠を比較し判断を改善する",
-      "evidence": "相談内容の十分性と回答の批判的統合。回答の転載だけは不合格",
-      "script_candidate": "CLI起動、終了状態、出力回収",
-      "decision": "unassessed",
-      "decision_reason": "共有台帳は評価設計を管理する。利用・改善の判断と実測根拠は各環境のround/decision.jsonに記録する。",
-      "required_scenarios": [
-        "typical",
-        "boundary",
-        "negative"
-      ],
-      "script_review": {
-        "status": "proposed",
-        "input_output": "抽出前に入力、出力、失敗時の扱いを定義する",
-        "verification": "未修正fixtureと期待する最小修正で検証し、品質維持後に時間と使用量を比較する"
-      },
-      "path": "skills/agent-management/ask-claude/SKILL.md",
-      "source": "authored",
-      "evaluation_scope": "usage-and-improvement"
-    },
-    "ask-codex": {
-      "purpose": "独立した第二意見を得て根拠を比較し判断を改善する",
-      "evidence": "相談内容の十分性と回答の批判的統合。回答の転載だけは不合格",
-      "script_candidate": "CLI起動、終了状態、出力回収",
-      "decision": "unassessed",
-      "decision_reason": "共有台帳は評価設計を管理する。利用・改善の判断と実測根拠は各環境のround/decision.jsonに記録する。",
-      "required_scenarios": [
-        "typical",
-        "boundary",
-        "negative"
-      ],
-      "script_review": {
-        "status": "proposed",
-        "input_output": "抽出前に入力、出力、失敗時の扱いを定義する",
-        "verification": "未修正fixtureと期待する最小修正で検証し、品質維持後に時間と使用量を比較する"
-      },
-      "path": "skills/agent-management/ask-codex/SKILL.md",
-      "source": "authored",
-      "evaluation_scope": "usage-and-improvement"
-    },
     "skill-governance": {
       "purpose": "自作、upstream、runtimeの責務と配置を一貫させる",
       "evidence": "配置判断の理由とupstream追跡可能性。本文の見出し数は測らない",
@@ -238,26 +198,6 @@
         "verification": "未修正fixtureと期待する最小修正で検証し、品質維持後に時間と使用量を比較する"
       },
       "path": "skills/software-development/local-docker-troubleshooting/SKILL.md",
-      "source": "authored",
-      "evaluation_scope": "usage-and-improvement"
-    },
-    "eli5": {
-      "purpose": "初めて読む人がシステムの全体像を段階的に理解できる",
-      "evidence": "図と文章から入口、主要な流れ、結果を説明できる。図の数は測らない",
-      "script_candidate": "HTML整形、リンクと表示の検査",
-      "decision": "unassessed",
-      "decision_reason": "共有台帳は評価設計を管理する。利用・改善の判断と実測根拠は各環境のround/decision.jsonに記録する。",
-      "required_scenarios": [
-        "typical",
-        "boundary",
-        "negative"
-      ],
-      "script_review": {
-        "status": "proposed",
-        "input_output": "抽出前に入力、出力、失敗時の扱いを定義する",
-        "verification": "未修正fixtureと期待する最小修正で検証し、品質維持後に時間と使用量を比較する"
-      },
-      "path": "skills/software-development/eli5/SKILL.md",
       "source": "authored",
       "evaluation_scope": "usage-and-improvement"
     },

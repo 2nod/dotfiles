@@ -34,12 +34,10 @@ These skills are discovered at startup from multiple local sources. Each entry i
 - 安全に縮約できない、客観的 verifier がない、既存 case と重複する場合は追加しない。
 - `agent-observability-eval` が起動した評価 run では追加しない。
 
-## 実装完了時の検証レポート
+## 実装・実験レポート
 
-製品コード、設定、APIやDB契約、運用スクリプトを実装または修正した場合は、軽微な変更を除き、最終回答の前に `software-development/build-implementation-report-site` を使って実装・検証レポートを作成または更新する。
+HTMLまたはSite形式のレポートをユーザーが明示的に依頼した場合だけ、実装は `software-development/build-implementation-report-site`、比較実験は `software-development/build-experiment-report-site` を使う。
 
-- レポートと検証画像は製品リポジトリ外へ保存する。
-- レポートを `git add`、commit、push、PRへ含めない。
-- 最終回答にレポートの絶対パスまたはURLを示す。
-- 軽微な変更の判断は同skillの「作成要否」に従う。省略時も必要な検証を行い、最終回答に変更内容と検証結果を短く示す。
-- 明示的なレポート依頼がなければ、軽微な変更、調査、回答、docsだけの変更、生成物更新だけの作業は対象外とする。
+- 通常の実装・修正・テスト・実験の依頼だけではHTMLレポートを作らない。
+- 必要な検証を行い、結果と未検証事項をチャットで簡潔に伝える。再確認に必要なログを残す。
+- 明示依頼で作るレポートと画像は製品リポジトリ外へ保存し、stage・commit・push・PRへ含めない。最終回答に保存先を示す。

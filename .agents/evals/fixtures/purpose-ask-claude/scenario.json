@@ -1,9 +1,0 @@
-{
-  "request": "同じIDの反復lookupを速くしたい。1プロセス内だけでよい。",
-  "current_plan": "Redisと独自plugin interfaceを導入する",
-  "captured_second_opinion": "標準libraryのprocess cacheで足りる。ただし認可結果までIDだけで共有するとtenantを跨ぐ。",
-  "facts": [
-    "lookupはtenantごとに異なる",
-    "永続化要件はない"
-  ]
-}

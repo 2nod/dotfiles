@@ -39,6 +39,24 @@ def resolve(case_path, value):
     return (case_path.parent / value).resolve()
 
 
+def dependency_paths(case, case_path, skill_path):
+    """Explicit sibling bundles only; never discover or copy unrelated skills."""
+    values = case.get("skill_dependencies", {})
+    if not isinstance(values, dict):
+        raise ValueError("skill_dependencies must map sibling names to directories")
+    result = {}
+    for name, value in values.items():
+        if (not isinstance(name, str) or not name or name in (".", "..")
+                or "/" in name or "\\" in name or name == skill_path.parent.name
+                or not isinstance(value, str)):
+            raise ValueError("invalid or conflicting dependency name")
+        path = resolve(case_path, value)
+        if not (path / "SKILL.md").is_file():
+            raise ValueError("dependency SKILL.md missing: " + name)
+        result[name] = path
+    return result
+
+
 def contract_version(case, case_path, skill_path=None):
     """Include fixture, local verifier files, full skill bundle and runner implementation."""
     skill_path = skill_path or resolve(case_path, case["skill_path"])
@@ -49,6 +67,8 @@ def contract_version(case, case_path, skill_path=None):
         ("fixture", tree_version(resolve(case_path, case["fixture"])).encode()),
         ("skill", tree_version(skill_path.parent).encode()),
     ]
+    for name, path in dependency_paths(case, case_path, skill_path).items():
+        files.append(("dependency/" + name, tree_version(path).encode()))
     for cmd in case["verifiers"]:
         for token in cmd:
             if "{case_dir}" in token:

@@ -1,9 +1,0 @@
-{
-  "request": "新しいkeyへ移行する",
-  "current_plan": "新keyだけ読む",
-  "captured_second_opinion": "全件一括更新すればfallbackは不要",
-  "facts": [
-    "既存のwriterが一週間併存する",
-    "一括更新の停止時間は認められない"
-  ]
-}

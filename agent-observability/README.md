@@ -139,7 +139,7 @@ review.jsonのreviewerを記入し、各criterionのpassをtrue/falseにして�
 失敗した実行を人手採点で成功に上書きしない。
 
 結果にはモデル、Pi版、skill directory、fixture、case、verifier、runnerのfingerprintを残す。
-元のskillにない別skillへの依存は自動注入しない。必要な場合は別の統合評価として設計する。
+別skillへの依存は自動検出しない。統合評価ではcaseの `skill_dependencies` に兄弟名とcase基準のディレクトリを明示する（例: `{"guide": "../skills/category/guide"}`）。対象と依存bundleを読み取り専用の兄弟ディレクトリへ配置し、controlにはどちらも渡さない。依存の変更も評価条件のhashに含める。
 古い条件、重複run、欠けたペア、環境エラーを成功率へ混ぜない。
 3ペアは初期の信号を見る下限であり、統計的な効果の確定ではない。
 無効化を自動決定しない。判断は各roundのdecision.jsonに根拠とともに記録する。
