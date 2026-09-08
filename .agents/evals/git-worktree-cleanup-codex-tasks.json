@@ -12,6 +12,15 @@
     "fixture data is modified"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/git-worktree-cleanup-codex-tasks-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/git-worktree-cleanup-codex-tasks-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "静的な分類結果だけでは保護対象が実際に保持されることを証明しない。削除可能な例と保護例の対照が必要。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

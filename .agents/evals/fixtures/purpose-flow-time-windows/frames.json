@@ -1,0 +1,38 @@
+{
+  "enqueue": {
+    "motion": {
+      "begin": "0s",
+      "dur": "6s",
+      "repeatCount": "indefinite",
+      "calcMode": "linear",
+      "keyTimes": "0;1",
+      "keyPoints": "0;1"
+    },
+    "opacity": {
+      "begin": "0s",
+      "dur": "6s",
+      "repeatCount": "indefinite",
+      "calcMode": "discrete",
+      "keyTimes": "0;1",
+      "values": "1;0"
+    }
+  },
+  "dispatch": {
+    "motion": {
+      "begin": "3.48s",
+      "dur": "6s",
+      "repeatCount": "indefinite",
+      "calcMode": "linear",
+      "keyTimes": "0;1",
+      "keyPoints": "0;1"
+    },
+    "opacity": {
+      "begin": "3.48s",
+      "dur": "6s",
+      "repeatCount": "indefinite",
+      "calcMode": "discrete",
+      "keyTimes": "0;1",
+      "values": "1;0"
+    }
+  }
+}

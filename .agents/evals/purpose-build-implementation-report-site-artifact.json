@@ -1,0 +1,39 @@
+{
+  "id": "purpose-build-implementation-report-site-artifact",
+  "skill": "build-implementation-report-site",
+  "skill_path": "../skills/software-development/build-implementation-report-site/SKILL.md",
+  "fixture": "fixtures/purpose-build-implementation-report-site-artifact",
+  "prompt": "提示した変更と証拠からレビュワー向けレポートを書く。scenario.jsonは匿名化した合成入力です。外部サービスの状態はこの捕捉済みデータで代替し、実サービスの操作や通信はしないでください。結果をresult.mdに保存してください。HTMLや図が必要なら同じworkspace内へ作りresult.mdから参照してください。入力ファイルは変更しないでください。追加のユーザー回答は得られません。 今回はHTMLレポートが成果物です。workspaceのindex.htmlへ本文を作り、result.mdに[レポート](index.html)へのリンクを記載してください。表現とレイアウトは自由です。HTMLを作っただけでブラウザ検証済みとは記載しないでください。",
+  "expected_behavior": "何が誰に改善するかとcross-tenant testが保証する範囲を説明し、ブラウザE2Eを検証済みにしない。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "合成データからHTMLレポートを生成する。意味と可読性は実際のHTMLとtraceで採点。実サービス操作と採用判断は未評価。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "何が誰に改善するかとcross-tenant testが保証する範囲を説明し、ブラウザE2Eを検証済みにしない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力にない観測や実行済みの事実を作らず、判断の根拠が成果物とtraceから辿れる。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、指示された外部操作禁止と未回答事項を尊重する。"
+    },
+    {
+      "id": "artifact",
+      "criterion": "HTML本文が入力の根拠と結論を読める形で示し、result.mdから開ける。小画面の可読性はブラウザで確認する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/report-artifact-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/purpose-build-implementation-report-site-artifact"
+    ]
+  ]
+}

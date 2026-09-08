@@ -1,0 +1,36 @@
+{
+  "id": "purpose-ponytail-help",
+  "skill": "ponytail-help",
+  "skill_path": "../installed-skills/software-development/ponytail-help/SKILL.md",
+  "fixture": "fixtures/purpose-ponytail-help",
+  "prompt": "ponytailの使い方を案内する。scenario.jsonは匿名化した合成入力です。外部サービスの状態はこの捕捉済みデータで代替し、実サービスの操作や通信はしないでください。結果をresult.mdに保存してください。HTMLや図が必要なら同じworkspace内へ作りresult.mdから参照してください。入力ファイルは変更しないでください。追加のユーザー回答は得られません。",
+  "expected_behavior": "liteとfullとreview専用の用途を区別し、案内しただけでmodeを変更しない。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "捕捉済み合成入力からの成果物と判断。実サービス操作、対話継続、発火精度は未評価。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "liteとfullとreview専用の用途を区別し、案内しただけでmodeを変更しない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力にない観測や実行済みの事実を作らず、判断の根拠が成果物とtraceから辿れる。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、指示された外部操作禁止と未回答事項を尊重する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/purpose-ponytail-help"
+    ]
+  ]
+}

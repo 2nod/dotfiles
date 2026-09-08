@@ -1,0 +1,18 @@
+{
+  "base": [
+    "a"
+  ],
+  "branch": [
+    "a",
+    "unrelated",
+    "task"
+  ],
+  "working_tree": {
+    "modified": [
+      "personal.txt"
+    ]
+  },
+  "desired_changes": [
+    "task"
+  ]
+}

@@ -67,3 +67,19 @@ installed skill と外部由来の skill では、次の項目を優先して確
 - skill ecosystem、agent safety、eval、automation loop に関する論文や report
 
 流行そのものではなく、この dotfiles repo の反復作業に対応するものだけを local proposal にする。
+
+## 目的別の効果監視
+
+`agent-observability-audit-evals --skills`で全skillの目的、証拠、未評価範囲、script化候補を確認する。
+旧ケースの採点や利用頻度だけで無効化を提案しない。
+`--changes`は前回との差分を保存して返す。初回は基準登録とし、変更がなければ通知しない。
+新しい悪化、条件変更、採点完了、判断が必要な変更だけを報告する。有料比較評価は別途指定された予算とモデルの範囲で実行する。
+
+
+## 改善ループの遵守
+
+skill改善の実行規約は `skill-governance/references/purpose-evaluation.md` を正本とする。
+`$AGENT_OBSERVABILITY_DIR/eval-loops/*/plan.json`（未設定時は `~/.local/share/agent-observability/eval-loops/`）の保存済み計画について、`skill-loop.py check <directory> --stage plan` を実行する。
+開始済みならreview、decision.jsonがあればdecisionもチェックする。
+失敗は不足条件として扱い、完了や採用へ進めない。
+未実行計画を自動でrunしない。

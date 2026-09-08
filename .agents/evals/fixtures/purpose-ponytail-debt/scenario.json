@@ -1,0 +1,8 @@
+{
+  "files": {
+    "src/a.py": "# ponytail: up to 100 rows, revisit when inputs exceed 100\nx = 1\n# ponytail: temporary shortcut",
+    "README.md": "We use ponytail: comments",
+    "node_modules/pkg.js": "// ponytail: ignore vendor",
+    "src/b.js": "// ponytail: one tenant, revisit at second tenant"
+  }
+}

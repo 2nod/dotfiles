@@ -1,0 +1,16 @@
+{
+  "question": "現行tenant keyは何か",
+  "notes": [
+    {
+      "id": "old",
+      "text": "IDのみ",
+      "status": "superseded"
+    },
+    {
+      "id": "current",
+      "text": "tenant+ID",
+      "evidence": "merged design"
+    }
+  ],
+  "constraint": "knowledge base read-only"
+}

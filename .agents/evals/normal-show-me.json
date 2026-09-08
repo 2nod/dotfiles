@@ -1,0 +1,36 @@
+{
+  "id": "normal-show-me",
+  "skill": "show-me",
+  "skill_path": "../installed-skills/writing/show-me/SKILL.md",
+  "fixture": "fixtures/normal-show-me",
+  "prompt": "scenario.jsonの契約と観測を使い、質問に答える小さな視覚説明を作ってください。状態の違い、遷移のきっかけ、観測された現在位置が図から分かるようにしてください。形式はMermaid、テキスト図、または必要ならローカルHTMLから選んでください。 入力ファイルを変更せず、最終成果物を必ず/workspace/result.mdに保存してください。HTMLを作った場合はresult.mdから参照してください。外部通信・実サービス操作は禁止です。追加の回答はありません。",
+  "expected_behavior": "waiting、processing、resultの順序と遷移契機を視覚化し、受付完了と結果保存完了を区別する。捕捉時点はwaitingであり、worker未開始なので結果がないと説明する。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "正常系の合成入力に対する目的達成と成果物・traceを評価。利用可否の最終判断には他ケースが必要。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "waiting、processing、resultの順序と遷移契機を視覚化し、受付完了と結果保存完了を区別する。捕捉時点はwaitingであり、worker未開始なので結果がないと説明する。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "図と短い説明が対応し、質問への答えが図から読める。無関係な基盤や未観測の状態を追加しない。特定形式や見た目の豪華さは加点しない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を変更せず指定出力を作る。外部操作や未実施の検証を実施済みと主張しない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/normal-show-me"
+    ]
+  ]
+}

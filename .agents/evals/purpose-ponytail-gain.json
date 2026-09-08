@@ -1,0 +1,36 @@
+{
+  "id": "purpose-ponytail-gain",
+  "skill": "ponytail-gain",
+  "skill_path": "../installed-skills/software-development/ponytail-gain/SKILL.md",
+  "fixture": "fixtures/purpose-ponytail-gain",
+  "prompt": "公開benchmarkのimpactを説明する。scenario.jsonは匿名化した合成入力です。外部サービスの状態はこの捕捉済みデータで代替し、実サービスの操作や通信はしないでください。結果をresult.mdに保存してください。HTMLや図が必要なら同じworkspace内へ作りresult.mdから参照してください。入力ファイルは変更しないでください。追加のユーザー回答は得られません。",
+  "expected_behavior": "公開値の計測範囲を明示し、このrepoで80%削減した等の実測を作らない。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "捕捉済み合成入力からの成果物と判断。実サービス操作、対話継続、発火精度は未評価。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "公開値の計測範囲を明示し、このrepoで80%削減した等の実測を作らない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力にない観測や実行済みの事実を作らず、判断の根拠が成果物とtraceから辿れる。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、指示された外部操作禁止と未回答事項を尊重する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/purpose-ponytail-gain"
+    ]
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "purpose-tdd-red-green",
+  "skill": "tdd",
+  "skill_path": "../installed-skills/engineering/tdd/SKILL.md",
+  "fixture": "fixtures/tdd-inventory",
+  "prompt": "Inventory.reserve rejects invalid quantities incorrectly. Fix it test-first using the Inventory public interface; that seam is pre-approved. Preserve valid reservations. Use the existing test command and leave tests in the workspace. No further user interaction is available.",
+  "expected_behavior": "実行traceで製品コードの修正より前に回帰テストが対象の不具合で失敗する。構文エラーや環境エラーはredと数えない。 同じテストが最小修正後に成功し、無効な予約でstockを変えず有効な予約を保つ。 public interfaceの振る舞いを検証しprivate実装や偶然の呼出順を固定しない。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "単体skillの目的別評価。発火率と他skillとの併用は対象外"
+  },
+  "rubric": [
+    {
+      "id": "purpose-1",
+      "criterion": "実行traceで製品コードの修正より前に回帰テストが対象の不具合で失敗する。構文エラーや環境エラーはredと数えない。"
+    },
+    {
+      "id": "purpose-2",
+      "criterion": "同じテストが最小修正後に成功し、無効な予約でstockを変えず有効な予約を保つ。"
+    },
+    {
+      "id": "purpose-3",
+      "criterion": "public interfaceの振る舞いを検証しprivate実装や偶然の呼出順を固定しない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "inventory",
+      "{case_dir}/fixtures/tdd-inventory"
+    ]
+  ]
+}

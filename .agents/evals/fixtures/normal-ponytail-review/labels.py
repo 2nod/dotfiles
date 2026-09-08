@@ -1,0 +1,33 @@
+from abc import ABC, abstractmethod
+
+
+class LabelOperation(ABC):
+    @abstractmethod
+    def apply(self, value):
+        raise NotImplementedError
+
+
+class StripOperation(LabelOperation):
+    def apply(self, value):
+        return value.strip()
+
+
+class LowerOperation(LabelOperation):
+    def apply(self, value):
+        return value.lower()
+
+
+class OperationFactory:
+    def create(self, name):
+        if name == "strip":
+            return StripOperation()
+        if name == "lower":
+            return LowerOperation()
+        raise ValueError(name)
+
+
+def normalize_label(value):
+    factory = OperationFactory()
+    for name in ("strip", "lower"):
+        value = factory.create(name).apply(value)
+    return value

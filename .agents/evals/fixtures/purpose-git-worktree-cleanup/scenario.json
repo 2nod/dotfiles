@@ -1,0 +1,26 @@
+{
+  "worktrees": [
+    {
+      "path": "active",
+      "dirty": true,
+      "merged": false
+    },
+    {
+      "path": "old",
+      "dirty": false,
+      "merged": true
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "worktree": "active",
+      "work_complete": false
+    },
+    {
+      "id": "t2",
+      "worktree": "old",
+      "work_complete": true
+    }
+  ]
+}

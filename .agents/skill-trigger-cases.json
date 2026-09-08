@@ -50,8 +50,8 @@
     "expected": ["software-development/build-implementation-report-site"]
   },
   {
-    "id": "implementation-completion-report-required",
-    "prompt": "このAPI修正を実装して、回帰テストとローカルE2Eまで完了して",
+    "id": "implementation-explicit-report-request",
+    "prompt": "このAPI修正の回帰テストとローカルE2Eの結果を、HTMLの実装レポートにまとめて",
     "expected": ["software-development/build-implementation-report-site"]
   },
   {
@@ -78,16 +78,6 @@
     "id": "cognitive-rhythm-readable-chapter",
     "prompt": "読み物として読ませたい章を書く。認知リズムと未回収の緊張を設計して推進力を作って",
     "expected": ["writing/cognitive-rhythm-writing"]
-  },
-  {
-    "id": "ask-codex-second-opinion",
-    "prompt": "この設計方針、Codexにも聞いてセカンドオピニオンをもらって",
-    "expected": ["agent-management/ask-codex"]
-  },
-  {
-    "id": "ask-claude-second-opinion",
-    "prompt": "この設計方針、Claudeにも聞いてセカンドオピニオンをもらって",
-    "expected": ["agent-management/ask-claude"]
   },
   {
     "id": "source-provenance-metadata",
@@ -192,11 +182,7 @@
   {
     "id": "implementation-plan-closeout",
     "prompt": "docs/plansに実装プランを作って進め、完了したらdesignかADRへ正本を昇格し、ローカルNotionとの整合を確認してbranchとworktreeまで片付けたい",
-    "expected": [
-      "software-development/git-workflow",
-      "software-development/git-worktree-cleanup",
-      "knowledge-management/notion-workspace-maintenance"
-    ],
+    "expected": ["software-development/git-workflow", "software-development/git-worktree-cleanup", "knowledge-management/notion-workspace-maintenance"],
     "max_rank": 3
   }
 ]

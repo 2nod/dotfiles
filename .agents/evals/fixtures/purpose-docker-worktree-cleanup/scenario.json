@@ -1,0 +1,31 @@
+{
+  "worktrees": [
+    {
+      "name": "active",
+      "dirty": true
+    },
+    {
+      "name": "old",
+      "dirty": false,
+      "merged": true
+    }
+  ],
+  "volumes": [
+    {
+      "name": "db-main",
+      "referenced_by": [
+        "active",
+        "old"
+      ],
+      "size_gb": 18
+    },
+    {
+      "name": "cache-old",
+      "referenced_by": [
+        "old"
+      ],
+      "rebuildable": true,
+      "size_gb": 2
+    }
+  ]
+}

@@ -72,7 +72,9 @@ while IFS= read -r repo; do
       branch_line="$(git -C "$path" status --short --branch --untracked-files=all 2>/dev/null | sed -n '1p')"
       last="$(git -C "$path" log -1 --date=short --format='%cd %h %s' 2>/dev/null || true)"
       size="$(du -sh "$path" 2>/dev/null | awk '{print $1}')"
-      mtime="$(stat -f '%Sm' -t '%Y-%m-%d %H:%M' "$path" 2>/dev/null || stat -c '%y' "$path" 2>/dev/null | cut -d. -f1)"
+      if ! mtime="$(stat -f '%Sm' -t '%Y-%m-%d %H:%M' "$path" 2>/dev/null)"; then
+        mtime="$(stat -c '%y' "$path" 2>/dev/null | cut -d. -f1)"
+      fi
 
       printf 'WORKTREE %s\n' "$path"
       printf '  branch: %s\n' "$current_branch"

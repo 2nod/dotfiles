@@ -1,0 +1,39 @@
+{
+  "runs": [
+    {
+      "id": "old",
+      "fixture": "v1",
+      "results": [
+        {
+          "a": 9,
+          "b": 2
+        }
+      ]
+    },
+    {
+      "id": "current",
+      "fixture": "v2",
+      "results": [
+        {
+          "case": "one",
+          "a": 10,
+          "b": 8
+        },
+        {
+          "case": "two",
+          "a": 2,
+          "b": 4
+        }
+      ]
+    }
+  ],
+  "unit": "milliseconds",
+  "scope": "compute only",
+  "metric": {
+    "a": "baseline compute duration",
+    "b": "candidate compute duration",
+    "lower_is_better": true,
+    "comparison": "Compare a and b within current/v2; old/v1 is history only",
+    "repetitions_per_case": 1
+  }
+}

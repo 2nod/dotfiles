@@ -1,0 +1,36 @@
+{
+  "id": "purpose-ponytail-minimal-cache",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-cache",
+  "prompt": "Repeated requests for the same currency fetch the rate repeatedly. Cache successful lookups for this process while preserving independent currencies and the public interface. Keep the implementation proportionate to this requirement.",
+  "expected_behavior": "同一通貨の重複fetchを防ぎ別通貨と失敗後の再試行を保つ。 既存または標準機能を検討し、要件にない永続化、plugin層、依存を追加しない。 変更行数だけでなく、呼出側の知識負担と保守対象が必要最小限かを評価する。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "単体skillの目的別評価。発火率と他skillとの併用は対象外"
+  },
+  "rubric": [
+    {
+      "id": "purpose-1",
+      "criterion": "同一通貨の重複fetchを防ぎ別通貨と失敗後の再試行を保つ。"
+    },
+    {
+      "id": "purpose-2",
+      "criterion": "既存または標準機能を検討し、要件にない永続化、plugin層、依存を追加しない。"
+    },
+    {
+      "id": "purpose-3",
+      "criterion": "変更行数だけでなく、呼出側の知識負担と保守対象が必要最小限かを評価する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "cache",
+      "{case_dir}/fixtures/ponytail-cache"
+    ]
+  ]
+}

@@ -13,6 +13,15 @@
     "fixture source files are modified"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/test-design-one-shot-root-isolation-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/test-design-one-shot-root-isolation-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "特定語句と[warning]を必須にして意味的に正しい指摘を排除する。ファイル名集合だけでは内容不変を保証しない。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

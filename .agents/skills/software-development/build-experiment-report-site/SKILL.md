@@ -1,6 +1,6 @@
 ---
 name: build-experiment-report-site
-description: 実装案、設定値、モデルなどの比較実験を、仮説、固定条件、ケース別結果、計測時間、再現手順が追えるHTMLまたはSiteへまとめるときに使う。「実験レポート」「比較結果のSite」「パラメータ探索」「全ケース比較」で発火する。コード差分と最終設計の説明が主目的なら build-implementation-report-site を使う。
+description: ユーザーが比較実験のHTMLレポートまたはSiteを明示的に依頼したときに使う。仮説、固定条件、ケース別結果、計測時間、再現手順をまとめる。実験の実行、パラメータ探索、結果の質問だけでは使わない。
 metadata:
   tags: [experiment-report, benchmark, reproducibility, site, visualization]
   related_skills:
@@ -13,6 +13,10 @@ metadata:
 
 `writing/html` をHTML作成の共通基盤として使い、第三者が実験結果を画像、可視化、指標から理解し、根拠を追跡して同じ条件で再実行できるSiteを作る。
 本文より先に、実験条件と機械可読な結果を確定する。
+
+## 作成要否
+
+ユーザーがHTMLレポートまたはSiteを明示的に依頼したときだけ使う。実験・比較・結果報告の依頼だけではHTMLを作らず、チャットで結果と限界を伝え、必要な実測ログを保存する。
 
 ## Skillの階層
 

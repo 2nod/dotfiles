@@ -1,0 +1,6 @@
+{
+  "before": "if exists(summary) or exists(final): reject(); execute(); write(summary); write(final)",
+  "after": "if exists(summary): reject(); execute(); write(summary); write(final)",
+  "contract": "writers are immutable; existing final makes write(final) fail",
+  "scenario": "final exists, summary missing"
+}

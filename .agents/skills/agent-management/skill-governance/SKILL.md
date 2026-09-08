@@ -8,7 +8,8 @@ metadata:
 # Skill Governance
 
 shared skill 全体の方針を整理する。
-作業手順ではなく、配置と責務の境界を扱う。
+配置と責務の境界、目的に基づく改善と採否の条件を扱う。
+改善の実作業はskill-maintenanceから始める。
 
 ## ディレクトリの責務
 
@@ -55,3 +56,8 @@ upstream の挙動をローカル向けに変えたい場合は、installed skil
 一般的な点検観点は scout/checklist skill に置く。
 ローカル挙動の変更は自作 wrapper skill に置く。
 agent 全体の実行時ルールは agent-specific instruction に置く。
+
+## 目的に基づく採否
+
+skill の継続、修正、無効化は [目的別評価の方針](references/purpose-evaluation.md) に従う。
+利用回数、変更行数、特定の語句への一致だけで採否を決めない。

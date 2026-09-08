@@ -210,11 +210,14 @@ class ObservabilityTest(unittest.TestCase):
             plan = json.loads(completed.stdout)
         except json.JSONDecodeError as exc:
             self.fail(f"invalid eval plan: {exc}")
-        self.assertIn("--skill", plan["treatment_command"])
+        self.assertIn("--no-builtin-tools", plan["treatment_command"])
+        self.assertTrue(
+            any("Apply this skill" in part for part in plan["treatment_command"])
+        )
         self.assertNotIn("--skill", plan["control_command"])
         self.assertIn(
             "This is an automated skill evaluation run. Do not create or modify eval cases.",
-            plan["control_command"],
+            " ".join(plan["control_command"]),
         )
         for case_name in ("tdd-inventory", "diagnosis-parser"):
             subprocess.run(
@@ -261,8 +264,8 @@ class ObservabilityTest(unittest.TestCase):
             text=True,
         )
         report = {item["case"]: item for item in json.loads(completed.stdout)}
-        self.assertEqual(report["ponytail-cache"]["status"], "keep")
-        self.assertEqual(report["tdd-inventory"]["status"], "review")
+        self.assertEqual(report["ponytail-cache"]["status"], "hold")
+        self.assertEqual(report["tdd-inventory"]["status"], "hold")
         self.assertEqual(before, sorted(cases_dir.glob("*.json")))
 
     def test_report_deduplicates_skill_and_attributes_verification(self) -> None:

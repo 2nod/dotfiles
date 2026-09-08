@@ -1,0 +1,32 @@
+{
+  "runs": [
+    {
+      "id": "old",
+      "fixture": "v1",
+      "results": [
+        {
+          "a": 9,
+          "b": 2
+        }
+      ]
+    },
+    {
+      "id": "current",
+      "fixture": "v2",
+      "results": [
+        {
+          "case": "one",
+          "a": 10,
+          "b": 8
+        },
+        {
+          "case": "two",
+          "a": 2,
+          "b": 4
+        }
+      ]
+    }
+  ],
+  "unit": "milliseconds",
+  "scope": "compute only"
+}

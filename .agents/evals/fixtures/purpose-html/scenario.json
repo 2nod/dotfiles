@@ -1,0 +1,17 @@
+{
+  "content": {
+    "title": "受付と完了",
+    "states": [
+      "queued",
+      "running",
+      "done",
+      "failed"
+    ],
+    "rule": "queued means accepted, not complete"
+  },
+  "reader": "nontechnical operator",
+  "target_widths": [
+    390,
+    1280
+  ]
+}

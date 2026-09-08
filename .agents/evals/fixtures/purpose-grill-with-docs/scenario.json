@@ -1,0 +1,11 @@
+{
+  "answered": {
+    "users": "internal team",
+    "offline_required": true
+  },
+  "undecided": [
+    "storage",
+    "sync conflict policy"
+  ],
+  "dependency": "conflict policy depends on whether sync exists"
+}

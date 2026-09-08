@@ -13,6 +13,15 @@
     "the report index does not link its verified claim to supporting detail"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/implementation-report-required-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/implementation-report-required-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "旧方針の回帰資料。通常実装でのHTML作成義務は廃止し、現在は明示依頼時だけ作成するため、現行の採否や回帰チェックには使わない。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

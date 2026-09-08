@@ -1,0 +1,19 @@
+{
+  "comments": [
+    {
+      "id": "c1",
+      "request": "nullを拒否",
+      "fixed": true,
+      "test": "pass"
+    },
+    {
+      "id": "c2",
+      "request": "cacheを永続化",
+      "fixed": false,
+      "requirement": "process-local only"
+    }
+  ],
+  "diff": [
+    "null guard added"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "purpose-flow-time-windows",
+  "skill": "technical-flow-diagrams",
+  "skill_path": "../skills/software-development/technical-flow-diagrams/SKILL.md",
+  "fixture": "fixtures/purpose-flow-time-windows",
+  "prompt": "The diagram renderer reads frames.json: each edge has motion attributes for animateMotion and opacity attributes for animate. Fix the attributes so each edge moves only during its input.json window on the shared repeating cycle; keep begin=0s and dur equal to the common cycle for both animations. Use linear motion and discrete opacity. Preserve input.json. Save a short explanation in result.md; do not access external services.",
+  "expected_behavior": "Move along each edge within its defined interval, hide moving chips outside that interval, and preserve the gap between the two legs. Derive timing from shared domain input.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Offline numeric SMIL timing only. Geometry, reduced-motion visual display and real browser rendering are separate checks."
+  },
+  "rubric": [
+    {
+      "id": "timing",
+      "criterion": "Both movement intervals and visibility follow the common input cycle without overlap during the queue wait."
+    },
+    {
+      "id": "grounding",
+      "criterion": "Explain the actual time mapping without claiming unperformed browser validation."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/flow-time-windows-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/purpose-flow-time-windows"
+    ]
+  ]
+}

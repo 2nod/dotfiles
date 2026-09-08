@@ -12,6 +12,15 @@
     "確認済みの再試行とチャネル分離の検証結果が欠ける"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/pr-description-final-design-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/pr-description-final-design-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "語句や構成チェックと内容の正しさを分離し、出典との整合を人手で確認する必要がある。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

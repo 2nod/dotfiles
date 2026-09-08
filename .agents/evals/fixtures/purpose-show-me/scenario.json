@@ -1,0 +1,9 @@
+{
+  "question": "queueに入ったのになぜ完了ではない？",
+  "flow": [
+    "accepted",
+    "waiting in queue",
+    "worker processing",
+    "result ready"
+  ]
+}

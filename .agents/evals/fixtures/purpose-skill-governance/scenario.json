@@ -1,0 +1,11 @@
+{
+  "upstream": "installed-skills/writing/brief/SKILL.md",
+  "proposal": [
+    "upstream本文を短縮する",
+    "SOURCE.mdへローカル承認ルールを書く",
+    "同じwriting/briefを自作側にも配置する"
+  ],
+  "capabilities": {
+    "shadowing": false
+  }
+}

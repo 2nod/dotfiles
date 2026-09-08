@@ -1,0 +1,14 @@
+{
+  "plan": "社内notes app",
+  "answered": {
+    "offline_required": true
+  },
+  "undecided": [
+    "single user or shared",
+    "sync",
+    "permissions"
+  ],
+  "dependencies": {
+    "permissions": "shared decision"
+  }
+}

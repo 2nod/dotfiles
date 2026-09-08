@@ -13,6 +13,15 @@
     "report-data.jsonの集計がケース別resultと一致しない"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/build-experiment-report-site-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/build-experiment-report-site-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "機械可読集計の検証は有用だが、比較の解釈と読者が証拠を辿れることは別に確認する必要がある。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

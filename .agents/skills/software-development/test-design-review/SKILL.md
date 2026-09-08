@@ -9,40 +9,23 @@ metadata:
 
 # テスト設計レビュー
 
-テストは実行できる仕様書でもある。読みやすさと失敗時の診断しやすさが重要な場面では、厳密な DRY より DAMP (Descriptive And Meaningful Phrases) を優先する。
+テストが何を保証し、失敗をどう診断できるかを確認する。
+テスト名とassertionから対象の契約を把握し、必要な改善だけを提案する。
+修正依頼なら変更後のテストを実行し、実行結果と未確認を分けて伝える。
 
-中心ルール: **期待値の理由になる値は test case 本体に見せる。** 型を満たすだけの退屈な値、共通の配線、期待値に関係しない shape は factory / helper / `beforeEach` に逃してよい。
+## 判断基準
 
-## 手順
+- 期待値の理由になる入力はテスト本体に見せる。期待値は検証対象の実装から計算しない。
+- 型を満たす定型値、共通配線、期待値と無関係なshapeはhelperやfactoryに残してよい。重要入力を引数化するか直接記述するかは、実際の依存関係で選ぶ。
+- mockの返値は意味のある入力に対応させる。取得順や回数が契約でなければ固定しない。順序自体が契約なら検証を保持する。
+- assertionは公開された振る舞いを保証する。正当なhelper、既存の契約、回帰検出能力を保つ。
+- 大きなテストは、複数要素の連携を守るcontract testなら残す。失敗原因の切り分けや読解を妨げる場合に分割する。
 
-1. テスト名を読む。
-2. setup より先に assertion を読み、何を保証しているか把握する。
-3. assertion を成立させる入力値を特定する。
-4. その入力値が test case 本体に見えているか確認する。
-5. 隠れている setup を、test case に戻すべきか、小さい factory に残すべきか、`beforeEach` に逃してよいか分類する。
-6. mock が本質ではない呼び出し順に依存していないか確認する。
-7. 大きい test が代表的な contract test として妥当か、分割すべきか判断する。
+現状で目的を満たすなら変更不要とする。
+重複除去やテスト追加自体を目的にしない。
 
-## 詳細な点検項目
+## 判断が難しいときの資料
 
-次の判断基準が必要なときは [references/review-guide.md](references/review-guide.md) を読む。
-
-- test case に残す値と factory に逃す値
-- `beforeEach` に置いてよい setup
-- helper と fixture builder の切り分け
-- mock の順序依存
-- assertion と snapshot の粒度
-- 大きい test を分割するか、contract test として残すか
-
-## レビューコメント例
-
-具体的なコメント文を作るときは [references/comment-examples.md](references/comment-examples.md) を読む。
-
-## 最終チェック
-
-- テスト名から守りたい behavior が分かるか
-- 重要な期待値の理由を test body から説明できるか
-- factory は退屈なデフォルトだけを隠しているか
-- `beforeEach` は共通配線に留まっているか
-- mock は本質的な behavior だけに結合しているか
-- 大きい test は contract / integration test として意図的に大きいか
+setupの切り分け、snapshotの粒度、contract testの扱いで判断がつかない場合は[review-guide.md](references/review-guide.md)の該当箇所を読む。
+コメントの表現例が必要なら[comment-examples.md](references/comment-examples.md)を読む。
+本文で判断できる作業では追加資料を読む必要はない。
