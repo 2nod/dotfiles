@@ -1,0 +1,9 @@
+{
+  "client": "host process",
+  "database": "compose service db",
+  "container_port": 5432,
+  "published_host_port": 15432,
+  "configured_host": "db",
+  "configured_port": 5432,
+  "container_health": "healthy"
+}

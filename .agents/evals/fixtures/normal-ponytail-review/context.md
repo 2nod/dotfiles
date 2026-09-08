@@ -1,0 +1,6 @@
+# レビュー対象の契約
+このfixtureがプロジェクトの全コードです。change.diffは新規追加差分です。
+公開APIはnormalize_label(str)のみで、先頭末尾の空白除去後にlowerを適用します。
+内部のclassやfactoryには他のcaller、外部利用、動的設定、拡張予定はありません。
+Unicodeのcasefoldや内部空白の削除は要件ではありません。例外時の非str入力は契約外です。
+test_labels.pyは必要なsmoke testです。

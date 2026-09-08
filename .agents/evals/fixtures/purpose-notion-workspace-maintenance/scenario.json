@@ -1,0 +1,17 @@
+{
+  "facts": [
+    {
+      "text": "key is tenant+ID",
+      "evidence": "merged code and test"
+    },
+    {
+      "text": "将来Redisへ移行する",
+      "evidence": "unapproved idea"
+    },
+    {
+      "text": "one-off test ran in 8 seconds",
+      "evidence": "local log"
+    }
+  ],
+  "index": "still says ID only"
+}

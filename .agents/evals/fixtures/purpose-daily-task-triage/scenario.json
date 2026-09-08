@@ -1,0 +1,27 @@
+{
+  "minutes": 90,
+  "tasks": [
+    {
+      "title": "A",
+      "pinned": true,
+      "execution": "completed",
+      "work": "CI修正が残る",
+      "deadline": "today",
+      "estimate": 45
+    },
+    {
+      "title": "B",
+      "pinned": true,
+      "execution": "idle",
+      "work": "user confirmed done",
+      "estimate": 0
+    },
+    {
+      "title": "C",
+      "pinned": false,
+      "execution": "running",
+      "work": "optional exploration",
+      "estimate": 90
+    }
+  ]
+}

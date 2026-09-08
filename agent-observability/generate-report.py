@@ -15,6 +15,17 @@ import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import cast
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from eval_contracts import (
+    EVALUATION_PAUSE_REASON,
+    load_catalog,
+    skill_summary,
+    case_verdict,
+    reviewed_result,
+    LABELS,
+)
 
 ROOT = pathlib.Path(
     os.environ.get(
@@ -211,7 +222,7 @@ def load_eval_results(days: int) -> list[dict[str, object]]:
             result = cast(dict[str, object], raw)
             timestamp = parse_time(result.get("ts"))
             if timestamp and timestamp >= cutoff:
-                results.append(result)
+                results.append(reviewed_result(result))
     return results
 
 
@@ -306,7 +317,7 @@ def render_eval_contract(case: dict[str, object] | None) -> str:
         f"<dt>成功条件</dt><dd>{html.escape(str(case.get('expected_behavior', '—')))}</dd>"
         f"<dt>失敗条件</dt><dd><ul>{condition_items}</ul></dd>"
         f"<dt>Verifier</dt><dd>{verifier_text}</dd>"
-        "<dt>成功判定</dt><dd>agent exit 0・変更あり・全verifier exit 0</dd>"
+        "<dt>成功判定</dt><dd>agent exit 0・全verifier exit 0を結果ゲートとし、目的別rubricは証拠付きで別採点</dd>"
         "</dl></details>"
     )
 
@@ -351,21 +362,10 @@ def render_eval_rows(
         treatment_lines = median_value(successful_treatment, "changed_lines")
         control_classes = median_value(successful_control, "classes_added")
         treatment_classes = median_value(successful_treatment, "classes_added")
-        has_advantage = treatment_rate > control_rate or (
-            treatment_rate == control_rate
-            and (treatment_lines < control_lines or treatment_classes < control_classes)
+        signal, reason, paired_runs = case_verdict(
+            cases.get(case, {}), control + treatment
         )
-        paired_runs = min(len(control), len(treatment))
-        if not paired_runs:
-            verdict = "要実験"
-        elif paired_runs < 3:
-            verdict = "暫定"
-        elif has_advantage:
-            verdict = "効果あり"
-        elif treatment_rate < control_rate:
-            verdict = "逆効果"
-        else:
-            verdict = "整理候補"
+        verdict = LABELS[signal] + " · " + reason
         contract_cell = (
             f'<td data-label="実験条件" class=detail>{render_eval_contract(cases.get(case))}</td>'
             if include_contract
@@ -708,6 +708,66 @@ def render_overview(days: int, turns: list[Turn], stats: dict[str, SkillStats]) 
     return render_page("Agent Skill Report", days, generated, "overview", body)
 
 
+def render_artifacts(items):
+    groups = {}
+    for item in items:
+        if item.get("artifacts"):
+            groups.setdefault(
+                (str(item.get("experiment_id")), item.get("run")), []
+            ).append(item)
+    sections = []
+    for (experiment, run), values in groups.items():
+        links = []
+        for item in values:
+            directory = pathlib.Path(item["artifacts"])
+            if not directory.is_absolute():
+                continue
+            label = html.escape(str(item["variant"]))
+            links.append(
+                f'<li>{label}: <a href="{html.escape((directory / "index.html").as_uri(), quote=True)}">アウトプットとtrace</a> · <a href="{html.escape((directory / "review.json").as_uri(), quote=True)}">採点票</a> · 目的採点 {"未採点" if item.get("success") is None else "合格" if item.get("success") else "不合格"} · tokens {item.get("total_tokens") if item.get("total_tokens") is not None else "不明"}</li>'
+            )
+        sections.append(
+            f"<details><summary>比較 {html.escape(experiment[:8])} / {run}</summary><ul>{''.join(links)}</ul></details>"
+        )
+    return (
+        "<h3>アウトプット比較</h3>" + "".join(sections)
+        if sections
+        else "<p>保存済みアウトプットなし</p>"
+    )
+
+
+def render_skill_dashboard(cases, results, locations):
+    cases_dir = pathlib.Path(
+        os.environ.get(
+            "AGENT_EVAL_CASES_DIR",
+            str(pathlib.Path(__file__).resolve().parents[1] / ".agents/evals"),
+        )
+    )
+    rows = skill_summary(load_catalog(), cases, results, cases_dir)
+    cards = []
+    for row in rows:
+        profile_path = (
+            pathlib.Path(__file__).resolve().parents[1] / ".agents" / row["path"]
+        )
+        case_links = (
+            "".join(
+                f'<li><a href="#{html.escape(c["case"])}">{html.escape(c["case"])}</a>: {html.escape(c["reason"])}</li>'
+                for c in row["cases"]
+            )
+            or "<li>目的別ケース未作成</li>"
+        )
+        cards.append(
+            f'<details class="case search-row"><summary><strong>{html.escape(row["skill"])}</strong><span>{LABELS[row["recommendation"]]}</span></summary><div class=case-body>'
+            f"<p><b>目的</b> {html.escape(row['purpose'])}</p><p><b>評価する証拠</b> {html.escape(row['evidence'])}</p>"
+            f"<p><b>判断理由</b> {html.escape(row['reason'])}</p><p><b>記録済み判断</b> {LABELS.get(row['decision'], row['decision'])}: {html.escape(row['decision_reason'])}</p>"
+            f'<p><b>スクリプト化候補</b> {html.escape(row["script_candidate"])}</p><p><a href="{profile_path.as_uri()}">Skill本文</a> · {html.escape(row["source"])}</p><ul>{case_links}</ul></div></details>'
+        )
+    return (
+        "<h2>目的から判断するSkill台帳</h2><p>未評価は不要を意味しません。旧ケース、採点待ち、変更後の古い結果から採否を決めません。無効化は根拠と代替手段を確認して台帳へ記録します。</p>"
+        + "".join(cards)
+    )
+
+
 def render_evaluations(days: int, results: list[dict[str, object]]) -> str:
     generated = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")
     locations = load_skill_locations()
@@ -737,27 +797,14 @@ def render_evaluations(days: int, results: list[dict[str, object]]) -> str:
         treatment = [
             item for item in latest_items if item.get("variant") == "treatment"
         ]
-        control_rate = (
-            sum(bool(item.get("success")) for item in control) / len(control)
-            if control
-            else 0
-        )
-        treatment_rate = (
-            sum(bool(item.get("success")) for item in treatment) / len(treatment)
-            if treatment
-            else 0
-        )
-        paired = min(len(control), len(treatment))
-        if not paired:
-            status = "未実験"
-        elif paired < 3:
-            status = "暫定"
-        elif treatment_rate > control_rate:
-            status = "効果あり"
-        elif treatment_rate < control_rate:
-            status = "要レビュー"
-        else:
-            status = "暫定"
+        signal, reason, _ = case_verdict(case or {}, latest_items)
+        status = {
+            "unassessed": "未実験",
+            "keep": "効果あり",
+            "revise": "要レビュー",
+            "hold": "暫定",
+            "neutral": "暫定",
+        }[signal]
         statuses[status] += 1
         skill = (
             str(case.get("skill", "?"))
@@ -777,17 +824,22 @@ def render_evaluations(days: int, results: list[dict[str, object]]) -> str:
             f'<details class="case search-row" id="{html.escape(case_id, quote=True)}"><summary>'
             f"<span><strong>{html.escape(case_id)}</strong><small>{skill_link(skill, locations)}</small></span>"
             f"<span>{html.escape(status)}</span><span>なし {len(control)}</span><span>あり {len(treatment)}</span><span>{html.escape(latest)}</span></summary>"
-            f"<div class=case-body>{contract}<h3>実験履歴</h3><div class=table-scroll><table><thead><tr><th>Skill / Case</th><th>Agent</th><th>Model / Experiment</th><th>なし成功</th><th>あり成功</th><th>成功率差</th><th>判定</th><th>変更行</th><th>追加class</th><th>失敗詳細</th></tr></thead>"
+            f"<div class=case-body><p>{html.escape(str((case or {}).get('evaluation', {}).get('reason', '目的別評価')))}</p>{contract}{render_artifacts(items)}<h3>実験履歴</h3><div class=table-scroll><table><thead><tr><th>Skill / Case</th><th>Agent</th><th>Model / Experiment</th><th>なし成功</th><th>あり成功</th><th>成功率差</th><th>判定</th><th>変更行</th><th>追加class</th><th>失敗詳細</th></tr></thead>"
             f"<tbody>{experiment_rows}</tbody></table></div></div></details>"
         )
 
+    skill_dashboard = render_skill_dashboard(cases, results, locations)
     body = f"""
+<p class=bad role=status>{html.escape(EVALUATION_PAUSE_REASON)}</p>
+<div class=toolbar><label for=search>検索</label><input id=search type=search placeholder="case、skill、modelを検索…"><span id=result-count class=note></span></div>
+{skill_dashboard}
+<h2>ケースと履歴</h2>
 <div class=cards><div class=card><span>Cases</span><strong>{len(case_ids)}</strong></div>
 <div class=card><span>効果あり</span><strong class=good>{statuses["効果あり"]}</strong></div>
 <div class=card><span>要レビュー</span><strong class=bad>{statuses["要レビュー"]}</strong></div>
 <div class=card><span>未実験 / 暫定</span><strong>{statuses["未実験"] + statuses["暫定"]}</strong></div></div>
 <p class=note>同じfixture・課題・verifierで、Controlはskillなし、Treatmentはskillありとして比較します。</p>
-<div class=toolbar><label for=search>検索</label><input id=search type=search placeholder="case、skill、modelを検索…"><span id=result-count class=note></span></div>
+
 <div class=case-list>{"".join(cards) or "<p class=empty>caseはまだありません。</p>"}</div>"""
     return render_page("Skill Evaluations", days, generated, "evaluations", body)
 

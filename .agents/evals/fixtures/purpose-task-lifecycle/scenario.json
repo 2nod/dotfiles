@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "id": "a",
+      "execution": "completed",
+      "work": "approval pending"
+    },
+    {
+      "id": "b",
+      "execution": "idle",
+      "work": "accepted done"
+    }
+  ],
+  "unfinished_ids": [
+    "a",
+    "b",
+    "b"
+  ]
+}

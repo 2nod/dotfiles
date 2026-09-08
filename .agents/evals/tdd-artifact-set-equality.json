@@ -13,6 +13,15 @@
     "tests do not detect the original count-only implementation"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/tdd-artifact-set-equality-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/tdd-artifact-set-equality-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "最終成果物とmutation耐性は測るがred→greenの順序とpublic seamの合意を観測しない。個別ドメインの修正能力をTDD効果と混同する。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

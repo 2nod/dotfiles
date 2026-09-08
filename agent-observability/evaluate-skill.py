@@ -6,17 +6,22 @@ from __future__ import annotations
 import argparse
 import difflib
 import fcntl
-import hashlib
 import json
 import os
 import pathlib
-import random
 import re
 import shutil
 import subprocess
 import tempfile
 import time
 import uuid
+import html
+import sys
+import shlex
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from eval_contracts import contract_version, tree_version, execution_preflight
+from isolated_tools import ToolSandbox, fixture_files, IMAGE
 from datetime import datetime, timezone
 from typing import cast
 
@@ -41,6 +46,20 @@ def load_case(path: pathlib.Path) -> dict[str, object]:
             raise ValueError(f"missing case field: {key}")
     if not isinstance(case["verifiers"], list):
         raise ValueError("verifiers must be an array")
+    if case.get("evaluation", {}).get("status") == "ready":
+        rubric = case.get("rubric")
+        if (
+            not isinstance(rubric, list)
+            or not rubric
+            or any(
+                not isinstance(r, dict) or not r.get("id") or not r.get("criterion")
+                for r in rubric
+            )
+            or len({r["id"] for r in rubric}) != len(rubric)
+        ):
+            raise ValueError("ready cases require unique purpose rubric criteria")
+        if case.get("scenario") not in ("typical", "boundary", "negative"):
+            raise ValueError("ready case requires a scenario category")
     return case
 
 
@@ -61,6 +80,8 @@ def snapshot(root: pathlib.Path) -> dict[str, bytes]:
             ".git",
         }.intersection(path.parts)
         and path.suffix != ".pyc"
+        and not path.is_symlink()
+        and root.resolve() in path.resolve().parents
     }
 
 
@@ -104,20 +125,38 @@ def pi_command(
         "--no-session",
         "-p",
         "--no-skills",
-        "--tools",
-        "read,write,edit,bash",
+        "--no-builtin-tools",
+        "--extension",
+        str(pathlib.Path(__file__).with_name("isolated-pi-tools.mjs")),
     ]
-    append_prompt = pathlib.Path.home() / ".pi/agent/system-append.md"
-    if append_prompt.is_file():
-        command += ["--append-system-prompt", str(append_prompt)]
+    command += [
+        "--no-extensions",
+        "--no-context-files",
+        "--no-prompt-templates",
+        "--no-themes",
+        "--mode",
+        "json",
+    ]
     command += [
         "--append-system-prompt",
-        "This is an automated skill evaluation run. Do not create or modify eval cases.",
+        "This is an automated skill evaluation run. Do not create or modify eval cases. "
+        "Tools run inside a container: use /workspace as the working directory. "
+        "Host paths in runtime context are not tool paths.",
     ]
     if model:
         command += ["--model", model]
     if skill_path:
-        command += ["--skill", str(skill_path)]
+        command += [
+            "--append-system-prompt",
+            "Apply this skill for this task. Supporting files are relative to "
+            + "/skills (read-only; workspace is /workspace)"
+            + ". The skill entry is /skills/SKILL.md; for example, "
+            + "references/example.md resolves to /skills/references/example.md. "
+            + "Do not insert the skill name or category into that path. "
+            + "If a reference is missing, list /skills before assuming it is absent."
+            + "\n"
+            + skill_path.read_text(),
+        ]
     return [*command, prompt]
 
 
@@ -158,34 +197,107 @@ def append_result(result: dict[str, object]) -> None:
         os.fsync(handle.fileno())
 
 
-def run_once(
-    case: dict[str, object],
-    case_path: pathlib.Path,
-    variant: str,
-    run_number: int,
-    model: str | None,
-    timeout: int,
-    experiment_id: str,
-) -> dict[str, object]:
-    fixture = resolve_case_path(case_path, case["fixture"])
-    skill_path = resolve_case_path(case_path, case["skill_path"])
-    if not fixture.is_dir() or not skill_path.is_file():
-        raise ValueError("fixture directory or skill file does not exist")
+def persist_artifacts(
+    case, before, after, output, stderr, experiment_id, run_number, variant
+):
+    directory = ROOT / "eval-artifacts" / experiment_id / f"{run_number}-{variant}"
+    directory.mkdir(parents=True, exist_ok=False)
+    for label, files in (("before", before), ("after", after)):
+        for name, data in files.items():
+            path = directory / label / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+    (directory / "trace.jsonl").write_text(output)
+    (directory / "stderr.txt").write_text(stderr)
+    (directory / "case.json").write_text(json.dumps(case, ensure_ascii=False, indent=2))
+    diff = "\n".join(
+        line
+        for name in sorted(before.keys() | after.keys())
+        for line in difflib.unified_diff(
+            before.get(name, b"").decode(errors="replace").splitlines(),
+            after.get(name, b"").decode(errors="replace").splitlines(),
+            fromfile="before/" + name,
+            tofile="after/" + name,
+        )
+    )
+    (directory / "changes.diff").write_text(diff)
+    # Show generated text as escaped text; never execute generated HTML in this report.
+    sections = "".join(
+        "<details><summary>"
+        + html.escape(name)
+        + "</summary><pre>"
+        + html.escape(data.decode(errors="replace"))
+        + "</pre></details>"
+        for name, data in sorted(after.items())
+    )
+    (directory / "index.html").write_text(
+        '<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
+        "<title>評価アウトプット</title><style>body{max-width:1000px;margin:2rem auto;padding:1rem;font-family:sans-serif}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style>"
+        "<h1>評価アウトプット</h1><p>合成fixtureの実行結果。採点はreview.jsonに証拠付きで記録します。</p>"
+        "<h2>差分</h2><pre>"
+        + html.escape(diff)
+        + "</pre><h2>成果物</h2>"
+        + sections
+        + "<h2>実行trace</h2><pre>"
+        + html.escape(output)
+        + "</pre></html>"
+    )
+    version = tree_version(directory)
+    review = {
+        "artifact_version": version,
+        "reviewer": "",
+        "criteria": [
+            {"id": r["id"], "criterion": r["criterion"], "pass": None, "evidence": ""}
+            for r in case.get("rubric", [])
+        ],
+    }
+    (directory / "review.json").write_text(
+        json.dumps(review, ensure_ascii=False, indent=2)
+    )
+    return str(directory), version
 
-    with tempfile.TemporaryDirectory(prefix="skill-eval-") as temp:
+
+def run_once(
+    case,
+    case_path,
+    variant,
+    run_number,
+    model,
+    timeout,
+    experiment_id,
+    candidate=None,
+    agent_version="unknown",
+):
+    fixture = resolve_case_path(case_path, case["fixture"])
+    target = (
+        candidate
+        if variant == "candidate"
+        else resolve_case_path(case_path, case["skill_path"])
+    )
+    version = contract_version(case, case_path)
+    fixture_files(fixture)  # Reject aliases before any model or host copy.
+    with (
+        tempfile.TemporaryDirectory(prefix="skill-eval-") as temp,
+        ToolSandbox(shutil.which("docker") or "") as worker,
+    ):
         workspace = pathlib.Path(temp) / "workspace"
         shutil.copytree(fixture, workspace)
-        before = snapshot(workspace)
+        worker.load_fixture(fixture)
+        if variant != "control":
+            worker.load_skill(target.parent)
+        before = worker.snapshot()
         command = pi_command(
-            str(case["prompt"]),
-            skill_path if variant == "treatment" else None,
-            model,
+            str(case["prompt"]), target if variant != "control" else None, model
         )
         env = {
             **os.environ,
             "AGENT_OBSERVABILITY_DIR": str(pathlib.Path(temp) / ".agent-observability"),
+            "SKILL_EVAL_CONTAINER": worker.name,
+            "SKILL_EVAL_DOCKER": worker.docker,
+            "SKILL_EVAL_PYTHON": sys.executable,
         }
         started = time.monotonic()
+        output, stderr, timed_out = "", "", False
         try:
             completed = subprocess.run(
                 command,
@@ -196,110 +308,150 @@ def run_once(
                 timeout=timeout,
                 check=False,
             )
-            agent_exit = completed.returncode
-            agent_stderr = safe_detail(completed.stderr)
-            timed_out = False
-        except subprocess.TimeoutExpired as exc:
-            agent_exit = -1
-            agent_stderr = safe_detail(str(exc))
-            timed_out = True
-
-        verifier_results = []
-        for verifier in verifier_commands(case, case_path, workspace):
-            checked = subprocess.run(
-                verifier,
-                cwd=workspace,
-                capture_output=True,
-                text=True,
-                timeout=60,
-                check=False,
+            agent_exit, output, stderr = (
+                completed.returncode,
+                completed.stdout,
+                completed.stderr,
             )
+        except subprocess.TimeoutExpired as exc:
+            agent_exit, timed_out = -1, True
+            output = exc.stdout or ""
+            stderr = exc.stderr or ""
+            if isinstance(output, bytes):
+                output = output.decode(errors="replace")
+            if isinstance(stderr, bytes):
+                stderr = stderr.decode(errors="replace")
+        except OSError as exc:
+            agent_exit, stderr = -1, str(exc)
+        artifact_error = ""
+        try:
+            after = worker.snapshot()  # Export regular files only, before verification.
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            after, artifact_error = {}, safe_detail(str(exc))
+            stderr += "\nArtifact export rejected: " + artifact_error
+        agent_seconds = time.monotonic() - started
+        directory, artifact_version = persist_artifacts(
+            case, before, after, output, stderr, experiment_id, run_number, variant
+        )
+        verifier_results = []
+        for verifier in (
+            [] if artifact_error else verifier_commands(case, case_path, workspace)
+        ):
+            try:
+                # A fresh worker prevents surviving agent processes from affecting grading.
+                with ToolSandbox(shutil.which("docker") or "") as checker:
+                    for name, data in after.items():
+                        checker.write(name, data)
+                    verification_files = {}
+                    translated = []
+                    for token in verifier:
+                        if token.startswith(str(case_path.parent) + "/"):
+                            source = pathlib.Path(token)
+                            relative = source.relative_to(case_path.parent).as_posix()
+                            if source.is_dir():
+                                verification_files.update(
+                                    {
+                                        relative + "/" + n: d
+                                        for n, d in fixture_files(source).items()
+                                    }
+                                )
+                            elif source.is_file() and not source.is_symlink():
+                                verification_files[relative] = source.read_bytes()
+                            else:
+                                raise ValueError("invalid verifier input")
+                            translated.append("/skills/" + relative)
+                        else:
+                            translated.append(
+                                token.replace(str(workspace), "/workspace")
+                            )
+                    checker.load_readonly(verification_files)
+                    raw = checker.bash(shlex.join(translated), timeout=60)
+                    checked = subprocess.CompletedProcess(
+                        translated,
+                        raw.returncode,
+                        raw.stdout.decode(errors="replace"),
+                        raw.stderr.decode(errors="replace"),
+                    )
+                code, detail = checked.returncode, checked.stderr or checked.stdout
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                code, detail = 2, str(exc)
             verifier_results.append(
                 {
                     "name": pathlib.Path(verifier[0]).name,
-                    "exit": checked.returncode,
-                    **(
-                        {"detail": safe_detail(checked.stderr or checked.stdout)}
-                        if checked.returncode
-                        else {}
-                    ),
+                    "exit": code,
+                    "detail": safe_detail(detail) if code else "",
                 }
             )
-        metrics = diff_metrics(before, snapshot(workspace))
-        verifiers_passed = bool(verifier_results) and all(
-            item["exit"] == 0 for item in verifier_results
+        metrics = diff_metrics(before, after)
+        outcome = bool(verifier_results) and all(
+            v["exit"] == 0 for v in verifier_results
         )
-        if timed_out:
-            failure_kind = "timeout"
-            failure_detail = agent_stderr
-        elif agent_exit != 0:
-            failure_kind = "agent_failed"
-            failure_detail = agent_stderr or f"agent exit {agent_exit}"
-        elif not verifiers_passed:
-            failure_kind = "verifier_failed"
-            failure_detail = next(
-                (
-                    str(item["detail"])
-                    for item in verifier_results
-                    if item["exit"] != 0 and item.get("detail")
-                ),
-                "verifier returned non-zero",
-            )
-        elif not metrics["changed_files"]:
-            failure_kind = "no_changes"
-            failure_detail = "verifier passed but workspace did not change"
-        else:
-            failure_kind = "passed"
-            failure_detail = ""
-        success = failure_kind == "passed"
-        failure_phase = {
-            "timeout": "agent",
-            "agent_failed": "agent",
-            "verifier_failed": "verifier",
-            "no_changes": "snapshot",
-            "passed": "completed",
-        }[failure_kind]
-        observed_model = model or "default"
-        for path in (pathlib.Path(temp) / ".agent-observability/events").glob(
-            "*.jsonl"
-        ):
-            for line in path.read_text(encoding="utf-8").splitlines():
-                try:
-                    observed = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                if isinstance(observed, dict) and isinstance(
-                    observed.get("model"), str
-                ):
-                    observed_model = str(observed["model"])
-
+        kind = (
+            "artifact_error"
+            if artifact_error
+            else "timeout"
+            if timed_out
+            else "agent_failed"
+            if agent_exit
+            else "verifier_error"
+            if any(v["exit"] not in (0, 1) for v in verifier_results)
+            else "verifier_failed"
+            if not outcome
+            else "passed"
+        )
+        # Machine checks establish outcome only. Purpose rubrics need evidence-based review.
+        success = None if kind == "passed" and case.get("rubric") else kind == "passed"
+        usage = []
+        for line in output.splitlines():
+            try:
+                event = json.loads(line)
+            except ValueError:
+                continue
+            message = event.get("message", {}) if isinstance(event, dict) else {}
+            if (
+                isinstance(event, dict)
+                and event.get("type") == "message_end"
+                and message.get("role") == "assistant"
+            ):
+                if isinstance(message.get("usage"), dict):
+                    usage.append(message["usage"])
+        tokens = (
+            sum(u["totalTokens"] for u in usage)
+            if usage
+            and all(isinstance(u.get("totalTokens"), (int, float)) for u in usage)
+            else None
+        )
         return {
-            "ts": datetime.now(timezone.utc)
-            .isoformat(timespec="milliseconds")
-            .replace("+00:00", "Z"),
-            "case": str(case["id"]),
-            "skill": str(case["skill"]),
+            "schema_version": 2,
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "case": case["id"],
+            "skill": case["skill"],
             "agent": "pi",
+            "agent_version": agent_version,
+            "isolation": "docker-no-host-mounts-v1",
+            "runtime_image": IMAGE,
+            "model": model,
             "variant": variant,
             "run": run_number,
             "experiment_id": experiment_id,
-            "model": observed_model,
-            "skill_version": "sha256:"
-            + hashlib.sha256(skill_path.read_bytes()).hexdigest(),
+            "contract_version": version,
+            "skill_version": tree_version(target.parent),
+            "candidate_version": tree_version(candidate.parent) if candidate else None,
             "success": success,
+            "outcome_success": outcome,
             "agent_exit": agent_exit,
+            "failure_kind": kind,
+            "failure_phase": "completed" if kind == "passed" else "execution",
+            "failure_detail": safe_detail(stderr),
             "timed_out": timed_out,
-            "failure_kind": failure_kind,
-            "failure_phase": failure_phase,
-            **({"failure_detail": failure_detail} if failure_detail else {}),
-            **{
-                key: case[key]
-                for key in ("failure_conditions", "expected_behavior")
-                if case.get(key)
-            },
-            **metrics,
             "duration_seconds": round(time.monotonic() - started, 3),
+            "agent_seconds": round(agent_seconds, 3),
+            "total_tokens": tokens,
+            "artifacts": directory,
+            "artifact_version": artifact_version,
+            "rubric": case.get("rubric", []),
             "verifiers": verifier_results,
+            **metrics,
         }
 
 
@@ -309,8 +461,17 @@ def main() -> int:
     parser.add_argument("--runs", type=int, default=3)
     parser.add_argument("--model")
     parser.add_argument("--timeout", type=int, default=300)
-    parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--candidate",
+        type=pathlib.Path,
+        help="Compare a revised skill as a third variant",
+    )
+    parser.add_argument(
+        "--allow-legacy",
+        action="store_true",
+        help="Exploratory only; excluded from adoption decisions",
+    )
     args = parser.parse_args()
 
     case_path = args.case.expanduser().resolve()
@@ -320,12 +481,24 @@ def main() -> int:
     if not fixture.is_dir() or not skill_path.is_file():
         raise ValueError("fixture directory or skill file does not exist")
 
-    plan = [
-        (run, variant)
-        for run in range(1, max(1, args.runs) + 1)
-        for variant in ("control", "treatment")
-    ]
-    random.Random(args.seed).shuffle(plan)
+    variants = ["control", "treatment"] + (["candidate"] if args.candidate else [])
+    candidate = args.candidate.expanduser().resolve() if args.candidate else None
+    if candidate and not candidate.is_file():
+        raise ValueError("candidate SKILL.md does not exist")
+    plan = []
+    for run in range(1, max(1, args.runs) + 1):
+        order = variants[run % len(variants) :] + variants[: run % len(variants)]
+        plan.extend((run, variant) for variant in order)
+    if not args.dry_run and not args.model:
+        parser.error("--model is required for reproducible comparisons")
+    if (
+        not args.dry_run
+        and case.get("evaluation", {}).get("status") != "ready"
+        and not args.allow_legacy
+    ):
+        parser.error(
+            "legacy case: redesign around the skill purpose, or use --allow-legacy for exploration"
+        )
     if args.dry_run:
         print(
             json.dumps(
@@ -333,6 +506,14 @@ def main() -> int:
                     "case": case["id"],
                     "skill": case["skill"],
                     "fixture": str(fixture),
+                    "evaluation": case.get("evaluation"),
+                    "contract_version": contract_version(case, case_path),
+                    "rubric": case.get("rubric", []),
+                    "candidate_command": pi_command(
+                        str(case["prompt"]), candidate, args.model
+                    )
+                    if candidate
+                    else None,
                     "runs": plan,
                     "treatment_command": pi_command(
                         str(case["prompt"]), skill_path, args.model
@@ -350,6 +531,14 @@ def main() -> int:
         )
         return 0
 
+    try:
+        execution_preflight()
+    except ValueError as exc:
+        parser.error(str(exc))
+
+    agent_version = subprocess.run(
+        ["pi", "--version"], capture_output=True, text=True, check=True
+    ).stdout.strip()
     experiment_id = uuid.uuid4().hex
     for run_number, variant in plan:
         result = run_once(
@@ -360,6 +549,8 @@ def main() -> int:
             args.model,
             max(1, args.timeout),
             experiment_id,
+            candidate,
+            agent_version,
         )
         append_result(result)
         print(json.dumps(result, ensure_ascii=False))

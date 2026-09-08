@@ -1,0 +1,36 @@
+{
+  "id": "purpose-ask-claude",
+  "skill": "ask-claude",
+  "skill_path": "../skills/agent-management/ask-claude/SKILL.md",
+  "fixture": "fixtures/purpose-ask-claude",
+  "prompt": "独立レビューの回答を踏まえてキャッシュ方針を判断する。scenario.jsonは匿名化した合成入力です。外部サービスの状態はこの捕捉済みデータで代替し、実サービスの操作や通信はしないでください。結果をresult.mdに保存してください。HTMLや図が必要なら同じworkspace内へ作りresult.mdから参照してください。入力ファイルは変更しないでください。追加のユーザー回答は得られません。",
+  "expected_behavior": "第二意見を鵜呑みにせずtenantを含むkeyを検討し、Redisの必要性を要件から判断する。外部agentへの相談自体はこのofflineケースでは未評価。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "捕捉済み合成入力からの成果物と判断。実サービス操作、対話継続、発火精度は未評価。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "第二意見を鵜呑みにせずtenantを含むkeyを検討し、Redisの必要性を要件から判断する。外部agentへの相談自体はこのofflineケースでは未評価。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力にない観測や実行済みの事実を作らず、判断の根拠が成果物とtraceから辿れる。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、指示された外部操作禁止と未回答事項を尊重する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/purpose-ask-claude"
+    ]
+  ]
+}

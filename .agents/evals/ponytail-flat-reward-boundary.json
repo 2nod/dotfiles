@@ -12,6 +12,15 @@
     "the immutable summary is edited or extra scaffolding is added"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/ponytail-flat-reward-boundary-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/ponytail-flat-reward-boundary-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "課題の機能要件だけでは不要な複雑さを減らす効果を測れない。正確性の後に依存と構造を評価する必要がある。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

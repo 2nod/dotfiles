@@ -1,0 +1,14 @@
+{
+  "change": "tenantをcache keyへ追加",
+  "before": "同じIDならtenantを跨いでcacheを共有",
+  "after": "tenantとIDの組で分離",
+  "tests": [
+    {
+      "name": "cross tenant read",
+      "result": "pass"
+    }
+  ],
+  "browser_e2e": "not run",
+  "base": "synthetic-base",
+  "after_version": "working tree"
+}

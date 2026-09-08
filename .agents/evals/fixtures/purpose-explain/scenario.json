@@ -1,0 +1,9 @@
+{
+  "audience": "programmer new to caching",
+  "facts": [
+    "cache stores copies",
+    "source can change",
+    "TTL expires a copy after a duration",
+    "TTL permits stale reads before expiry"
+  ]
+}

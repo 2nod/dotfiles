@@ -13,6 +13,15 @@
     "the report index does not link its verified claim to supporting detail"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/implementation-report-required-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/implementation-report-required-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "特定の構成や語句の一致は読み手の理解や主張と証拠の対応を保証しない。実ブラウザの可読性も別評価が必要。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

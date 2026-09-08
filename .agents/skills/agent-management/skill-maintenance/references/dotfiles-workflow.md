@@ -112,14 +112,19 @@ shell 設定や補助 script を変更した場合は、対象 shell の構文�
 deploy 後、各 agent の runtime path に同じ skill 群が見えることを確認する。
 Claude Code は `~/.config/claude/skills` 直下の raw skill tree ではなく、`.claude-plugin/plugin.json` を持つ plugin の `skills/<skill-name>/SKILL.md` を読むため、`dotfiles-shared-skills` plugin 配下を確認する。
 
+件数が同じでも別のskillが混ざったり、参照ファイルだけが古かったりする。次の検査で名前の集合と同梱ファイルの内容を照合する。
+
 ```sh
-find -L \
-  ~/.agents/skills \
-  ~/.config/claude/skills/dotfiles-shared-skills/skills \
-  ~/.cursor/skills \
-  -maxdepth 4 -name SKILL.md -print
+python3 .agents/skills/agent-management/skill-maintenance/scripts/check_inventory.py \
+  --source .agents/skills --source .agents/installed-skills \
+  --target ~/.agents/skills \
+  --target ~/.config/claude/skills/dotfiles-shared-skills/skills \
+  --target ~/.cursor/skills
 ```
 
-件数は `.agents/skills` と `.agents/installed-skills` の `SKILL.md` 数の合計と揃うはず。
+終了コード0は一致、1は欠落や内容差分、2は入力不備を表す。結果はJSONで返り、ファイルは変更しない。
+対象はshared skillの公開ルートに限定する。agent固有の組み込みskillを含む別のルートとは比較しない。
+同名skillの重複、存在しないルート、循環リンクはエラーとする。`.git`、`__pycache__`、`.ruff_cache`は配布内容の比較から除く。
+実環境へ配布していない場合は「未配布」とし、合成入力の一致を実環境の確認済みと取り違えない。
 
 新規 file / directory は Nix flake から見えるように `git add` する。commit はユーザーの明示許可があるまでしない。

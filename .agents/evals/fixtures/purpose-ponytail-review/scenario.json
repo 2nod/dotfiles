@@ -1,0 +1,8 @@
+{
+  "diff": [
+    "add AbstractFormatter",
+    "add FormatterFactory selecting the only Formatter",
+    "add Formatter that returns value.upper()"
+  ],
+  "requirement": "uppercase one string"
+}

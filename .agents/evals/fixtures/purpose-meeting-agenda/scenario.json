@@ -1,0 +1,13 @@
+{
+  "purpose": "移行案の採否",
+  "facts": [
+    "API互換性は確認済み",
+    "DB移行時間は未計測"
+  ],
+  "participants": [
+    "product",
+    "backend",
+    "operations"
+  ],
+  "time_minutes": 30
+}

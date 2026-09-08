@@ -1,0 +1,13 @@
+{
+  "interface": [
+    "open connection",
+    "begin transaction",
+    "lock row",
+    "update value",
+    "commit",
+    "close"
+  ],
+  "callers": 8,
+  "failure": "2 callers forget rollback",
+  "behavior": "atomic update"
+}

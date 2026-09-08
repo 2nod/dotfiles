@@ -1,0 +1,9 @@
+{
+  "job": "job-a",
+  "queue": "empty",
+  "worker": "terminated",
+  "callback": "pending retry",
+  "artifact": "partial",
+  "lease": "active",
+  "cancel_requested": true
+}

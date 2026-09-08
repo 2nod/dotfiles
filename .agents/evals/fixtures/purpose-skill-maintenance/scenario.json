@@ -1,0 +1,14 @@
+{
+  "files": [
+    "skills/review-helper/SKILL.md",
+    "skills/review-helper/template.md"
+  ],
+  "frontmatter": {
+    "name": "Review Helper",
+    "description": "Useful helper"
+  },
+  "references": [
+    "references/checklist.md"
+  ],
+  "available_files": []
+}

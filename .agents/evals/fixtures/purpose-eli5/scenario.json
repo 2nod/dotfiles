@@ -1,0 +1,15 @@
+{
+  "system": "画像変換",
+  "flow": [
+    "upload",
+    "queue",
+    "worker",
+    "result"
+  ],
+  "retry": "worker failure retries up to 2 times",
+  "user_sees": [
+    "受付",
+    "処理中",
+    "完了または失敗"
+  ]
+}

@@ -39,6 +39,26 @@ function DataFlowChip({ index }: { index: number }) {
 
 `keyPoints`は距離上の出発点、待機点、到達点を表す。`keyTimes`は時間比であり、両方の要素数を一致させる。待機と移動の比率は説明したい処理の実際の間隔に合わせる。
 
+## 共通周期内の移動区間
+
+同じ対象が複数の経路を順に通る場合は、周期Tと各経路の開始s、終了eを秒単位で決める。
+単独の経路にだけ使うstaggerと区別する。
+`0 <= s < e <= T`を満たし、前段の到着から後段の出発までを待機として表す。
+
+```sh
+python3 scripts/motion_window.py 6 0 2.16
+python3 scripts/motion_window.py 6 3.48 5.64
+```
+
+このscriptはJSONのmotion属性とopacity属性を返す。どちらもbegin=0s、dur=6sで共通の時計を使い、移動区間だけをkeyTimesに投影する。
+第一経路は0秒から2.16秒まで移動し、第二経路は3.48秒から5.64秒まで移動する。2.16秒から3.48秒はqueueでの待機であり、移動チップとは別の静止ラベルや保持状態で示す。
+
+属性をそれぞれ`animateMotion`とopacityの`animate`へ渡す。pathは既存の共有geometryから与え、beginやdurだけを後から別々に上書きしない。
+scriptは線形移動と段階的な可視性を扱う。easingや余韻が必要な場合は用途に合わせて拡張し、時刻の契約を再検査する。
+
+数値検査は時刻の対応だけを保証する。実ブラウザではs直前、区間の中間、e直後、次段開始、周期境界で位置と可視性を確認する。
+reduced-motionではチップ以外の線とラベルが残ることも確認する。
+
 ## Stagger
 
 - chip数が多い場合はintervalを固定し、開始をずらす。

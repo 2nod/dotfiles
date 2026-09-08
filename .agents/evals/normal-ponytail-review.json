@@ -1,0 +1,36 @@
+{
+  "id": "normal-ponytail-review",
+  "skill": "ponytail-review",
+  "skill_path": "../installed-skills/software-development/ponytail-review/SKILL.md",
+  "fixture": "fixtures/normal-ponytail-review",
+  "prompt": "change.diffと実コード、契約を読み、過剰設計のレビューをしてください。不要な複雑さ、該当箇所、代替を簡潔に示してください。修正は適用せず、必要な振る舞いとsmoke testを保持する提案にしてください。 入力ファイルを変更せず、最終成果物を必ず/workspace/result.mdに保存してください。HTMLを作った場合はresult.mdから参照してください。外部通信・実サービス操作は禁止です。追加の回答はありません。",
+  "expected_behavior": "labels.pyの単一用途の抽象class・factory・操作loopを根拠付きで特定し、value.strip().lower()または同等の最小実装への置換を示す。既存smoke testと文字列契約を保持する。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "正常系の合成入力に対する目的達成と成果物・traceを評価。利用可否の最終判断には他ケースが必要。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "labels.pyの単一用途の抽象class・factory・操作loopを根拠付きで特定し、value.strip().lower()または同等の最小実装への置換を示す。既存smoke testと文字列契約を保持する。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "削減量を書く場合は実差分から再現可能な算定根拠がある。根拠のない数値や存在しないcallerを作らない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を変更せず指定出力を作る。外部操作や未実施の検証を実施済みと主張しない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/normal-ponytail-review"
+    ]
+  ]
+}

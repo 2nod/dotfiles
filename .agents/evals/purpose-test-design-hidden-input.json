@@ -1,0 +1,36 @@
+{
+  "id": "purpose-test-design-hidden-input",
+  "skill": "test-design-review",
+  "skill_path": "../skills/software-development/test-design-review/SKILL.md",
+  "fixture": "fixtures/purpose-test-design-hidden-input",
+  "prompt": "Review the test design against the production behavior. Write findings.md with actionable findings and reasons, or explain why no changes are needed. Do not modify the source or tests.",
+  "expected_behavior": "価格2と数量3が期待値6の理由だと理解し、その値がtest case内に見えるかで判断する。 隠れた重要入力をtest caseへ戻す具体案を出し、全helperの廃止などへ一般化しない。 実際の箇所と影響に基づき指摘する。特定の重大度ラベル、単語、言語は要求しない。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "単体skillの目的別評価。発火率と他skillとの併用は対象外"
+  },
+  "rubric": [
+    {
+      "id": "purpose-1",
+      "criterion": "価格2と数量3が期待値6の理由だと理解し、その値がtest case内に見えるかで判断する。"
+    },
+    {
+      "id": "purpose-2",
+      "criterion": "隠れた重要入力をtest caseへ戻す具体案を出し、全helperの廃止などへ一般化しない。"
+    },
+    {
+      "id": "purpose-3",
+      "criterion": "実際の箇所と影響に基づき指摘する。特定の重大度ラベル、単語、言語は要求しない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "review",
+      "{case_dir}/fixtures/purpose-test-design-hidden-input"
+    ]
+  ]
+}

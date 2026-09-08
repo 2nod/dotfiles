@@ -1,0 +1,10 @@
+{
+  "nodes": [
+    "client",
+    "queue",
+    "worker"
+  ],
+  "state_source": "one domain state object",
+  "wire_changes_often": true,
+  "accessibility": "reduced-motion must retain all static labels and wires"
+}

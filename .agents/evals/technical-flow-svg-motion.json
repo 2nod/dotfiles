@@ -11,6 +11,15 @@
     "verifier fails after the fix"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/technical-flow-svg-motion-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/technical-flow-svg-motion-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "FLOW_PATHという変数名と正規表現に依存し、同等の共有経路や実際のreduced motion表示を評価できない。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

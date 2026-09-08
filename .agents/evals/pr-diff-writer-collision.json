@@ -12,6 +12,15 @@
     "レビュー対象のコードを変更する"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/pr-diff-writer-collision-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/pr-diff-writer-collision-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "正規表現による語句一致は回帰の意味理解や誤指摘の少なさを保証しない。健全な差分の対照ケースがない。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

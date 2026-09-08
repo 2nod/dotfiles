@@ -1,0 +1,36 @@
+{
+  "id": "purpose-diagnosis-feedback",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-parser",
+  "prompt": "Malformed count input is accepted by parse_count. Diagnose and fix the issue, preserving valid counts. Leave a reproducible regression test and a short diagnosis.md explaining the evidence for the cause.",
+  "expected_behavior": "実行traceに修正前の不具合を再現する失敗信号がある。 diagnosis.mdの原因説明が観測と対応し、仮説と確認済みの事実を区別する。 同じ再現手順で修正を再検証し、有効な入力も維持する。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "単体skillの目的別評価。発火率と他skillとの併用は対象外"
+  },
+  "rubric": [
+    {
+      "id": "purpose-1",
+      "criterion": "実行traceに修正前の不具合を再現する失敗信号がある。"
+    },
+    {
+      "id": "purpose-2",
+      "criterion": "diagnosis.mdの原因説明が観測と対応し、仮説と確認済みの事実を区別する。"
+    },
+    {
+      "id": "purpose-3",
+      "criterion": "同じ再現手順で修正を再検証し、有効な入力も維持する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "parser",
+      "{case_dir}/fixtures/diagnosis-parser"
+    ]
+  ]
+}

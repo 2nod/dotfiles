@@ -1,0 +1,7 @@
+{
+  "files": {
+    "unused_factory.py": "no imports, one implementation",
+    "payment_adapter.py": "used by two payment backends with distinct retry contracts",
+    "format.js": "imports a full date library for ISO date only"
+  }
+}

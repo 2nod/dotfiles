@@ -1,0 +1,10 @@
+{
+  "glossary": {
+    "order": "payment completed purchase"
+  },
+  "new_requirement": "cancel order before payment",
+  "facts": [
+    "payment can fail",
+    "cart may be abandoned"
+  ]
+}

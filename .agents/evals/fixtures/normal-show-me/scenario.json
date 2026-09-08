@@ -1,0 +1,22 @@
+{
+  "question": "受付済みなのに結果がまだない理由を、waitingとprocessingとresultの違いから理解したい。",
+  "contract": {
+    "waiting": "受付とキュー保存は完了、workerはまだ開始していない",
+    "processing": "workerが取り出して処理中、結果はまだ未保存",
+    "result": "workerが結果保存に成功し、UIがその結果を表示可能",
+    "transitions": [
+      "submit -> waiting",
+      "worker starts -> processing",
+      "result saved -> result"
+    ],
+    "ui": "waitingは待機中、processingは処理中、resultは結果を表示"
+  },
+  "captured_observation": {
+    "job": "sample-job",
+    "state": "waiting",
+    "accepted": true,
+    "worker_started": false,
+    "result_saved": false
+  },
+  "scope": "これは合成の一時点の観測。失敗・再試行・通知・分散基盤の設計は説明対象外。"
+}

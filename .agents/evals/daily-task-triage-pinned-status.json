@@ -12,6 +12,15 @@
     "fixture data is modified"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/daily-task-triage-pinned-status-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/daily-task-triage-pinned-status-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "単一の静的状態の分類しか測れず、優先順位と予定変更への対応を網羅しない。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

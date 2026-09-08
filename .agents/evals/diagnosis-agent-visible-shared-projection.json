@@ -12,6 +12,15 @@
     "the public regression test does not detect the original raw-read implementation"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/diagnosis-agent-visible-shared-projection-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/diagnosis-agent-visible-shared-projection-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "修正後の正しさを測るだけで、修正前の失敗信号と仮説検証の証拠を観測しない。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

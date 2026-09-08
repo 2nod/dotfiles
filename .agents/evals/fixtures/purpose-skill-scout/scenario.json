@@ -1,0 +1,21 @@
+{
+  "skills": [
+    {
+      "name": "cleanup",
+      "uses": 12,
+      "failures": [
+        "ID照合漏れが3回"
+      ],
+      "cases": 0
+    },
+    {
+      "name": "rare-recovery",
+      "uses": 1,
+      "failures": [],
+      "cases": 0
+    }
+  ],
+  "repeated_work": [
+    "毎回同じID照合を手入力"
+  ]
+}

@@ -13,6 +13,15 @@
     "旧PRを新PRへのlinkなしでcloseする"
   ],
   "verifiers": [
-    ["python3", "{case_dir}/git-workflow-clean-pr-lineage-verify.py", "{workspace}"]
-  ]
+    [
+      "python3",
+      "{case_dir}/git-workflow-clean-pr-lineage-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "evaluation": {
+    "status": "legacy",
+    "reason": "個別契約の回帰テストとしては利用できるが、実Git操作と一般的な履歴管理への効果は別評価が必要。",
+    "use": "個別契約の回帰資料。skillの採否には使用しない"
+  }
 }

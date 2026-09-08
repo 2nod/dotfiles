@@ -1,0 +1,36 @@
+{
+  "id": "purpose-pr-description-evidence",
+  "skill": "pr-description-writing",
+  "skill_path": "../skills/software-development/pr-description-writing/SKILL.md",
+  "fixture": "fixtures/pr-description-grounded",
+  "prompt": "Use the supplied change context to write a reviewer-facing PR description in description.md. Explain the problem, final behavior, design choices and what was verified. Do not change the input files.",
+  "expected_behavior": "全ての事実上の主張が入力資料に対応し、実施していない検証を実施済みとしない。 変更理由と最終の振る舞いと設計上のtradeoffが初見のレビュワーに理解できる。 QA、開発者の検証、未確認を区別する。定型の見出しや文字列の一致で採点しない。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "単体skillの目的別評価。発火率と他skillとの併用は対象外"
+  },
+  "rubric": [
+    {
+      "id": "purpose-1",
+      "criterion": "全ての事実上の主張が入力資料に対応し、実施していない検証を実施済みとしない。"
+    },
+    {
+      "id": "purpose-2",
+      "criterion": "変更理由と最終の振る舞いと設計上のtradeoffが初見のレビュワーに理解できる。"
+    },
+    {
+      "id": "purpose-3",
+      "criterion": "QA、開発者の検証、未確認を区別する。定型の見出しや文字列の一致で採点しない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "description",
+      "{case_dir}/fixtures/pr-description-grounded"
+    ]
+  ]
+}

@@ -37,3 +37,8 @@ jobs:
       # Offline skill-trigger regression check (.agents/bin/check-skill-triggers).
       - name: skill trigger regression check
         run: nix build --print-build-logs --accept-flake-config .#checks.aarch64-darwin.skill-triggers
+
+      # No model calls. Docker boundary tests are run locally with the explicit
+      # SKILL_EVAL_OFFLINE_DOCKER opt-in; this macOS runner has no Docker daemon.
+      - name: skill evaluation workflow regression check
+        run: python3 -m unittest discover -s agent-observability -p 'test_*.py' -v
