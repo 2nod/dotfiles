@@ -258,3 +258,7 @@ metricはtotal_tokensまたはduration_seconds。minimum_reductionは0より大�
 時間にはrunnerとverifierの処理が含まれ、tokenは請求額ではない。
 小規模な反復は将来の全用途の品質同等性を保証しない。limitationsとnext_checkに適用範囲と再確認条件を残す。
 共有台帳は目的と評価設計を管理し、ローカルの実測パスや採否をコミットしない。
+
+## 日常確認の入口
+
+`agent-observability-report` で3ページを更新する。`report.html` は保存済みラウンドの状態・次の作業・判断理由、`usage.html` は利用履歴、`evals.html` は比較評価の詳細。改善状態は既存のstatus判定を再利用し、壊れた記録も確認対象として表示する。判断記録があってもゲート未通過なら未確定と表示し、モデル実行や配置を行わない。件数はスキル数ではなくラウンド数で、利用履歴の期間指定とは独立に全ラウンドを読む。

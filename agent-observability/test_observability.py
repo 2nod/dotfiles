@@ -347,7 +347,7 @@ class ObservabilityTest(unittest.TestCase):
             text=True,
         )
         try:
-            report = (self.root / "report.html").read_text(encoding="utf-8")
+            report = (self.root / "usage.html").read_text(encoding="utf-8")
             eval_report = (self.root / "evals.html").read_text(encoding="utf-8")
         except OSError as exc:
             self.fail(f"failed to read report: {exc}")
@@ -407,7 +407,7 @@ class ObservabilityTest(unittest.TestCase):
             capture_output=True,
             text=True,
         )
-        report = (self.root / "report.html").read_text(encoding="utf-8")
+        report = (self.root / "usage.html").read_text(encoding="utf-8")
         self.assertIn('<td data-label="失敗" class=bad>1</td>', report)
         self.assertIn('<td data-label="検証済" class=good>0</td>', report)
         self.assertIn(
