@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import html
 import json
 import os
@@ -607,8 +608,9 @@ PAGE_SCRIPT = """
 
 def render_page(title: str, days: int, generated: str, active: str, body: str) -> str:
     nav = (
-        f'<nav><a href="report.html" class="{"active" if active == "overview" else ""}">Overview</a>'
-        f'<a href="evals.html" class="{"active" if active == "evaluations" else ""}">Evaluations</a></nav>'
+        f'<nav><a href="report.html" class="{"active" if active == "operations" else ""}">改善状況</a>'
+        f'<a href="usage.html" class="{"active" if active == "overview" else ""}">利用履歴</a>'
+        f'<a href="evals.html" class="{"active" if active == "evaluations" else ""}">比較評価</a></nav>'
     )
     return f"""<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
@@ -844,6 +846,58 @@ def render_evaluations(days: int, results: list[dict[str, object]]) -> str:
     return render_page("Skill Evaluations", days, generated, "evaluations", body)
 
 
+def render_operations(days: int, root: pathlib.Path) -> str:
+    """Read existing rounds without running models or changing evaluation state."""
+    spec = importlib.util.spec_from_file_location("dashboard_skill_loop", pathlib.Path(__file__).with_name("skill-loop.py"))
+    loop = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(loop)
+    labels = {"needs-plan": "計画の修正待ち", "ready": "評価の実行待ち",
+              "execution-incomplete": "実行記録の確認待ち", "needs-review": "採点待ち",
+              "needs-decision": "判断待ち", "decided": "判断済み", "invalid": "記録を読めません"}
+    actions = {"repair-plan": "計画の不足・条件変更を確認", "run": "許可された範囲で評価を実行",
+               "inspect-logs-no-retry": "部分結果と消費済み呼び出しを確認（自動再試行なし）",
+               "review-artifacts-and-trace": "成果物と実行記録を採点", "record-decision": "判断と根拠を記録",
+               "repair-decision": "判断の不足を修正", "next-round-or-stop": "次の評価へ進むか終了する"}
+    decisions = {"keep": "継続", "revise": "修正継続", "adopt": "採用", "disable": "無効化", "hold": "保留"}
+    rows = []
+    counts = {"attention": 0, "ready": 0, "decided": 0}
+    for directory in sorted((root / "eval-loops").glob("*")):
+        if not directory.is_dir():
+            continue
+        try:
+            state = loop.status(directory)
+        except Exception as error:
+            state = {"state": "invalid", "errors": [str(error)], "skill": directory.name}
+        key = state["state"]
+        counts[key if key in ("ready", "decided") else "attention"] += 1
+        decision = {}
+        try:
+            decision = json.loads((directory / "decision.json").read_text())
+            if not isinstance(decision, dict):
+                decision = {}
+        except (OSError, ValueError):
+            pass
+        escape = lambda value: html.escape(str(value))
+        evidence = "".join("<li>" + escape(value) + "</li>" for value in state.get("errors", []))
+        detail = '<details><summary>不足・条件の確認</summary><ul>' + evidence + '</ul></details>' if evidence else ''
+        reason = escape(decision.get("reason", "判断の記録なし"))
+        if decision:
+            reason = escape(decisions.get(decision.get("action"), decision.get("action", ""))) + "：" + reason
+            if key != "decided":
+                reason = "未確定の記録：" + reason
+        links = ' · '.join('<a href="' + escape((directory / name).resolve().as_uri()) + '">' + label + '</a>'
+                           for name, label in [("plan.json", "計画"), ("decision.json", "判断の原本")]
+                           if (directory / name).is_file())
+        rows.append('<tr class="search-row"><td>' + escape(state.get("skill") or directory.name) + '<small>' + escape(directory.name) + '</small></td><td>' + labels.get(key, escape(key)) + '<small>' + escape(actions.get(state.get("next_action"), "記録形式を確認")) + '</small>' + detail + '</td><td>' + reason + '<small>' + links + '</small></td></tr>')
+    body = '<p>実作業で見つかった課題を、比較・採点・判断へつなぐ入口です。利用回数や通常作業のテスト成功は、スキルの有用性を示す評価ではありません。</p>'
+    body += '<div class="cards">' + ''.join('<div class="card"><span>' + label + '</span><strong>' + str(counts[key]) + '</strong></div>' for key, label in [("attention", "確認・修正待ち"), ("ready", "実行待ち"), ("decided", "判断済み")]) + '</div>'
+    body += '<p class="note">保存済みラウンド単位の件数です。同じスキルの複数ラウンドも別に表示します。状態は生成時点の検査結果で、実行中かどうかは推測しません。</p>'
+    body += '<div class="toolbar"><label for="search">絞り込み</label><input id="search" type="search" placeholder="スキル・状態・判断を検索"><span id="result-count"></span></div><h2>改善の進捗と次の作業</h2><div class="table-scroll"><table><thead><tr><th>スキル / ラウンド</th><th>状態と次の作業</th><th>判断と根拠</th></tr></thead><tbody>'
+    body += ''.join(rows) or '<tr><td colspan="3">評価ラウンドはありません。実作業で再現できる課題が見つかったら、既存ケースを確認して計画を作成します。</td></tr>'
+    body += '</tbody></table></div><details><summary>運用の流れと表示範囲</summary><p>実作業で課題を発見し、再現可能で重複しないケースを追加。許可された比較評価、成果物の採点、判断の記録を経て、必要な変更をPRへ反映します。</p><p>installedは利用判断、自作は利用判断と改善が対象です。状態表示からモデル実行や配置は始まりません。古い条件・欠落した証拠は不足として表示されます。判断済みでも配置済みを意味しません。</p></details>'
+    return render_page("スキル運用", days, datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"), "operations", body)
+
+
 def write_report(content: str, output: pathlib.Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     fd, temp_name = tempfile.mkstemp(prefix=".report-", dir=output.parent, text=True)
@@ -867,7 +921,8 @@ def main() -> int:
     eval_output = ROOT / "evals.html"
     turns = build_turns(load_events(days))
     eval_results = load_eval_results(days)
-    write_report(render_overview(days, turns, aggregate(turns)), output)
+    write_report(render_operations(days, ROOT), output)
+    write_report(render_overview(days, turns, aggregate(turns)), ROOT / "usage.html")
     write_report(render_evaluations(days, eval_results), eval_output)
     if args.open_report:
         subprocess.run(["open", str(output)], check=False)
