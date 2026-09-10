@@ -848,7 +848,8 @@ def render_evaluations(days: int, results: list[dict[str, object]]) -> str:
 
 def render_operations(days: int, root: pathlib.Path) -> str:
     """Read existing rounds without running models or changing evaluation state."""
-    spec = importlib.util.spec_from_file_location("dashboard_skill_loop", pathlib.Path(__file__).with_name("skill-loop.py"))
+    skill_loop = pathlib.Path(__file__).resolve().parent / "skill-loop.py"
+    spec = importlib.util.spec_from_file_location("dashboard_skill_loop", skill_loop)
     loop = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loop)
     labels = {"needs-plan": "計画の修正待ち", "ready": "評価の実行待ち",
