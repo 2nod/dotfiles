@@ -372,6 +372,22 @@ class ObservabilityTest(unittest.TestCase):
         self.assertIn("期待: expected behavior", eval_report)
         self.assertIn("条件: bad result", eval_report)
 
+    def test_report_works_when_invoked_through_symlink(self) -> None:
+        deployed_reporter = self.root / ".local/bin/agent-observability-report"
+        deployed_reporter.parent.mkdir(parents=True)
+        deployed_reporter.symlink_to(REPORTER)
+
+        result = subprocess.run(
+            [deployed_reporter, "--days", "1"],
+            env=self.env,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.root / "report.html").is_file())
+
     def test_report_uses_latest_result_per_verification_category(self) -> None:
         base = {
             "agent": "pi",
