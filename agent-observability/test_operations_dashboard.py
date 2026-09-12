@@ -25,3 +25,16 @@ class OperationsDashboardTest(unittest.TestCase):
             self.assertNotIn('<script>alert(1)</script>', output)
             self.assertIn('usage.html', output)
             self.assertEqual(before, {p.name: p.read_bytes() for p in folder.iterdir()})
+
+    def test_retired_round_is_hidden_but_preserved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            folder = root / 'eval-loops' / 'retired-example'
+            folder.mkdir(parents=True)
+            plan = folder / 'plan.json'
+            plan.write_text('{"skill":"removed-synthetic-skill"}')
+            output = report.render_operations(30, root)
+            self.assertNotIn('retired-example', output)
+            self.assertNotIn('removed-synthetic-skill', output)
+            self.assertNotIn('除外した履歴', output)
+            self.assertTrue(plan.exists())

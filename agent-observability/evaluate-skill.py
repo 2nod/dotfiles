@@ -197,8 +197,27 @@ def append_result(result: dict[str, object]) -> None:
         os.fsync(handle.fileno())
 
 
+def input_check(output, prompt):
+    """Trace evidence must contain exactly one intended user message."""
+    messages = []
+    for line in output.splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(event, dict) or event.get("type") != "message_end":
+            continue
+        message = event.get("message", {})
+        if isinstance(message, dict) and message.get("role") == "user":
+            content = message.get("content", [])
+            if not isinstance(content, list) or any(not isinstance(c, dict) or c.get("type") != "text" for c in content):
+                return False
+            messages.append("".join(c.get("text", "") for c in content))
+    return messages == [prompt]
+
+
 def persist_artifacts(
-    case, before, after, output, stderr, experiment_id, run_number, variant
+    case, before, after, output, stderr, experiment_id, run_number, variant, input_manifest=None
 ):
     directory = ROOT / "eval-artifacts" / experiment_id / f"{run_number}-{variant}"
     directory.mkdir(parents=True, exist_ok=False)
@@ -242,6 +261,8 @@ def persist_artifacts(
         + html.escape(output)
         + "</pre></html>"
     )
+    if input_manifest is not None:
+        (directory / "input.json").write_text(json.dumps(input_manifest, ensure_ascii=False, indent=2))
     version = tree_version(directory)
     review = {
         "artifact_version": version,
@@ -321,6 +342,7 @@ def run_once(
         try:
             completed = subprocess.run(
                 command,
+                stdin=subprocess.DEVNULL,
                 cwd=workspace,
                 env=env,
                 capture_output=True,
@@ -350,8 +372,18 @@ def run_once(
             after, artifact_error = {}, safe_detail(str(exc))
             stderr += "\nArtifact export rejected: " + artifact_error
         agent_seconds = time.monotonic() - started
+        input_verified = input_check(output, str(case["prompt"]))
+        input_manifest = {
+            "user_prompt": str(case["prompt"]), "stdin": "DEVNULL",
+            "system_additions": [command[i + 1] for i, value in enumerate(command[:-1]) if value == "--append-system-prompt"],
+            "fixture_version": tree_version(fixture),
+            "skill_version": tree_version(target.parent) if variant != "control" else None,
+            "dependency_versions": {name: tree_version(path) for name, path in dependency_paths(case, case_path, target).items()} if variant != "control" else {},
+            "command": command, "user_input_verified": input_verified,
+            "scope": "Runner-controlled inputs; provider default system instructions are not captured",
+        }
         directory, artifact_version = persist_artifacts(
-            case, before, after, output, stderr, experiment_id, run_number, variant
+            case, before, after, output, stderr, experiment_id, run_number, variant, input_manifest
         )
         verifier_results = []
         for verifier in (
@@ -417,6 +449,8 @@ def run_once(
             if any(v["exit"] not in (0, 1) for v in verifier_results)
             else "verifier_failed"
             if not outcome
+            else "input_mismatch"
+            if not input_verified
             else "passed"
         )
         # Machine checks establish outcome only. Purpose rubrics need evidence-based review.
@@ -460,6 +494,7 @@ def run_once(
             "candidate_version": tree_version(candidate.parent) if candidate else None,
             "success": success,
             "outcome_success": outcome,
+            "input_verified": input_verified,
             "agent_exit": agent_exit,
             "failure_kind": kind,
             "failure_phase": "completed" if kind == "passed" else "execution",
@@ -560,7 +595,7 @@ def main() -> int:
         parser.error(str(exc))
 
     agent_version = subprocess.run(
-        ["pi", "--version"], capture_output=True, text=True, check=True
+        ["pi", "--version"], stdin=subprocess.DEVNULL, capture_output=True, text=True, check=True
     ).stdout.strip()
     experiment_id = uuid.uuid4().hex
     for run_number, variant in plan:

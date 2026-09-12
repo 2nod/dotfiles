@@ -4,7 +4,7 @@
   "skill_path": "../skills/software-development/test-design-review/SKILL.md",
   "fixture": "fixtures/purpose-test-design-hidden-input",
   "prompt": "Review the test design against the production behavior. Write findings.md with actionable findings and reasons, or explain why no changes are needed. Do not modify the source or tests.",
-  "expected_behavior": "価格2と数量3が期待値6の理由だと理解し、その値がtest case内に見えるかで判断する。 隠れた重要入力をtest caseへ戻す具体案を出し、全helperの廃止などへ一般化しない。 実際の箇所と影響に基づき指摘する。特定の重大度ラベル、単語、言語は要求しない。",
+  "expected_behavior": "重要入力2と3がhelperに隠れている問題を指摘する。 assertEqualの引数順など、契約にない誤った指摘をしない。 重要入力をテスト本体へ戻す具体案を漏らさない。 無関係なhelperの全廃や未定義の業務要件を要求せず、元ファイルを変更しない。 追加テストを提案するなら検出する具体的な誤実装を示す。未定義の入力契約の検証を必須扱いしない。",
   "scenario": "typical",
   "evaluation": {
     "status": "ready",
@@ -12,16 +12,24 @@
   },
   "rubric": [
     {
-      "id": "purpose-1",
-      "criterion": "価格2と数量3が期待値6の理由だと理解し、その値がtest case内に見えるかで判断する。"
+      "id": "problem_detection",
+      "criterion": "重要入力2と3がhelperに隠れている問題を指摘する。"
     },
     {
-      "id": "purpose-2",
-      "criterion": "隠れた重要入力をtest caseへ戻す具体案を出し、全helperの廃止などへ一般化しない。"
+      "id": "false_positives",
+      "criterion": "assertEqualの引数順など、契約にない誤った指摘をしない。"
     },
     {
-      "id": "purpose-3",
-      "criterion": "実際の箇所と影響に基づき指摘する。特定の重大度ラベル、単語、言語は要求しない。"
+      "id": "missed_issues",
+      "criterion": "重要入力をテスト本体へ戻す具体案を漏らさない。"
+    },
+    {
+      "id": "unnecessary_changes",
+      "criterion": "無関係なhelperの全廃や未定義の業務要件を要求せず、元ファイルを変更しない。"
+    },
+    {
+      "id": "necessary_additions",
+      "criterion": "追加テストを提案するなら検出する具体的な誤実装を示す。未定義の入力契約の検証を必須扱いしない。"
     }
   ],
   "verifiers": [

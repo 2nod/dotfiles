@@ -182,11 +182,13 @@ class PurposeEvalTest(unittest.TestCase):
 
         def run(cmd, **kwargs):
             invocations.append(cmd)
+            if cmd[0] == "pi":
+                self.assertEqual(kwargs["stdin"], subprocess.DEVNULL)
             if cmd[0] != "pi":
                 (pathlib.Path(kwargs["cwd"]) / "verifier-noise.txt").write_text(
                     "not agent work"
                 )
-            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+            return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps({"type":"message_end","message":{"role":"user","content":[{"type":"text","text":cmd[-1]}]}}) if cmd[0] == "pi" else "", stderr="")
 
         with (
             patch.object(evaluator, "ROOT", self.root),
@@ -258,7 +260,7 @@ class PurposeEvalTest(unittest.TestCase):
             def run(cmd, **kwargs):
                 if (cmd[0] == "pi") == (error == "agent"):
                     raise subprocess.TimeoutExpired(cmd, 1)
-                return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+                return subprocess.CompletedProcess(cmd, 0, stdout=json.dumps({"type":"message_end","message":{"role":"user","content":[{"type":"text","text":cmd[-1]}]}}) if cmd[0] == "pi" else "", stderr="")
 
             with (
                 patch.object(evaluator, "ROOT", self.root / error),

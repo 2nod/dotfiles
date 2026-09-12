@@ -71,7 +71,8 @@ def report(directory, plan, state):
             item[key] = {'observed': len(values), 'sum': sum(values) if values else None,
                          'min': min(values) if values else None, 'max': max(values) if values else None}
         summary.append(item)
-    data = {'state': state, 'expected_results': expected, 'observed_results': len(rows),
+    efficiency_ready = state['state'] in ('needs-decision', 'decided') and len(rows) == expected and all(r.get('success') is True for r in rows)
+    data = {'efficiency_comparison_ready': efficiency_ready, 'state': state, 'expected_results': expected, 'observed_results': len(rows),
             'summary': summary, 'review_queue': queue, 'results': rows}
     # Kept outside artifact directories, so reporting never invalidates a review hash.
     (directory / 'report.json').write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
@@ -79,6 +80,7 @@ def report(directory, plan, state):
     parts = [f'<h1>{e(plan["skill"])} comparison</h1>',
              f'<p>State: {e(state["state"])}. Results: {len(rows)} / {expected}. Next: {e(state["next_action"])}.</p>',
              '<p>Unreviewed results are pending. Time includes runner and verifier overhead. Tokens are not currency. No automatic adoption.</p>',
+             '<p>効率比較：' + ('品質ゲート通過。事前に定めた削減幅と比較してください。' if efficiency_ready else '保留。未採点・不合格・条件不一致がある間、時間やトークンだけで採用しません。') + '</p>',
              '<p><a href="report.json">Full data and review queue</a></p>',
              '<table><tr><th>Case / run / variant</th><th>Result</th><th>Evidence</th></tr>']
     for row in rows:
@@ -89,7 +91,8 @@ def report(directory, plan, state):
                                               ('artifacts', artifact / 'index.html'),
                                               ('review', artifact / 'review.json')]
                            if path.is_file())
-        parts.append(f'<tr><td>{e(str(row["case"]))} / {row["run"]} / {e(row["variant"])}</td><td>{label}</td><td>{links}</td></tr>')
+        scores = '<ul>' + ''.join('<li>' + e(k) + ': ' + ('合格' if v['pass'] else '不合格') + ' — ' + e(v['evidence']) + '</li>' for k, v in row.get('quality_scores', {}).items()) + '</ul>'
+        parts.append(f'<tr><td>{e(str(row["case"]))} / {row["run"]} / {e(row["variant"])}</td><td>{label}{scores}</td><td>{links}</td></tr>')
     parts.append('</table>')
     (directory / 'report.html').write_text('<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Skill comparison</title><style>body{font:16px system-ui;max-width:1100px;margin:2rem auto;padding:1rem}table{width:100%;table-layout:fixed;border-collapse:collapse}td,th{border:1px solid #aaa;padding:.6rem;overflow-wrap:anywhere}</style><body>' + ''.join(parts) + '</body></html>')
     return {'report': str(directory / 'report.html'), 'expected': expected,

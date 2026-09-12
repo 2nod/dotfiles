@@ -337,3 +337,15 @@ class LoopTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class HumanReviewTest(unittest.TestCase):
+    def test_ai_missing_and_stale_review_cannot_authorize_decision(self):
+        pairs = [{'control': {'artifact_version': 'a'}, 'treatment': {'artifact_version': 'b'}}]
+        decision = {'action':'keep'}
+        self.assertTrue(loop.human_review_errors(decision, pairs))
+        decision['human_review'] = {'kind':'ai','action':'keep','reviewer':'AI','evidence':'example','conclusion':'keep','artifact_versions':['a','b']}
+        self.assertTrue(loop.human_review_errors(decision, pairs))
+        decision['human_review']['kind']='human'
+        self.assertEqual(loop.human_review_errors(decision, pairs), [])
+        decision['human_review']['artifact_versions']=['old']
+        self.assertTrue(loop.human_review_errors(decision, pairs))

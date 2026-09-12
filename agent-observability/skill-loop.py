@@ -40,6 +40,22 @@ def required(obj, keys, prefix, errors):
             errors.append(f"{prefix}.{key}: 記録が必要")
 
 
+def human_review_errors(decision, measurements):
+    review = decision.get("human_review", {})
+    errors = []
+    required(review, ["reviewer", "evidence", "conclusion"], "human_review", errors)
+    if not isinstance(review, dict):
+        return errors
+    if review.get("kind") != "human" or review.get("action") != decision.get("action"):
+        errors.append("human_review: 対象の採否について人手の比較レビューが必要")
+    expected = {row.get("artifact_version") for pair in measurements for row in pair.values()}
+    versions = review.get("artifact_versions")
+    if (not expected or None in expected or not isinstance(versions, list)
+            or any(not isinstance(v, str) for v in versions) or set(versions) != expected):
+        errors.append("human_review: 比較した全成果物の版を記録してください")
+    return errors
+
+
 def validate(plan, stage="plan"):
     if not isinstance(plan, dict):
         return ["plan: object required"]
@@ -208,6 +224,8 @@ def validate(plan, stage="plan"):
         errors.append("decision.action: keep / revise / disable / hold / adopt")
     if action in ("keep", "disable", "adopt") and plan["mode"] != "validate":
         errors.append("screenから採用、継続、無効化は判断できない")
+    if action in ("keep", "adopt", "disable") and load_catalog().get(plan.get("skill"), {}).get("human_review_required"):
+        errors.extend(human_review_errors(decision, measurements))
     if action == "adopt":
         if not candidate:
             errors.append("adopt: 修正版が必要")
