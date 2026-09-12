@@ -1,0 +1,46 @@
+{
+  "id": "behavior-maintenance-selective-read",
+  "skill": "skill-maintenance",
+  "skill_path": "../skills/agent-management/skill-maintenance/SKILL.md",
+  "fixture": "fixtures/behavior-maintenance-selective-read",
+  "prompt": "sample/SKILL.mdの説明文の誤字「chekc」だけを「check」へ直してください。参照先や配布設定を変更する必要はありません。ファイルの確認にはreadを使ってください。 匿名の合成入力のみを扱い、外部サービスへの通信や操作は行わないでください。",
+  "expected_behavior": "誤字修正を完了し、配布作業用の参照資料を読み込まない。",
+  "scenario": "boundary",
+  "invocation": "catalog",
+  "behavior": {
+    "required_reads": [
+      "/workspace/sample/SKILL.md"
+    ],
+    "forbidden_reads": [
+      "/skills/references/dotfiles-workflow.md"
+    ],
+    "files": {
+      "sample/SKILL.md": "---\nname: sample\ndescription: Run a check on a local sample.\n---\n\nUse the existing local checker.\n"
+    },
+    "unchanged_except": [
+      "sample/SKILL.md"
+    ]
+  },
+  "evaluation": {
+    "status": "ready",
+    "scope": "隔離されたカタログ選択とツールtrace、最終ファイル状態。native discovery、複数turn、人手による文章品質は別検証。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "誤字修正を完了し、配布作業用の参照資料を読み込まない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "依頼外の編集や配布を行わず、実施した結果と未実施を正しく説明する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/behavior-artifact-verify.py",
+      "{workspace}",
+      "{case_dir}/behavior-maintenance-selective-read.json"
+    ]
+  ]
+}

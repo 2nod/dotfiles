@@ -392,7 +392,15 @@ class PurposeEvalTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             evaluator.load_case(path)
 
-    def test_cli_pause_prevents_model_or_auth_execution(self):
+    def test_unavailable_isolation_stops_before_model_execution(self):
+        with patch.object(evaluator, "ToolSandbox") as sandbox, patch.object(evaluator.subprocess, "Popen") as model:
+            sandbox.return_value.__enter__.side_effect = RuntimeError("Docker daemon unavailable")
+            with self.assertRaisesRegex(RuntimeError, "Docker daemon unavailable"):
+                evaluator.run_once(self.case, CASES / "purpose-test-design-clean.json", "treatment", 1,
+                                   "synthetic/test", 30, "offline-check")
+            model.assert_not_called()
+
+    def test_cli_requires_model_and_dry_run_never_starts_runtime(self):
         bin_dir = self.root / "bin"
         bin_dir.mkdir()
         marker = self.root / "pi-was-called"
@@ -406,15 +414,13 @@ class PurposeEvalTest(unittest.TestCase):
             str(CASES / "purpose-test-design-clean.json"),
             "--runs",
             "1",
-            "--model",
-            "synthetic/test",
         ]
         result = subprocess.run(command, env=env, capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("実評価は停止中", result.stderr)
+        self.assertIn("--model is required", result.stderr)
         self.assertFalse(marker.exists())
         dry_run = subprocess.run(
-            command + ["--dry-run"], env=env, capture_output=True, text=True
+            command + ["--model", "synthetic/test", "--dry-run"], env=env, capture_output=True, text=True
         )
         self.assertEqual(dry_run.returncode, 0)
         self.assertFalse(marker.exists())

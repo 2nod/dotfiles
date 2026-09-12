@@ -1,63 +1,27 @@
 ---
 name: skill-governance
-description: shared agent skill 全体の方針、責務分離、installed skill の provenance、SOURCE.md の役割、wrapper skill と agent-specific instruction の使い分けを判断するときに使う。skill 管理ルールの置き場所に迷ったとき、または skill-maintenance の責務を広げすぎないよう整理するときに使う。
+description: shared skillの責務、配置、provenance、wrapperとruntime指示の境界、見直しと採否の方針を判断するときに使う。
 metadata:
   tags: [skills, governance, agents]
 ---
 
 # Skill Governance
 
-shared skill 全体の方針を整理する。
-配置と責務の境界、目的に基づく改善と採否の条件を扱う。
-改善の実作業はskill-maintenanceから始める。
+shared skillの配置と責務、見直しの方針を決める。
+棚卸しはskill-scout、依頼された作成や修正はskill-maintenanceで進める。
 
-## ディレクトリの責務
+## 配置と出典
 
-- `.agents/skills/`: この repo で自作する skill を置く。
-- `.agents/installed-skills/`: third-party 由来の skill を upstream 追跡可能な形で置く。
-- agent-specific instruction: agent の実行時ルールを置く。
+- 自作skillは `.agents/skills/<category>/<skill-name>`、upstream由来は `.agents/installed-skills/<category>/<skill-name>` に置く。
+- installed skillの本文と同梱資料はupstreamの内容を保持する。ローカル向けの挙動はagent固有の指示か別名wrapperへ置く。
+- 同じ公開pathでのshadowingは、bundle、trigger check、discoveryの優先順位を実装するまで使わない。
+- `SOURCE.md` はrepository、source path、pinned commit、raw URLなどのprovenance専用とし、運用指示を混ぜない。
+- `.agents/README.md` は領域の入口に留める。skillの一覧はfrontmatter、実行時のルールは各agentの指示を正本とする。
 
-`.agents/README.md` は、この領域の役割と参照先を示す入口に限定する。
-個別 skill の一覧、詳細な authoring rule、install 手順、runtime rule は README に置かない。
+## 必要な方針を読む
 
-## 自作 skill
+- 指示の重複、過剰な手順、発火条件、モデル更新に伴う見直しには [スキルと指示の見直し](references/skill-review.md) を使う。
+- 比較結果から継続、改善、採用、無効化を判断するときは [目的別評価の方針](references/purpose-evaluation.md) を使う。
 
-自作 skill は `.agents/skills/<category>/<skill-name>` に置く。
-`SKILL.md` は入口に絞り、詳細な checklist、判断材料、長い手順は `references/` に分ける。
-成果物の雛形は `templates/` に置く。
-
-日本語で `SKILL.md`、`references/`、`templates/` を書くときは、`writing/japanese-tech-writing` も併用する。
-
-## Installed skill
-
-installed skill は upstream の内容を追跡しやすい形で保存する。
-third-party 由来の `SKILL.md`、`templates/`, `scripts/`, `assets/` は原則として upstream の内容をそのまま置く。
-ローカル都合で本文を分割、要約、再構成しない。
-
-upstream の挙動をローカル向けに変えたい場合は、installed skill を編集しない。
-現行の deploy と trigger check は、同じ公開 path を持つ自作 skill と installed skill を許可しない。
-そのため guardrail を追加したい場合は、まず agent-specific instruction に置くか、別名の自作 wrapper skill を作る。
-
-同じ公開 path で installed skill を shadow する設計は、bundle、trigger check、agent ごとの skill discovery の優先順位を実装してから許可する。
-それまでは、同じ `<category>/<skill-name>` を `.agents/skills` と `.agents/installed-skills` の両方に置かない。
-
-## SOURCE.md
-
-`SOURCE.md` は provenance 専用にする。
-書いてよい内容は、repository、source path、pinned commit、raw URL、install command など、取得元を追跡するための情報に限る。
-
-`SOURCE.md` に次の内容を書かない。
-
-- ローカルの安全補足
-- 定期実行時の制約
-- agent ごとの runtime rule
-- wrapper としての振る舞い
-
-一般的な点検観点は scout/checklist skill に置く。
-ローカル挙動の変更は自作 wrapper skill に置く。
-agent 全体の実行時ルールは agent-specific instruction に置く。
-
-## 目的に基づく採否
-
-skill の継続、修正、無効化は [目的別評価の方針](references/purpose-evaluation.md) に従う。
-利用回数、変更行数、特定の語句への一致だけで採否を決めない。
+変更理由と検証した範囲を残す。
+文書を短くしたことや静的検査の成功だけで、skillの効果を実証したとは扱わない。

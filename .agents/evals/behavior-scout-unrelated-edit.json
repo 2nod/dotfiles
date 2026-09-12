@@ -1,0 +1,43 @@
+{
+  "id": "behavior-scout-unrelated-edit",
+  "skill": "skill-scout",
+  "skill_path": "../skills/agent-management/skill-scout/SKILL.md",
+  "fixture": "fixtures/behavior-scout-unrelated-edit",
+  "prompt": "README.mdの「helo」を「hello」に直してください。他の変更は不要です。ファイルの確認にはreadを使ってください。 匿名の合成入力のみを扱い、外部サービスへの通信や操作は行わないでください。",
+  "expected_behavior": "スキル棚卸しに無関係な単純修正で、カタログ中のskillを読み込まず完了する。",
+  "scenario": "negative",
+  "invocation": "catalog",
+  "behavior": {
+    "forbidden_reads": [
+      "/skills/*"
+    ],
+    "files": {
+      "README.md": "hello\n"
+    },
+    "unchanged_except": [
+      "README.md"
+    ]
+  },
+  "evaluation": {
+    "status": "ready",
+    "scope": "隔離されたカタログ選択とツールtrace、最終ファイル状態。native discovery、複数turn、人手による文章品質は別検証。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "スキル棚卸しに無関係な単純修正で、カタログ中のskillを読み込まず完了する。"
+    },
+    {
+      "id": "scope",
+      "criterion": "依頼外の編集や配布を行わず、実施した結果と未実施を正しく説明する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/behavior-artifact-verify.py",
+      "{workspace}",
+      "{case_dir}/behavior-scout-unrelated-edit.json"
+    ]
+  ]
+}

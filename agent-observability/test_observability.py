@@ -363,7 +363,7 @@ class ObservabilityTest(unittest.TestCase):
         self.assertIn("filter(row => row.cells.length > index)", eval_report)
         self.assertIn("+100pt", eval_report)
         self.assertIn("判断保留", eval_report)
-        self.assertIn("0 → 2", eval_report)
+        self.assertIn("— → 2", eval_report)
         self.assertIn("verifier_failed", eval_report)
         self.assertIn("条件を見る", eval_report)
         self.assertIn("同じテストデータ・課題・検証プログラムを使い、対象スキルを読み込まない", eval_report)

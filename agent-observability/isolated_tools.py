@@ -1,6 +1,6 @@
 """Credential-free eval tool worker. No host mounts, network, or model calls.
 
-The paid runner remains paused until fresh case/input plans are verified.
+Model tools and verifiers always run in these isolated workers.
 """
 
 from __future__ import annotations

@@ -20,7 +20,8 @@ import sys
 import shlex
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from eval_contracts import contract_version, tree_version, execution_preflight, dependency_paths
+from behavior_checks import check_behavior, validate_behavior
+from eval_contracts import contract_version, tree_version, dependency_paths
 from isolated_tools import ToolSandbox, fixture_files, IMAGE
 from datetime import datetime, timezone
 from typing import cast
@@ -60,6 +61,10 @@ def load_case(path: pathlib.Path) -> dict[str, object]:
             raise ValueError("ready cases require unique purpose rubric criteria")
         if case.get("scenario") not in ("typical", "boundary", "negative"):
             raise ValueError("ready case requires a scenario category")
+    if case.get("invocation", "explicit") not in ("explicit", "catalog"):
+        raise ValueError("invocation must be explicit or catalog")
+    if "behavior" in case:
+        validate_behavior(case["behavior"])
     return case
 
 
@@ -118,7 +123,7 @@ def diff_metrics(
 
 
 def pi_command(
-    prompt: str, skill_path: pathlib.Path | None, model: str | None, skill_root="/skills"
+    prompt: str, skill_path: pathlib.Path | None, model: str | None, skill_root="/skills", catalog=None
 ) -> list[str]:
     command = [
         "pi",
@@ -145,7 +150,13 @@ def pi_command(
     ]
     if model:
         command += ["--model", model]
-    if skill_path:
+    if catalog is not None:
+        command += ["--append-system-prompt",
+                    "Available skills in this isolated catalog: " + json.dumps(catalog, ensure_ascii=False)
+                    + ". Read a SKILL.md only when its described capability applies to this task. "
+                    + "Supporting files are relative to that skill directory. Use read for file inspection; "
+                    + "use bash only for commands explicitly requested by the task."]
+    elif skill_path:
         command += [
             "--append-system-prompt",
             "Apply this skill for this task. Supporting files are relative to "
@@ -297,6 +308,35 @@ def load_case_skills(worker, case, case_path, target, variant):
     return "/skills/" + target.parent.name
 
 
+def skill_catalog(case, case_path, target, variant, skill_root):
+    """Expose metadata only; catalog selection is not native runtime discovery."""
+    if variant == "control":
+        return []
+    roots = [(target.parent, skill_root)]
+    roots += [(path, "/skills/" + name) for name, path in dependency_paths(case, case_path, target).items()]
+    entries = []
+    for root, runtime_path in roots:
+        text = (root / "SKILL.md").read_text()
+        front = re.match(r"^---\n(.*?)\n---", text, re.S)
+        if not front:
+            raise ValueError("catalog requires skill frontmatter")
+        entry = {}
+        for key in ("name", "description"):
+            match = re.search(r"^" + key + r": ([^\n]+)$", front.group(1), re.M)
+            if not match or match.group(1).strip() in ("|", ">", "|-", ">-"):
+                raise ValueError("catalog requires single-line name and description")
+            entry[key] = match.group(1).strip().strip("\"'")
+        entry["path"] = runtime_path + "/SKILL.md"
+        entries.append(entry)
+    return entries
+
+
+def case_command(case, case_path, target, variant, model, skill_root=None):
+    skill_root = skill_root or ("/skills/" + target.parent.name if dependency_paths(case, case_path, target) else "/skills")
+    catalog = skill_catalog(case, case_path, target, variant, skill_root) if case.get("invocation") == "catalog" else None
+    return pi_command(str(case["prompt"]), target if variant != "control" else None, model, skill_root, catalog)
+
+
 def run_once(
     case,
     case_path,
@@ -327,9 +367,7 @@ def run_once(
         worker.load_fixture(fixture)
         skill_root = load_case_skills(worker, case, case_path, target, variant)
         before = worker.snapshot()
-        command = pi_command(
-            str(case["prompt"]), target if variant != "control" else None, model, skill_root
-        )
+        command = case_command(case, case_path, target, variant, model, skill_root)
         env = {
             **os.environ,
             "AGENT_OBSERVABILITY_DIR": str(pathlib.Path(temp) / ".agent-observability"),
@@ -373,8 +411,10 @@ def run_once(
             stderr += "\nArtifact export rejected: " + artifact_error
         agent_seconds = time.monotonic() - started
         input_verified = input_check(output, str(case["prompt"]))
+        behavior = check_behavior(case["behavior"], output, before, after) if "behavior" in case else None
         input_manifest = {
             "user_prompt": str(case["prompt"]), "stdin": "DEVNULL",
+            "invocation": case.get("invocation", "explicit"),
             "system_additions": [command[i + 1] for i, value in enumerate(command[:-1]) if value == "--append-system-prompt"],
             "fixture_version": tree_version(fixture),
             "skill_version": tree_version(target.parent) if variant != "control" else None,
@@ -451,6 +491,8 @@ def run_once(
             if not outcome
             else "input_mismatch"
             if not input_verified
+            else "behavior_failed"
+            if behavior is not None and not behavior["passed"]
             else "passed"
         )
         # Machine checks establish outcome only. Purpose rubrics need evidence-based review.
@@ -495,6 +537,8 @@ def run_once(
             "success": success,
             "outcome_success": outcome,
             "input_verified": input_verified,
+            "invocation": case.get("invocation", "explicit"),
+            "behavior_checks": behavior,
             "agent_exit": agent_exit,
             "failure_kind": kind,
             "failure_phase": "completed" if kind == "passed" else "execution",
@@ -565,20 +609,11 @@ def main() -> int:
                     "evaluation": case.get("evaluation"),
                     "contract_version": contract_version(case, case_path),
                     "rubric": case.get("rubric", []),
-                    "candidate_command": pi_command(
-                        str(case["prompt"]), candidate, args.model,
-                        "/skills/" + candidate.parent.name if dependency_paths(case, case_path, candidate) else "/skills"
-                    )
-                    if candidate
-                    else None,
+                    "invocation": case.get("invocation", "explicit"),
+                    "candidate_command": case_command(case, case_path, candidate, "candidate", args.model) if candidate else None,
                     "runs": plan,
-                    "treatment_command": pi_command(
-                        str(case["prompt"]), skill_path, args.model,
-                        "/skills/" + skill_path.parent.name if dependency_paths(case, case_path, skill_path) else "/skills"
-                    ),
-                    "control_command": pi_command(
-                        str(case["prompt"]), None, args.model
-                    ),
+                    "treatment_command": case_command(case, case_path, skill_path, "treatment", args.model),
+                    "control_command": case_command(case, case_path, skill_path, "control", args.model),
                     "verifiers": verifier_commands(
                         case, case_path, pathlib.Path("<workspace>")
                     ),
@@ -588,11 +623,6 @@ def main() -> int:
             )
         )
         return 0
-
-    try:
-        execution_preflight()
-    except ValueError as exc:
-        parser.error(str(exc))
 
     agent_version = subprocess.run(
         ["pi", "--version"], stdin=subprocess.DEVNULL, capture_output=True, text=True, check=True

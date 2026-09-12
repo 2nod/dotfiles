@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import pathlib
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
@@ -90,7 +89,7 @@ def contract_version(case, case_path, skill_path=None):
                 ).encode(),
             )
         )
-    for name in ("evaluate-skill.py", "eval_contracts.py", "isolated_tools.py", "isolated-pi-tools.mjs"):
+    for name in ("evaluate-skill.py", "eval_contracts.py", "isolated_tools.py", "isolated-pi-tools.mjs", "behavior_checks.py"):
         files.append((name, (pathlib.Path(__file__).parent / name).read_bytes()))
     return digest_files(files)
 
@@ -313,16 +312,3 @@ def reviewed_result(item, review=None):
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         pass
     return item
-
-
-EVALUATION_PAUSE_REASON = (
-    "実評価は停止中: 隔離検証と入力確認後の明示指定が必要。"
-    "承認済みの新規計画ではSKILL_EVAL_ISOLATED_RUN=1を指定する。"
-    "dry-runと保存済み成果物の確認は利用可能。"
-)
-
-
-def execution_preflight():
-    """Explicit opt-in after offline isolation checks; the runner enforces isolation."""
-    if os.environ.get("SKILL_EVAL_ISOLATED_RUN") != "1":
-        raise ValueError(EVALUATION_PAUSE_REASON)

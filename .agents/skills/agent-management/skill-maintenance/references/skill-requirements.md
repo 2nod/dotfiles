@@ -1,63 +1,48 @@
-# 新規 Skill の要件
+# Skillの作成と更新
 
-skill を新規作成・更新するときに確認する。
+skillが提供する固有の情報と、扱う依頼を確認してから構成を選ぶ。
+指示の取捨選択には [スキルと指示の見直し](../../skill-governance/references/skill-review.md) を使う。
 
-## 必須要件
+## 配置とmetadata
 
-- `SKILL.md` に `name` と `description` の frontmatter がある。
-- `description` は「いつ使うか」が分かる trigger 文になっている。
-- skill directory は `<category>/<skill-name>` の 2 segment で公開できる。
-- `skill-name` は lowercase hyphen-case にする。
-- 個人環境の絶対パスを書かない。dotfiles 内は repo root 相対で書く。
-- 自作 skill と installed skill で同じ公開 path を使わない。現行の trigger check と deploy は同名 shadowing を扱わない。
-- 成果物の雛形がある場合は `templates/` に置き、`SKILL.md` から template 名を明示する。
-- agent 横断の整理用に、必要なら `metadata.tags` と `metadata.related_skills` を書く。
-- 日本語で自作 `SKILL.md`、`references/`、`templates/` を書くときは、`writing/japanese-tech-writing` も併用し、冗長さ、LLM っぽい表現、論理の曖昧さを点検する。
+- `SKILL.md` のfrontmatterに `name` と `description` を置く。
+- descriptionは能力と使う場面を短く示す。詳細な手順、類義語の列挙、周辺作業への広い発火条件を含めない。
+- 公開pathは `<category>/<skill-name>` の2 segment、名前はlowercase hyphen-caseにする。
+- 自作とinstalledで公開pathを重複させない。
+- 個人環境の絶対パスを新たに埋め込まず、repo rootまたはskill基準の相対パスを使う。
+- 既存の有効なmetadataと呼び出し設定を保持する。必要な場合だけtagsやrelated_skillsを追加する。
 
-例:
+## 本文と同梱資料
 
-```yaml
-metadata:
-  tags: [github, review, workflow]
-  related_skills:
-    - software-development/test-driven-development
-```
+名前とdescriptionはdiscovery時に提示され、本文はskillを使うときに読まれる。
+本文に固定の最低文字数を設けず、目的と固有の制約を伝える長さにする。
+一つの短い作業なら単独の `SKILL.md` でよい。
+複数の作業モードがある場合は、必要な資料と読む条件が分かる入口にする。
 
-## 自作 `SKILL.md` の文字量目安
+| 内容 | 置き場所 |
+|---|---|
+| 必要時だけ読む契約、長い例、判断材料 | `references/` |
+| コピーして成果物に使う雛形 | `templates/` |
+| 繰り返す変換や決定論的な検査 | `scripts/` |
+| 成果物へ組み込む固定素材 | `assets/` |
 
-自作 skill の `SKILL.md` は常時読まれる入口なので、目安は本文 800-1200 字程度、長くても 1500 字以内に収める。
+本文から参照先と用途が分かるようにし、同じ説明を重複させない。
+使い道がないrouter、空のdirectory、README、quick referenceを作らない。
+script化は繰り返し処理や確実な実行が必要な箇所に限り、入力、出力、失敗、再実行、検証方法を定義する。
+文書の整理だけで新しいscriptや比較実験を要求しない。
 
-1500 字を超えそうな場合は、詳細を `references/` に分ける。特に次は reference に置く。
+日本語の本文や参照資料を執筆、推敲するときはjapanese-tech-writingを使う。
+shared skillにはagent共通の契約を残し、特定モデルの一般的な能力を前提に制約を削除しない。
 
-- 長い返信フォーマット
-- review checklist
-- コマンド例が多い手順
-- domain 固有の詳細ルール
-- 過去事例に強く依存する説明
+## 検証
 
-成果物として生成する型は `references/` ではなく `templates/` に置く。特に次は template に置く。
+frontmatter、変更した参照先、残す契約との整合を確認する。
+descriptionを変更した場合は `.agents/bin/check-skill-triggers` を使うが、語彙上の順位を実際の選択精度とは扱わない。
+scriptを変更した場合は、その挙動を確認する。
+効果の実証が必要な変更は、対象モデルと実行条件を定めて目的別評価へ進める。
 
-- issue body
-- ADR
-- handoff document
-- spike README / verdict
-- 調査レポート
-- PR description
+## Installed skill
 
-## 避けること
-
-- `README.md` や `QUICK_REFERENCE.md` など、skill 実行に不要な補助文書を増やす。
-- 特定ケースに寄った判断を汎用ルールとして書く。
-- `SKILL.md` に reference と同じ内容を重複して書く。
-- 起動済み agent に即時反映される前提で説明する。
-- Codex など特定 agent だけに閉じた書き方にする。原則として Codex / Cursor Agent / Claude Code などから読める shared skill として書く。
-
-## Installed Skill の要件
-
-installed skill の全体方針は `agent-management/skill-governance` に従う。
-更新・install 作業では、少なくとも次を確認する。
-
-- third-party 由来の `SKILL.md` と同梱 directory を、upstream 追跡可能な形で置いている。
-- `SOURCE.md` に repository、source path、pinned commit、raw URL、install command などが残っている。
-- ローカル挙動を変えたい場合、installed skill の本文ではなく agent-specific instruction か別名の自作 wrapper skill で扱っている。
-- 同じ公開 path で installed skill を shadow したい場合は、先に `agent-management/skill-governance` で方針を決め、trigger check と deploy の優先順位を実装する。
+upstreamの本文と同梱資料を保持し、`SOURCE.md` にrepository、source path、pinned commit、取得元URLを記録する。
+ローカル都合の本文修正は別名wrapperかagent固有の指示で扱う。
+同名shadowingを導入する場合は、skill-governanceで方針を決め、bundleとdiscoveryの優先順位を実装してから使う。
