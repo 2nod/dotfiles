@@ -58,6 +58,7 @@ let
     model = "gpt-5.5";
     approval_policy = "on-request";
     approvals_reviewer = "auto_review";
+    sandbox_mode = "workspace-write";
     allow_login_shell = true;
     model_reasoning_effort = "high";
     web_search_request = true;
