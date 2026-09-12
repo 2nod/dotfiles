@@ -204,6 +204,7 @@ Home Manager の activation で生成・差し替えされるもの。
   - `excludePatterns` に `/agmsg` を追加。
     `~/.agents/skills` は `rsync -a --delete` で同期されるため、除外しないと activation のたびに DB ごと消えます。
 - `nix/modules/home/programs/codex.nix`
+  - `model = "gpt-6-astra"` を新規taskの既定modelとする。
   - `sandbox_mode = "workspace-write"` と `approvals_reviewer = "auto_review"` により、task の workspace 内編集は人の承認待ちにせず、sandbox 外の操作だけを自動審査へ送る。
   - `sandbox_workspace_write.writable_roots` に `~/.agents/skills/agmsg/{db,teams,run}` を追加。
     agmsg の installer も同じ設定を書きますが、`config.toml` は activation で毎回上書きされるためここで宣言します。
