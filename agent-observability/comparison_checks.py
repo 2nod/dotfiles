@@ -37,5 +37,3 @@ def efficiency_passes(policy, pairs):
         if baseline <= 0 or measured > baseline * (1 - policy["minimum_reduction"]):
             return False
     return True
-
-
