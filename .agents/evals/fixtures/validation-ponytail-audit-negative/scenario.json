@@ -1,0 +1,7 @@
+{
+  "files": {
+    "legacy.py": "no known callers; dynamically imported plugin list unavailable",
+    "main.py": "loads plugins from config"
+  },
+  "config_available": false
+}

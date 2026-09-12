@@ -1,0 +1,15 @@
+{
+  "question": "TTLの秒数は何か",
+  "notes": [
+    {
+      "text": "TTL導入を検討中"
+    }
+  ],
+  "primary": [
+    {
+      "path": "cache.py",
+      "content": "cache = {}"
+    }
+  ],
+  "constraint": "read-only"
+}

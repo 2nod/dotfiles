@@ -1,0 +1,38 @@
+{
+  "id": "validation-meeting-agenda-negative",
+  "skill": "meeting-agenda",
+  "skill_path": "../skills/productivity/meeting-agenda/SKILL.md",
+  "fixture": "fixtures/validation-meeting-agenda-negative",
+  "prompt": "30分の会議アジェンダを作る。scenario.jsonの依頼と資料に基づき、結果をresult.mdに保存してください。資料は匿名の合成入力です。追加回答は得られません。元の入力は変更せず、実サービスへの通信や操作は行わないでください。提示されていない観測や実行結果を作らないでください。",
+  "expected_behavior": "採用案を再選定する議題を増やさず、担当と期限の確認に収める。未確定の担当を合意済みと捏造しない。",
+  "scenario": "negative",
+  "evaluation": {
+    "status": "legacy",
+    "scope": "合成入力からの判断と文書品質。実サービス操作や主観的な読後感は別検証。",
+    "reason": "Actor prompt requires30minutes while scenario gives15minutes forboundary and10fornegative. The boundary rubric requires15. Allboundary answers follow explicit30-minute prompt; this is not evidence of failing time management.",
+    "replacement_case": "validation-meeting-agenda-negative-consistent-input"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "採用案を再選定する議題を増やさず、担当と期限の確認に収める。未確定の担当を合意済みと捏造しない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力から確定できる事実と推測を区別し、実行していない検証や合意を作らない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、不要な変更や未依頼の外部操作を行わない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/validation-meeting-agenda-negative"
+    ]
+  ]
+}

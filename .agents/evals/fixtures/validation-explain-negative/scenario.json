@@ -1,0 +1,8 @@
+{
+  "audience": "初学者",
+  "facts": [
+    "attempts may repeat",
+    "idempotency key maps repeated attempts to same operation"
+  ],
+  "request": "リトライを図なしで短く説明"
+}

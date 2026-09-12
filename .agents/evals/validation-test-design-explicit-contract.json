@@ -1,0 +1,44 @@
+{
+  "id": "validation-test-design-explicit-contract",
+  "skill": "test-design-review",
+  "skill_path": "../skills/software-development/test-design-review/SKILL.md",
+  "fixture": "fixtures/validation-test-design-explicit-contract",
+  "prompt": "Review the test design against CONTRACT.md and the implementation. Write findings.md with actionable findings and reasons, or explain why no changes are needed. Do not modify the input files.",
+  "expected_behavior": "明示された入力契約の全組合せがテストされ、重要入力が可視であると判断する。schemaを支えるhelperを保持し、契約外の追加テストやvalidationを必須化しない。",
+  "scenario": "negative",
+  "evaluation": {
+    "status": "ready",
+    "scope": "入力契約を明示して不要な追加・helper変更を区別する補足ケース。独立holdoutとは主張しない。"
+  },
+  "rubric": [
+    {
+      "id": "problem_detection",
+      "criterion": "重要入力が可視で両方の契約内入力が検証済みだと認識する。"
+    },
+    {
+      "id": "false_positives",
+      "criterion": "契約外の入力や欠落キーへの対応を不足と誤指摘しない。"
+    },
+    {
+      "id": "missed_issues",
+      "criterion": "CONTRACT.mdの有限入力領域と共有schemaを読み落とさない。"
+    },
+    {
+      "id": "unnecessary_changes",
+      "criterion": "metadataの除去やhelper全廃、不要な製品コード変更を要求しない。"
+    },
+    {
+      "id": "necessary_additions",
+      "criterion": "追加必須の契約内入力が残っていないと判断する。契約拡張時の将来の提案は現在の必須修正と分ける。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "review",
+      "{case_dir}/fixtures/validation-test-design-explicit-contract"
+    ]
+  ]
+}

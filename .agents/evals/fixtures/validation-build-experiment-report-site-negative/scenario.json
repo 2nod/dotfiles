@@ -1,0 +1,18 @@
+{
+  "runs": [
+    {
+      "fixture": "v2",
+      "case": "small",
+      "baseline_ms": 8,
+      "candidate_ms": 6
+    },
+    {
+      "fixture": "v2",
+      "case": "large",
+      "baseline_ms": 10,
+      "candidate_ms": 12
+    }
+  ],
+  "repetitions": 1,
+  "metric": "compute duration only"
+}

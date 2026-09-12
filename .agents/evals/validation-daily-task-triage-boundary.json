@@ -1,0 +1,36 @@
+{
+  "id": "validation-daily-task-triage-boundary",
+  "skill": "daily-task-triage",
+  "skill_path": "../skills/productivity/daily-task-triage/SKILL.md",
+  "fixture": "fixtures/validation-daily-task-triage-boundary",
+  "prompt": "入力に指定された残り時間と対象から、今日の仕事を整理する。scenario.jsonの依頼と資料に基づき、結果をresult.mdに保存してください。資料は匿名の合成入力です。追加回答は得られません。元の入力は変更せず、実サービスへの通信や操作は行わないでください。提示されていない観測や実行結果を作らないでください。",
+  "expected_behavior": "ID xの重複を除き40分以内の実行可能な計画を示す。承認待ちyを完了や実行可能扱いしない。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "合成入力からの判断と文書品質。実サービス操作や主観的な読後感は別検証。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "ID xの重複を除き40分以内の実行可能な計画を示す。承認待ちyを完了や実行可能扱いしない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力から確定できる事実と推測を区別し、実行していない検証や合意を作らない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、不要な変更や未依頼の外部操作を行わない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/validation-daily-task-triage-boundary"
+    ]
+  ]
+}

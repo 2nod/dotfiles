@@ -1,0 +1,7 @@
+{
+  "diff": [
+    "replace value.upper() with value.upper()"
+  ],
+  "requirement": "uppercase a string",
+  "request": "過剰設計をレビュー"
+}

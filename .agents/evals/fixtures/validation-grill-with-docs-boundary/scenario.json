@@ -1,0 +1,11 @@
+{
+  "answered": {
+    "sync": false,
+    "users": "single"
+  },
+  "undecided": [
+    "storage format"
+  ],
+  "document": "Sync conflict policy: pending",
+  "request": "確定情報と未決事項の文書案を整理"
+}

@@ -1,0 +1,16 @@
+{
+  "jobs": {
+    "a": {
+      "status": "cancelled",
+      "callback": "cancelled",
+      "lease": "released",
+      "artifact": "absent"
+    },
+    "b": {
+      "status": "running",
+      "callback": "pending",
+      "lease": "active",
+      "artifact": "partial"
+    }
+  }
+}

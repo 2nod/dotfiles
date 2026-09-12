@@ -1,0 +1,7 @@
+{
+  "files": {
+    "adapter.py": "used by three backends with different protocols",
+    "factory.py": "selects one of three registered backends"
+  },
+  "requirement": "runtime backend selection"
+}

@@ -1,0 +1,11 @@
+{
+  "signals": [],
+  "inventory_complete": false,
+  "source_metadata": {
+    "tool-a": {
+      "repository": null,
+      "commit": null
+    }
+  },
+  "request": "監査して残すか決めたい"
+}

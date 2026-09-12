@@ -1,0 +1,42 @@
+{
+  "id": "validation-diagnosing-bugs-negative",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/validation-diagnosing-bugs-negative",
+  "prompt": "parse_count should parse integer strings and raise ValueError for malformed or fractional strings, preserving valid zero, negative and whitespace counts. Diagnose the reported fractional-input issue. Write a regression test, execute it, and explain observed cause and recheck in diagnosis.md. This is a verification request: a bug report may be incorrect. If the production behavior already meets the contract, keep production code unchanged and report evidence. Use only the synthetic local workspace. Do not access network or external services.",
+  "expected_behavior": "正しい既存実装の公開契約を実行で確認し、不要な製品コード変更をしない。",
+  "scenario": "negative",
+  "evaluation": {
+    "status": "ready",
+    "scope": "公開APIの実行と回帰テスト・操作順序。実サービスや本番性能は対象外。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "正しい既存実装の公開契約を実行で確認し、不要な製品コード変更をしない。"
+    },
+    {
+      "id": "process",
+      "criterion": "契約を実行で検証し、存在しない失敗を捏造しない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "必要な入力を保持し、private実装への固定・不要な永続化・依存追加・過剰な抽象化を避ける。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/correct-code-verify.py",
+      "{workspace}",
+      "parser"
+    ],
+    [
+      "python3",
+      "{case_dir}/preserve-code-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/validation-diagnosing-bugs-negative",
+      "parser.py"
+    ]
+  ]
+}

@@ -1,0 +1,1 @@
+This adapter is used only for a fixed-price product with price=2 and quantity in {0,3}. Other values, missing fields and invalid types are outside its public contract. Valid order objects include metadata.locale as part of the shared order schema, even though this function does not read it. Tests should preserve that schema. Both supported input combinations are covered.

@@ -1,0 +1,36 @@
+{
+  "id": "validation-git-workflow-boundary",
+  "skill": "git-workflow",
+  "skill_path": "../skills/software-development/git-workflow/SKILL.md",
+  "fixture": "fixtures/validation-git-workflow-boundary",
+  "prompt": "まずpython3 setup.pyを一度実行して匿名のローカルGit repoを初期化してください。mainを基点にreview branchを作りtaskの変更だけを含めてください。mixedの無関係なcommitと未保存personal.txtを保持し、merge-baseとPR相当の差分を実際に確認してください。結果をworkspace/result.mdに保存してください。setup.pyは編集せず、remote・ネットワーク・実環境のrepoにアクセスしないでください。Git操作はこの合成repo内だけが対象です。",
+  "expected_behavior": "mainを基点にreview branchを作りtaskの変更だけを含めてください。mixedの無関係なcommitと未保存personal.txtを保持し、merge-baseとPR相当の差分を実際に確認してください。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "実Gitによる匿名ローカル履歴と未保存変更の保持。GitHubへのpushやPR APIは対象外。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "mainを基点にreview branchを作りtaskの変更だけを含めてください。mixedの無関係なcommitと未保存personal.txtを保持し、merge-baseとPR相当の差分を実際に確認してください。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "実際のmerge-baseと差分、未保存変更の確認に基づいて報告する。未実施のpushやPR作成を完了扱いしない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "setupを変更せず、無関係なcommitとユーザー変更を保持する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/git-operation-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/validation-git-workflow-boundary",
+      "boundary"
+    ]
+  ]
+}

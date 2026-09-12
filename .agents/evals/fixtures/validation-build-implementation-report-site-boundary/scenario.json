@@ -1,0 +1,20 @@
+{
+  "change": "受付APIから処理をqueue workerへ移す",
+  "flow": [
+    "API accepts",
+    "queue holds",
+    "worker processes",
+    "result stored"
+  ],
+  "contract": "202 is acceptance, not completion",
+  "tests": [
+    "worker unit test passed"
+  ],
+  "not_run": [
+    "browser E2E"
+  ],
+  "files": [
+    "api/accept.py",
+    "worker/process.py"
+  ]
+}

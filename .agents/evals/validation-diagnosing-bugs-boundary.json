@@ -1,0 +1,36 @@
+{
+  "id": "validation-diagnosing-bugs-boundary",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/validation-diagnosing-bugs-boundary",
+  "prompt": "parse_count should parse integer strings and raise ValueError for malformed or fractional strings, preserving valid zero, negative and whitespace counts. Diagnose the reported fractional-input issue. Write a regression test, execute it, and explain observed cause and recheck in diagnosis.md. Use only the synthetic local workspace. Do not access network or external services.",
+  "expected_behavior": "入力で指定された不具合を再現し最小修正後に同じ回帰テストを成功させる。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "公開APIの実行と回帰テスト・操作順序。実サービスや本番性能は対象外。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "入力で指定された不具合を再現し最小修正後に同じ回帰テストを成功させる。"
+    },
+    {
+      "id": "process",
+      "criterion": "traceに対象の不具合による修正前の失敗と修正後の成功がある。構文・環境エラーを不具合再現としない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "必要な入力を保持し、private実装への固定・不要な永続化・依存追加・過剰な抽象化を避ける。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "parser",
+      "{case_dir}/fixtures/validation-diagnosing-bugs-boundary"
+    ]
+  ]
+}

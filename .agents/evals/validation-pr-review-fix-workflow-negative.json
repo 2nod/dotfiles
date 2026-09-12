@@ -1,0 +1,37 @@
+{
+  "id": "validation-pr-review-fix-workflow-negative",
+  "skill": "pr-review-fix-workflow",
+  "skill_path": "../skills/software-development/pr-review-fix-workflow/SKILL.md",
+  "fixture": "fixtures/validation-pr-review-fix-workflow-negative",
+  "prompt": "資料を調査し必要な変更案だけをresult.mdへ記載してください。今回は実装・更新・配布をしないでください。result.md以外のファイルを作成・変更しないでください。 workspace内の匿名合成fixtureだけを対象にします。外部サービス・ホスト・実際の知識ベースやskill配置は操作しないでください。",
+  "expected_behavior": "調査のみの指示に従い、入力や配置先を変更せず根拠付き提案を残す。",
+  "scenario": "negative",
+  "evaluation": {
+    "status": "ready",
+    "scope": "合成ファイルの実編集と保持。サービス接続や実際のagent discoveryは別検証。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "調査のみの指示に従い、入力や配置先を変更せず根拠付き提案を残す。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "本文・index・返信・参照の意味が入力の確定契約と一致し、実行していない検証や外部配布を完了扱いしない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "不要な変更を避け、正本と保護対象を保持する。操作する場合はtraceに実編集と目的に対応する検査がある。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/file-operation-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/validation-pr-review-fix-workflow-negative",
+      "pr-review-fix-workflow",
+      "negative"
+    ]
+  ]
+}

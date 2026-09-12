@@ -1,0 +1,10 @@
+{
+  "diff": [
+    "add PaymentAdapter for Card and Bank backends"
+  ],
+  "contracts": {
+    "Card": "retry with idempotency key",
+    "Bank": "never retry ambiguous response"
+  },
+  "requirement": "support both existing payment methods"
+}

@@ -1,0 +1,1 @@
+[{"id": "c1", "request": "None must raise ValueError; empty string stays valid"}, {"id": "c2", "request": "add a persistent cache", "contract": "no cache required; process-local transformation only"}]

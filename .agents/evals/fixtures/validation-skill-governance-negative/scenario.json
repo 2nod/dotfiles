@@ -1,0 +1,9 @@
+{
+  "request": "upstream更新後にローカル承認方針が消えた",
+  "files": {
+    "SOURCE.md": "repository: synthetic; commit: abc",
+    "agent-instructions.md": "外部投稿は明示依頼時のみ"
+  },
+  "upstream_updated": true,
+  "local_policy_file_changed": false
+}

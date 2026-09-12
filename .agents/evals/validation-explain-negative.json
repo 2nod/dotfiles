@@ -1,0 +1,38 @@
+{
+  "id": "validation-explain-negative",
+  "skill": "explain",
+  "skill_path": "../installed-skills/writing/explain/SKILL.md",
+  "fixture": "fixtures/validation-explain-negative",
+  "prompt": "初学者へcache invalidationの仕組みを説明する。scenario.jsonの依頼と資料に基づき、結果をresult.mdに保存してください。資料は匿名の合成入力です。追加回答は得られません。元の入力は変更せず、実サービスへの通信や操作は行わないでください。提示されていない観測や実行結果を作らないでください。",
+  "expected_behavior": "再試行と冪等性の役割を区別し、図なしの指定を守る。無条件exactly-onceを保証しない。",
+  "scenario": "negative",
+  "evaluation": {
+    "status": "legacy",
+    "scope": "合成入力からの判断と文書品質。実サービス操作や主観的な読後感は別検証。",
+    "reason": "Actor prompt asks forcache invalidation while scenarios askack vscompletion andbrief retry/idempotency withoutdiagram. The title/topic requirements conflict and may force unrelated cache explanation. Do not grade those conflict outcomes as skill-quality evidence.",
+    "replacement_case": "validation-explain-negative-consistent-input"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "再試行と冪等性の役割を区別し、図なしの指定を守る。無条件exactly-onceを保証しない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力から確定できる事実と推測を区別し、実行していない検証や合意を作らない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、不要な変更や未依頼の外部操作を行わない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/validation-explain-negative"
+    ]
+  ]
+}

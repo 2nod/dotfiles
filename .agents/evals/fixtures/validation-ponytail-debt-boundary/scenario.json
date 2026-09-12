@@ -1,0 +1,8 @@
+{
+  "files": {
+    "src/a.py": "# ponytail: up to 20 rows, revisit beyond 20\nx=1",
+    "src/b.py": "s=\"ponytail: example text\"",
+    "vendor/a.py": "# ponytail: ignored",
+    "README.md": "ponytail: is our convention"
+  }
+}

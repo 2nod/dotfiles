@@ -1,5 +1,5 @@
 {
-  "id": "purpose-cognitive-rhythm-writing",
+  "id": "validation-cognitive-rhythm-writing-typical-with-dependency",
   "skill": "cognitive-rhythm-writing",
   "skill_path": "../installed-skills/writing/cognitive-rhythm-writing/SKILL.md",
   "fixture": "fixtures/purpose-cognitive-rhythm-writing",
@@ -7,10 +7,8 @@
   "expected_behavior": "観察から仮説と検証へ読める流れを作りcacheという未解決条件を落とさない。原因をネットワークだと断定しない。",
   "scenario": "typical",
   "evaluation": {
-    "status": "legacy",
-    "scope": "捕捉済み合成入力からの成果物と判断。実サービス操作、対話継続、発火精度は未評価。",
-    "reason": "SKILL.md requires ../japanese-tech-writing/SKILL.md. Frozen input dependency_versions is empty; treatment trace has read failures for sibling and fallback paths. Original comparison does not represent the required skill bundle.",
-    "replacement_case": "validation-cognitive-rhythm-writing-typical-with-dependency"
+    "status": "ready",
+    "scope": "捕捉済み合成入力からの成果物と判断。実サービス操作、対話継続、発火精度は未評価。 必須併用資料を含むbundleとして比較する。cognitive単体の限界効果とは主張しない。"
   },
   "rubric": [
     {
@@ -34,5 +32,8 @@
       "captured",
       "{case_dir}/fixtures/purpose-cognitive-rhythm-writing"
     ]
-  ]
+  ],
+  "skill_dependencies": {
+    "japanese-tech-writing": "../installed-skills/writing/japanese-tech-writing"
+  }
 }

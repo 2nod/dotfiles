@@ -1,0 +1,9 @@
+{
+  "audience": "初学者",
+  "facts": [
+    "ack means receipt",
+    "work may fail after ack",
+    "result is recorded separately"
+  ],
+  "request": "ackと完了の関係を説明"
+}

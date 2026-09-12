@@ -7,8 +7,10 @@
   "expected_behavior": "重要入力が見えておりhelperは付随データを隠す役割だと判断する。 重要入力が隠れていると誤認しない。 正の数量とゼロ数量の既存契約を認識する。 helper全廃を要求せず、元ファイルを変更しない。 追加不要の理由、または既存テストが検出できない具体的な誤実装と追加案を示す。",
   "scenario": "boundary",
   "evaluation": {
-    "status": "ready",
-    "scope": "単体skillの目的別評価。発火率と他skillとの併用は対象外"
+    "status": "legacy",
+    "scope": "単体skillの目的別評価。発火率と他skillとの併用は対象外",
+    "reason": "metadata.locale is present in make_order but no schema or input-domain contract is supplied. Control1/2 retain the helper while proposing removal of metadata to catch accidental dependency; treatment retains it as incidental shape. Both are plausible under the supplied implementation. Rubric preference for a useful helper cannot establish metadata retention necessity.",
+    "replacement_case": "validation-test-design-explicit-contract"
   },
   "rubric": [
     {

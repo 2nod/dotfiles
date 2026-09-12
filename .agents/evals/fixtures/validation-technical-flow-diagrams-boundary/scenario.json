@@ -1,0 +1,28 @@
+{
+  "states": [
+    "accepted",
+    "waiting",
+    "processing",
+    "done",
+    "failed"
+  ],
+  "transitions": [
+    [
+      "accepted",
+      "waiting"
+    ],
+    [
+      "waiting",
+      "processing"
+    ],
+    [
+      "processing",
+      "done"
+    ],
+    [
+      "processing",
+      "failed"
+    ]
+  ],
+  "reduced_motion": "all states and paths retained"
+}
