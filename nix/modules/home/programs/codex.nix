@@ -55,7 +55,7 @@ let
   };
 
   settings = {
-    model = "gpt-5.5";
+    model = "gpt-6-astra";
     approval_policy = "on-request";
     approvals_reviewer = "auto_review";
     sandbox_mode = "workspace-write";
