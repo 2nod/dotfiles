@@ -1,0 +1,17 @@
+{
+  "before": "key = (tenant, id)",
+  "after": "key = id",
+  "contract": "tenants may use the same id; cache shared by tenants",
+  "example": [
+    {
+      "tenant": "east",
+      "id": 9,
+      "value": "A"
+    },
+    {
+      "tenant": "west",
+      "id": 9,
+      "value": "B"
+    }
+  ]
+}

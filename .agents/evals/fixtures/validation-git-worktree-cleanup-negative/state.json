@@ -1,0 +1,22 @@
+{
+  "worktrees": {
+    "active": {
+      "dirty": true,
+      "merged": false
+    },
+    "old": {
+      "dirty": false,
+      "merged": true
+    }
+  },
+  "tasks": {
+    "t1": {
+      "worktree": "active",
+      "archived": false
+    },
+    "t2": {
+      "worktree": "old",
+      "archived": false
+    }
+  }
+}

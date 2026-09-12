@@ -1,0 +1,11 @@
+{
+  "plan": "個人用オフラインノート",
+  "answered": {
+    "users": "single user",
+    "sync": false
+  },
+  "undecided": [
+    "storage format"
+  ],
+  "request": "未決の重要な問いを絞る"
+}

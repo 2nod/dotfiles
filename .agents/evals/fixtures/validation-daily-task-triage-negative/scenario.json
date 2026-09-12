@@ -1,0 +1,18 @@
+{
+  "minutes": 60,
+  "tasks": [
+    {
+      "id": "a",
+      "pinned": true,
+      "work": "user confirmed done",
+      "execution": "running"
+    },
+    {
+      "id": "b",
+      "pinned": false,
+      "work": "optional",
+      "execution": "running"
+    }
+  ],
+  "request": "未完了のpinnedだけを整理"
+}

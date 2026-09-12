@@ -1,0 +1,9 @@
+{
+  "problem": "同一IDの別tenantへcacheが混ざる",
+  "final_design": "key=(tenant,id)",
+  "evidence": [
+    "cross tenant unit test passed"
+  ],
+  "qa": "browser not run",
+  "discarded_idea": "disable all caching"
+}

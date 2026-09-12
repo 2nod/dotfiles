@@ -18,9 +18,6 @@ spec.loader.exec_module(loop)
 
 class LoopTests(unittest.TestCase):
     def setUp(self):
-        guard = patch.object(loop, "execution_preflight")
-        guard.start()
-        self.addCleanup(guard.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = pathlib.Path(self.temp.name)
@@ -139,28 +136,6 @@ class LoopTests(unittest.TestCase):
                 loop.next_round(self.root, self.root / "next", self.case_path)
         self.assertFalse((self.root / "next").exists())
 
-    def test_operational_pause_prevents_budget_reservation(self):
-        from eval_contracts import execution_preflight
-
-        with (
-            patch.object(loop, "execution_preflight", side_effect=execution_preflight),
-            patch.object(loop.subprocess, "run") as run,
-        ):
-            with self.assertRaisesRegex(ValueError, "実評価は停止中"):
-                loop.launch(self.plan, self.root)
-            run.assert_not_called()
-        self.assertFalse((self.root / "started.json").exists())
-
-    def test_isolated_execution_requires_exact_opt_in(self):
-        from eval_contracts import execution_preflight
-
-        for value in ("", "0", "true"):
-            with patch.dict(os.environ, {"SKILL_EVAL_ISOLATED_RUN": value}):
-                with self.assertRaises(ValueError):
-                    execution_preflight()
-        with patch.dict(os.environ, {"SKILL_EVAL_ISOLATED_RUN": "1"}):
-            execution_preflight()
-
     def test_missing_alignment_stops_model_execution(self):
         self.plan["cases"][0]["alignment"] = ""
         with patch.object(loop.subprocess, "run") as run:
@@ -220,6 +195,19 @@ class LoopTests(unittest.TestCase):
         self.assertTrue(any("diagnosis" in e for e in errors))
         self.assertTrue(any("holdout" in e for e in errors))
         self.assertTrue(any("typical / boundary / negative" in e for e in errors))
+
+    def test_deferred_extraction_needs_only_a_reason_but_extract_needs_contract(self):
+        self.plan.update(candidate={"path": str(self.case_path), "version": "candidate"},
+                         max_calls=3,
+                         diagnosis={"cause": "Duplicate prose", "evidence": "Input", "change": "Remove duplicate"},
+                         script_review={"decision": "defer", "reason": "Documentation only"})
+        with patch.object(loop, "tree_version", return_value="candidate"):
+            self.assertEqual(loop.validate(self.plan), [])
+            self.plan["script_review"]["decision"] = "extract"
+            errors = loop.validate(self.plan)
+            self.assertEqual(len([e for e in errors if e.startswith("script_review")]), 4)
+            self.plan["script_review"] = {"decision": "defer", "reason": ""}
+            self.assertIn("script_review.reason: 記録が必要", loop.validate(self.plan))
 
     def test_validated_candidate_acceptance_and_holdout_regression(self):
         self.plan.update(
@@ -298,8 +286,8 @@ class LoopTests(unittest.TestCase):
             result_path.write_text('\n'.join(json.dumps(row) for row in rows))
             self.assertTrue(any('adopt:' in e for e in loop.validate(plan, 'decision')))
 
-    def test_completed_run_cannot_be_billed_twice(self):
-        with patch.object(loop.subprocess, "run") as run:
+    def test_explicit_run_needs_no_opt_in_and_cannot_be_billed_twice(self):
+        with patch.dict(os.environ, {}, clear=True), patch.object(loop.subprocess, "run") as run:
             run.return_value.returncode = 0
             loop.launch(self.plan, self.root)
             with self.assertRaises(FileExistsError):
@@ -337,3 +325,15 @@ class LoopTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class HumanReviewTest(unittest.TestCase):
+    def test_ai_missing_and_stale_review_cannot_authorize_decision(self):
+        pairs = [{'control': {'artifact_version': 'a'}, 'treatment': {'artifact_version': 'b'}}]
+        decision = {'action':'keep'}
+        self.assertTrue(loop.human_review_errors(decision, pairs))
+        decision['human_review'] = {'kind':'ai','action':'keep','reviewer':'AI','evidence':'example','conclusion':'keep','artifact_versions':['a','b']}
+        self.assertTrue(loop.human_review_errors(decision, pairs))
+        decision['human_review']['kind']='human'
+        self.assertEqual(loop.human_review_errors(decision, pairs), [])
+        decision['human_review']['artifact_versions']=['old']
+        self.assertTrue(loop.human_review_errors(decision, pairs))

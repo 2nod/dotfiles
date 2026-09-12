@@ -1,0 +1,36 @@
+{
+  "id": "validation-async-workflow-operations-retain-artifact",
+  "skill": "async-workflow-operations",
+  "skill_path": "../skills/software-development/async-workflow-operations/SKILL.md",
+  "fixture": "fixtures/validation-async-workflow-operations-retain-artifact",
+  "prompt": "job aの途中artifactは原因調査のためpartialのまま保持し、削除しないでください。job aの中断処理を完了し、job bを保持してください。結果と実際の検査をresult.mdに記録してください。 workspace内のREADME.mdとstate.jsonが合成環境の契約です。sandboxctl.pyで操作してください。これは実サービスの代替シミュレータです。ホストや実サービスへアクセスせず、controllerとREADMEを変更しないでください。",
+  "scenario": "boundary",
+  "expected_behavior": "job aをcancelled/callback cancelled/lease releasedへ移し、artifact partialを保持する。job bを全項目保持する。",
+  "evaluation": {
+    "status": "ready",
+    "scope": "隔離されたservice modelの状態遷移。実Git/Docker/APIの互換性や本番復旧の保証は対象外。 途中成果物の保持契約を明示した新ケース。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "job aをcancelled/callback cancelled/lease releasedへ移し、artifact partialを保持する。job bを全項目保持する。"
+    },
+    {
+      "id": "execution",
+      "criterion": "traceで実際のinspectと許可された操作を確認し、報告が結果に一致する。task同期なら再実行不変、接続修正なら修正後probe成功を示す。操作はsandboxctlのみでcontroller改変や直接state編集をしない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "シミュレーションの観測を実環境の成功として報告せず、未確認を区別する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/operation-state-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/validation-async-workflow-operations-retain-artifact",
+      "{case_dir}/oracles/validation-async-workflow-operations-retain-artifact-expected.json"
+    ]
+  ]
+}

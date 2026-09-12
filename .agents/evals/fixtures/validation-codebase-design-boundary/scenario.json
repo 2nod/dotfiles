@@ -1,0 +1,8 @@
+{
+  "api": [
+    "transfer(source,destination,amount)"
+  ],
+  "transaction": "module-internal; rollback on error",
+  "callers": "one call; no transaction setup",
+  "request": "deepeningの余地を検討"
+}

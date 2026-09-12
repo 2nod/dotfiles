@@ -99,7 +99,14 @@
       },
       "path": "skills/software-development/build-experiment-report-site/SKILL.md",
       "source": "authored",
-      "evaluation_scope": "usage-and-improvement"
+      "evaluation_scope": "usage-and-improvement",
+      "human_review_required": true,
+      "human_review_focus": [
+        "共通構成・表記への一貫性",
+        "必要な情報の見つけやすさ",
+        "読みやすさ・視覚的な理解",
+        "不要な重複・空欄・装飾"
+      ]
     },
     "build-implementation-report-site": {
       "purpose": "変更を知らない人が実装の役割と検証範囲を判断できる",
@@ -119,7 +126,14 @@
       },
       "path": "skills/software-development/build-implementation-report-site/SKILL.md",
       "source": "authored",
-      "evaluation_scope": "usage-and-improvement"
+      "evaluation_scope": "usage-and-improvement",
+      "human_review_required": true,
+      "human_review_focus": [
+        "共通構成・表記への一貫性",
+        "必要な情報の見つけやすさ",
+        "読みやすさ・視覚的な理解",
+        "不要な重複・空欄・装飾"
+      ]
     },
     "docker-worktree-cleanup": {
       "purpose": "Docker資源とworktreeを対応付け必要なデータを守って整理する",
@@ -319,7 +333,14 @@
       },
       "path": "skills/software-development/pr-description-writing/SKILL.md",
       "source": "authored",
-      "evaluation_scope": "usage-and-improvement"
+      "evaluation_scope": "usage-and-improvement",
+      "human_review_required": true,
+      "human_review_focus": [
+        "共通構成・表記への一貫性",
+        "必要な情報の見つけやすさ",
+        "読みやすさ・視覚的な理解",
+        "不要な重複・空欄・装飾"
+      ]
     },
     "pr-diff-findings": {
       "purpose": "差分が引き起こす実害を条件と根拠付きで指摘する",
@@ -379,7 +400,14 @@
       },
       "path": "skills/software-development/technical-flow-diagrams/SKILL.md",
       "source": "authored",
-      "evaluation_scope": "usage-and-improvement"
+      "evaluation_scope": "usage-and-improvement",
+      "human_review_required": true,
+      "human_review_focus": [
+        "共通構成・表記への一貫性",
+        "必要な情報の見つけやすさ",
+        "読みやすさ・視覚的な理解",
+        "不要な重複・空欄・装飾"
+      ]
     },
     "test-design-review": {
       "purpose": "期待値の理由が見え変更に強いテストへ改善する",
@@ -716,7 +744,14 @@
       },
       "path": "installed-skills/writing/html/SKILL.md",
       "source": "installed",
-      "evaluation_scope": "usage-only"
+      "evaluation_scope": "usage-only",
+      "human_review_required": true,
+      "human_review_focus": [
+        "共通構成・表記への一貫性",
+        "必要な情報の見つけやすさ",
+        "読みやすさ・視覚的な理解",
+        "不要な重複・空欄・装飾"
+      ]
     },
     "show-me": {
       "purpose": "現在の疑問を解く最小限の視覚説明を作る",
@@ -735,7 +770,14 @@
       },
       "path": "installed-skills/writing/show-me/SKILL.md",
       "source": "installed",
-      "evaluation_scope": "usage-only"
+      "evaluation_scope": "usage-only",
+      "human_review_required": true,
+      "human_review_focus": [
+        "共通構成・表記への一貫性",
+        "必要な情報の見つけやすさ",
+        "読みやすさ・視覚的な理解",
+        "不要な重複・空欄・装飾"
+      ]
     }
   }
 }

@@ -1,0 +1,6 @@
+{
+  "before": "if summary_exists or final_exists: reject()",
+  "after": "if final_exists or summary_exists: reject()",
+  "contract": "both checks are pure boolean values; reject aborts before execute",
+  "other_changes": []
+}

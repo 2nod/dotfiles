@@ -1,0 +1,11 @@
+{
+  "definitions": {
+    "draft": "未提出",
+    "submitted": "提出済み"
+  },
+  "new_requirement": "提出前にdraftを削除できる",
+  "facts": [
+    "submitted cannot be deleted"
+  ],
+  "request": "矛盾があれば整理"
+}

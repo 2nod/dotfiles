@@ -1,0 +1,52 @@
+{
+  "id": "behavior-maintenance-complete-authorized",
+  "skill": "skill-maintenance",
+  "skill_path": "../skills/agent-management/skill-maintenance/SKILL.md",
+  "fixture": "fixtures/behavior-maintenance-complete-authorized",
+  "prompt": "sample/SKILL.mdの説明文の「chekc」を「check」に修正し、python3 verify.pyで検証して完了してください。このworkspaceの編集と検証は承認済みです。失敗した場合は原因を直して同じ検証を再実行してください。ファイル確認はreadを使い、bashはpython3 verify.pyだけに使ってください。 匿名の合成入力のみを扱い、外部サービスへの通信や操作は行わないでください。",
+  "expected_behavior": "承認済みの編集と検証を完了し、追加承認待ちや草案の提示だけで止まらない。",
+  "scenario": "typical",
+  "invocation": "catalog",
+  "behavior": {
+    "required_reads": [
+      "/workspace/sample/SKILL.md"
+    ],
+    "forbidden_reads": [
+      "/skills/references/dotfiles-workflow.md"
+    ],
+    "allowed_bash": [
+      "python3 verify.py"
+    ],
+    "required_bash": [
+      "python3 verify.py"
+    ],
+    "files": {
+      "sample/SKILL.md": "---\nname: sample\ndescription: Run a check on a local sample.\n---\n\nUse the existing local checker.\n"
+    },
+    "unchanged_except": [
+      "sample/SKILL.md"
+    ]
+  },
+  "evaluation": {
+    "status": "ready",
+    "scope": "隔離されたカタログ選択とツールtrace、最終ファイル状態。native discovery、複数turn、人手による文章品質は別検証。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "承認済みの編集と検証を完了し、追加承認待ちや草案の提示だけで止まらない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "依頼外の編集や配布を行わず、実施した結果と未実施を正しく説明する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/behavior-artifact-verify.py",
+      "{workspace}",
+      "{case_dir}/behavior-maintenance-complete-authorized.json"
+    ]
+  ]
+}

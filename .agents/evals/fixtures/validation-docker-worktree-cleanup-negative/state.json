@@ -1,0 +1,26 @@
+{
+  "volumes": {
+    "shared-db": {
+      "users": [
+        "active",
+        "old"
+      ],
+      "rebuildable": false
+    },
+    "old-cache": {
+      "users": [
+        "old"
+      ],
+      "rebuildable": true
+    }
+  },
+  "worktrees": {
+    "active": {
+      "dirty": true
+    },
+    "old": {
+      "dirty": false,
+      "merged": true
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "question": "cacheの識別子は何か",
+  "notes": [
+    {
+      "path": "memo.md",
+      "text": "IDで識別",
+      "date": "2026-01-02"
+    }
+  ],
+  "primary": [
+    {
+      "path": "cache.py",
+      "content": "cache[(tenant, record_id)] = value"
+    },
+    {
+      "path": "test_cache.py",
+      "content": "assert get(\"east\", 7) != get(\"west\", 7)"
+    }
+  ],
+  "constraint": "read-only"
+}

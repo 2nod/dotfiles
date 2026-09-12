@@ -18,6 +18,26 @@ spec.loader.exec_module(evaluator)
 
 
 class CliLifecycleTest(unittest.TestCase):
+    def test_init_requires_model_and_selects_only_requested_invocation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / 'round'
+            command = [sys.executable, str(ROOT / 'skill-loop.py'), 'init', str(root), '--skill', 'skill-maintenance']
+            missing = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(missing.returncode, 1)
+            self.assertFalse(root.exists())
+            result = subprocess.run([*command, '--model', 'offline/stub', '--invocation', 'catalog'], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            plan = json.loads((root / 'plan.json').read_text())
+            self.assertEqual(plan['model'], 'offline/stub')
+            self.assertEqual(len(plan['cases']), 2)
+            self.assertTrue(all(json.loads(Path(entry['path']).read_text())['invocation'] == 'catalog' for entry in plan['cases']))
+            self.assertFalse((root / 'started.json').exists())
+            plan['invocation'] = 'explicit'
+            (root / 'plan.json').write_text(json.dumps(plan))
+            mismatch = subprocess.run([sys.executable, str(ROOT / 'skill-loop.py'), 'check', str(root)], capture_output=True, text=True)
+            self.assertNotEqual(mismatch.returncode, 0)
+            self.assertIn('計画とケースの呼び出し方法が不一致', mismatch.stdout + mismatch.stderr)
+
     def test_prepare_review_report_decide_continue_and_reject_tampering(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

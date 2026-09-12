@@ -189,7 +189,9 @@ console.log('adapter: 4 isolated tools; denied host read; missing configuration 
             attached = ToolSandbox(kwargs["env"]["SKILL_EVAL_DOCKER"])
             attached.name = kwargs["env"]["SKILL_EVAL_CONTAINER"]
             attached.write("result.md", b"synthetic result")
-            return subprocess.CompletedProcess(command, 0, "", "")
+            self.assertEqual(kwargs["stdin"], subprocess.DEVNULL)
+            trace = json.dumps({"type":"message_end","message":{"role":"user","content":[{"type":"text","text":command[-1]}]}})
+            return subprocess.CompletedProcess(command, 0, trace, "")
 
         with (
             patch.object(evaluator, "ROOT", self.root / "results"),
@@ -200,6 +202,10 @@ console.log('adapter: 4 isolated tools; denied host read; missing configuration 
             )
         self.assertEqual(len(model_calls), 1)  # Intercepted, not executed.
         self.assertTrue(result["success"])
+        self.assertTrue(result["input_verified"])
+        manifest = json.loads((Path(result["artifacts"]) / "input.json").read_text())
+        self.assertEqual(manifest["user_prompt"], "synthetic prompt")
+        self.assertEqual(manifest["stdin"], "DEVNULL")
         self.assertEqual(result["isolation"], "docker-no-host-mounts-v1")
         self.assertEqual(result["changed_paths"], ["result.md"])
         self.assertEqual(self.canary.read_text(), "synthetic-host-file-canary")

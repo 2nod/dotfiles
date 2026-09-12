@@ -1,0 +1,1 @@
+{"name": "review-helper", "category": "software-development", "trigger": "Review a test design", "purpose": "Explain important test inputs", "reference": "references/checklist.md", "template": "templates/findings.md", "deploy_targets": ["runtime-a", "runtime-b"]}

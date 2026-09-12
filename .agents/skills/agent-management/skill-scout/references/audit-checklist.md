@@ -1,85 +1,57 @@
-# Skill Scout Audit Checklist
+# スキルの点検項目
 
-## ローカル inventory
+依頼された範囲に当てはまる項目だけを使う。
+棚卸しの優先度は、実際の誤発火、作業の停止、成果物の不備などの根拠で決める。
+長さや利用回数だけで不要と判断しない。
 
-- `.agents/skills` と `.agents/installed-skills` の `SKILL.md` を列挙する。
-- 各 `SKILL.md` に `name` と `description` の frontmatter があるか確認する。
-- `description` が「何の skill か」だけでなく「いつ使うか」を説明しているか確認する。
-- 自作 skill と installed skill の公開 path が衝突していないか確認する。現行では同じ公開 path の shadowing は未対応として扱う。
-- 参照されている `references/`, `templates/`, `scripts/`, `assets/` が存在するか確認する。
-- installed skill に `SOURCE.md` があるか確認する。
+## Inventoryと読み込み
 
-## 品質シグナル
+- 対象の `.agents/skills` と `.agents/installed-skills` を列挙し、名前、description、公開pathの衝突を確認する。
+- discovery時に同じskillが複数の配置元から提示されていないか確認する。配布元の重複とruntimeの重複表示を区別する。
+- descriptionの用途が広すぎないか、別skillと重ならないかを具体的な依頼文で確認する。
+- 本文と参照は問題に関係するものを読み、リンク切れや一括読み込みの指示を確認する。
+- installed skillの出典は `SOURCE.md` で確認し、不明な情報を推測で補わない。
 
-- Trigger overlap: 同じ依頼文で複数 skill が発火しそう。
-- Thin skill: description や本文が曖昧で、使いどころを判断しにくい。
-- Bloated skill: `SKILL.md` 本体に、長い例・template・checklist が入りすぎている。
-- Missing validation: ファイル変更や判断を伴うのに、検証手順がない。
-- Unsafe automation: 明示承認なしで state-changing action を促している。
-- Shadowing ambiguity: installed skill を上書きする wrapper 方針がないまま、同じ公開 path を使っている。
+## 指示が変える挙動
 
-代表 prompt に対する発火期待は `.agents/skill-trigger-cases.json` に追加し、次を実行して regression を確認する。
+- 固有の契約や落とし穴が残り、一般論、重複、古い回避策を減らせるか。
+- 固定手順や過剰な出力形式が、依頼と無関係な作業を増やしていないか。
+- 全体調査、テスト、他skillの読み込みに適用条件があるか。
+- ユーザーが許可した作業を再承認待ちにしていないか。
+- 実行と確認まで必要な依頼を、最初の草案で終了する指示がないか。
+- 対象モデルとruntimeの証拠があり、他環境の結果を流用していないか。
+
+対処の選び方は [スキルと指示の見直し](../../skill-governance/references/skill-review.md) に従う。
+外部通信やstate変更を見つけた場合は、操作対象と既存の許可を確認する。
+コマンド名だけで危険や追加承認の必要性を断定しない。
+
+## 確認方法
+
+構造の変更はfrontmatterと参照先、scriptの変更は該当する挙動を確認する。
+descriptionを変更した場合は次の既存検査を使う。
 
 ```sh
 .agents/bin/check-skill-triggers
 ```
 
-この check は LLM を呼ばず、ローカルの `SKILL.md` frontmatter だけで候補順位を見積もる。
-実際の agent 判断の完全再現ではなく、`description` の劣化、trigger overlap、期待 skill の候補落ちを早く見つけるために使う。
-出力される `recall@1`, `recall@N`, `mrr` を定期点検時の回帰指標として見る。
+これは語彙に基づく候補順位の静的検査であり、自律的な選択精度や意味品質の実測ではない。
+実際の発火が問題なら、対象runtimeの名前とdescription、候補群、依頼文を揃えて確認する。
 
-## 安全シグナル
+## 保存済み評価を扱う場合
 
-installed skill と外部由来の skill では、次の項目を優先して確認する。
+`agent-observability-audit-evals --skills` で目的と未評価範囲を確認できる。
+採否を扱う対象roundは `skill-loop.py status <round>` で状態を読み、必要な段階のcheckと成果物を確認する。
+保存先は `$AGENT_OBSERVABILITY_DIR/eval-loops/`、未設定時は `~/.local/share/agent-observability/eval-loops/`。
+一件の棚卸しのために全roundのcheckを要求しない。
+未評価や証拠不足は保留理由にし、旧ケースや利用頻度で埋めない。
 
-- `scripts/` や実行可能ファイルが同梱されている。
-- `curl`, `wget`, `gh`, `gcloud`, `docker`, `ssh`, package manager など、外部通信や外部 system に触れる command を促している。
-- token、credential、secret、cookie、SSH key、環境変数、認証ファイルを読む指示がある。
-- `rm`, `mv`, `chmod`, `chown`, `git push`, deploy、DB 更新など、state-changing command を促している。
-- source、pinned commit、取得元 URL が `SOURCE.md` で確認できない。
+定期の差分監視を依頼されている場合に `--changes` を使う。
+このコマンドは前回との差分を保存し、初回は基準登録になる。
+変化がなければ通知しない。
+新しい有料比較を自動実行しない。
 
-該当する場合は、ただちに危険と断定せず、何が危険面になり得るか、どの承認や隔離が必要かを report に書く。
+## 新しいskillを提案する場合
 
-## skill 化シグナル
-
-次のうち 2 つ以上が当てはまるなら、skill 化候補として扱う。
-
-- ユーザーが同じタスクや言い回しを繰り返している。
-- 複数の command、tool、判断ステップをまたぐ。
-- checklist、template、script があると安定する。
-- 複数 repo または複数 agent で使える。
-- 明示的な guardrail がないとミスしやすい。
-
-次の場合は skill 化を避ける。
-
-- 一回きりの project knowledge である。
-- 既存 skill に吸収した方がよい。
-- 安全に記述しにくい、変動しやすい private state に依存している。
-
-## 外部シグナル
-
-次の情報源から候補を探す。
-
-- Codex の公式 documentation / changelog
-- Claude Code の公式 documentation / changelog
-- Cursor と MCP ecosystem の更新
-- agent workflow に関する信頼できる engineering post
-- skill ecosystem、agent safety、eval、automation loop に関する論文や report
-
-流行そのものではなく、この dotfiles repo の反復作業に対応するものだけを local proposal にする。
-
-## 目的別の効果監視
-
-`agent-observability-audit-evals --skills`で全skillの目的、証拠、未評価範囲、script化候補を確認する。
-旧ケースの採点や利用頻度だけで無効化を提案しない。
-`--changes`は前回との差分を保存して返す。初回は基準登録とし、変更がなければ通知しない。
-新しい悪化、条件変更、採点完了、判断が必要な変更だけを報告する。有料比較評価は別途指定された予算とモデルの範囲で実行する。
-
-
-## 改善ループの遵守
-
-skill改善の実行規約は `skill-governance/references/purpose-evaluation.md` を正本とする。
-`$AGENT_OBSERVABILITY_DIR/eval-loops/*/plan.json`（未設定時は `~/.local/share/agent-observability/eval-loops/`）の保存済み計画について、`skill-loop.py check <directory> --stage plan` を実行する。
-開始済みならreview、decision.jsonがあればdecisionもチェックする。
-失敗は不足条件として扱い、完了や採用へ進めない。
-未実行計画を自動でrunしない。
+繰り返す課題と、skillが提供する固有の知識やscriptを示す。
+既存指示の削除、条件付け、統合で解消できる場合は、その対処を優先する。
+一般的な能力の説明、一回きりの作業、変動するprivate stateだけを新しいskillにしない。

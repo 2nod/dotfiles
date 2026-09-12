@@ -1,0 +1,11 @@
+{
+  "published_medians": {
+    "speedup": "3–6x"
+  },
+  "scope": "external benchmark",
+  "current_repo_measurements": {
+    "baseline_seconds": 10,
+    "candidate_seconds": 12,
+    "runs": 1
+  }
+}

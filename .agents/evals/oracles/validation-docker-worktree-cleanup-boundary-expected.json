@@ -1,0 +1,20 @@
+{
+  "volumes": {
+    "shared-db": {
+      "users": [
+        "active",
+        "old"
+      ],
+      "rebuildable": false
+    }
+  },
+  "worktrees": {
+    "active": {
+      "dirty": true
+    },
+    "old": {
+      "dirty": false,
+      "merged": true
+    }
+  }
+}

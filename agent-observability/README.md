@@ -1,7 +1,8 @@
 # Agent skill observability
 
 日常の利用記録と、合成ケースによるskill比較評価を扱う。
-改善作業は下記の「改善ループ」から始める。
+指示の棚卸しや文書保守は [スキルと指示の見直し](../.agents/skills/agent-management/skill-governance/references/skill-review.md) から、比較実験は下記の「改善ループ」から始める。
+文書整理の完了は、効果の実証やruntimeへの配布完了を意味しない。
 
 ## 比較評価の実行環境
 
@@ -24,8 +25,8 @@ SKILL_EVAL_OFFLINE_DOCKER=1 PYTHONPYCACHEPREFIX=/tmp/skill-eval-pycache \
 
 Dockerを指定しない通常のテストは隔離テストをskipする。
 テストはモデルを呼ばない。実Piの読み込み確認も認証・推論promptなしで終了する。
-依頼された実評価だけ `SKILL_EVAL_ISOLATED_RUN=1` を付ける。
-この環境変数は運用の明示指定であり、隔離を提供するのはコンテナ実装である。
+ユーザーが依頼した実評価は、対象・モデル・回数を確定し、planのcheck後にrunする。
+追加の起動フラグは不要。コンテナ隔離は常に適用し、Dockerや固定イメージを利用できない場合は実行を止める。
 
 skillの同梱ディレクトリ以外の参照資料は自動コピーしない。
 readはUTF-8テキスト、editは一意な完全一致を扱う。
@@ -53,9 +54,25 @@ Codex App hook は重複実行を避けるため `hooks.json` に集約し、Her
 ## 表示
 
 `swiftbar/plugins/agent-skills.10s.py` が30分以内に更新されたlive stateを表示する。
-`Open report` は直近30日のJSONLを集計し、日常監視用の`report.html`を開く。caseと比較評価は同時生成される`evals.html`へ分離し、両ページのナビゲーションから移動できる。
+`Open report` は3ページを同時生成し、スキル一覧の`report.html`を開く。
+- `report.html`（スキル一覧）: 自作・外部導入（installed）別の採否と配置、全期間の判断までの残作業。ケース比較の要約は直近30日（`--days`で変更）。
+- `evals.html`（検証結果）: 自作・外部導入別の保存済み検証レポートへのリンク（全期間）と、`eval-results`にあるケースの比較・成果物・履歴（直近30日）。別形式のCodex検証は参考検証としてケースの実行記録に表示し、成功記録と元レポートを示す。比較判定・採用判定へは混ぜない。
+- `usage.html`: 直近30日の利用履歴と作業検証。
+
+採否と配置はスキル一覧に集約し、検証結果からリンクする。検証ケースは自作／外部導入の区分内でスキル別にまとめ、スキルを開いて確認する。検索・実行記録の絞り込みでは一致するスキルを展開し、ケースへの直接リンクでは絞り込みを解除して展開する。スキルの見出しに実行記録のあるケース数を表示する。比較評価と参考検証は同じ実行履歴に条件別の行として表示し、一覧の件数と一致させる。記録ありは青、記録なしは灰色の表示と文言で区別する。自作と外部導入の区分は管理台帳の`source`に従い、配置の有無とは混同しない。区分を特定できない履歴・複数区分を含むレポートは別枠に残す。未採点・比較対象の欠落がある成功率差は表示しない。未採点を失敗に数えず、未計測の値は0にせず「—」または「未記録」と表示する。成果物は存在するファイルだけにリンクし、欠落を明記する。古い評価条件は現在の継続候補として扱わない。
 レポートとSwiftBarのskill名は実際に読むローカル`SKILL.md`へリンクする。共有skillは`shared · authored/installed`、Codex同梱skillは`codex-system · bundled`と表示する。installed skillのupstream情報は`SOURCE.md`で管理する。
 検証率は、schema v2でskillを使った終了済みturnのうち、記録された検証カテゴリ（test・build・diagnostics）の最終結果がすべて成功した割合です。diagnosticsはerror・blocking・timeout・未確認を失敗とし、warningだけなら成功として件数を記録します。検証イベントがないturnは未検証、旧schemaのturnは集計対象外です。skillなしとの因果比較ではありません。
+
+### 表示の整合性
+
+`report_evidence.py`がケース、比較記録、参考検証、スキル区分を1つのスナップショットにまとめ、スキル一覧と検証結果で共有する。
+参考検証は保存済みの実行・成果物確認として表示し、現在の条件での比較判定や採用決定には使わない。
+通常の利用履歴は別の計測であり、ケースの実行件数へ加えない。
+
+3ページをメモリ上で生成してから、`report_validation.py`でケースの過不足・スキル別件数・実行記録と履歴行数・区分・内部リンク・共通スタイルを照合する。
+利用履歴も、利用回数が検証済・失敗・未検証・終了記録なし・旧形式の合計と一致し、集計元と等しいことを照合する。不整合がある場合は生成を失敗させ、既存HTMLの更新前に止める。
+`--preview-dir <directory>`を指定すると、検証済みの同じ3ページをプレビューにも保存する。
+これはファイルごとの置換であり、複数ファイル全体のトランザクションではない。
 
 ## 比較評価
 
@@ -67,7 +84,7 @@ verifier結果と実行条件を`eval-results/*.jsonl`へ、合成fixtureの成�
 
 ```sh
 agent-observability-eval .agents/evals/ponytail-cache.json --runs 3 --dry-run
-SKILL_EVAL_ISOLATED_RUN=1 agent-observability-eval .agents/evals/ponytail-cache.json --allow-legacy --runs 3 --model <provider/model>
+agent-observability-eval .agents/evals/ponytail-cache.json --allow-legacy --runs 3 --model <provider/model>
 agent-observability-eval .agents/evals/tdd-inventory.json --runs 1 --dry-run
 agent-observability-eval .agents/evals/diagnosis-parser.json --runs 1 --dry-run
 ```
@@ -104,9 +121,9 @@ TDD、原因調査、最小実装は実コードを検証する。外部サー�
 
 ```sh
 agent-observability-eval .agents/evals/purpose-tdd-red-green.json --runs 3 --dry-run
-SKILL_EVAL_ISOLATED_RUN=1 agent-observability-eval .agents/evals/purpose-tdd-red-green.json --runs 3 --model <provider/model>
+agent-observability-eval .agents/evals/purpose-tdd-red-green.json --runs 3 --model <provider/model>
 # 修正版のdirectoryには参照ファイルも含める
-SKILL_EVAL_ISOLATED_RUN=1 agent-observability-eval .agents/evals/purpose-tdd-red-green.json --runs 3 --model <provider/model> --candidate /path/to/candidate/SKILL.md
+agent-observability-eval .agents/evals/purpose-tdd-red-green.json --runs 3 --model <provider/model> --candidate /path/to/candidate/SKILL.md
 agent-observability-audit-evals --skills
 agent-observability-audit-evals --changes
 agent-observability-report
@@ -116,7 +133,7 @@ agent-observability-report
 旧ケースは明示的な `--allow-legacy` に限り探索実行できるが採否には使わない。
 各run内でcontrol/treatment/candidateを順序交代して実行する。
 `--no-context-files`、`--no-extensions`などで通常の追加指示の流入を抑え、対象skill本文だけを明示注入する。
-これは単体の効果評価であり、発火精度、他skillとの相互作用、Codexでの効果を測らない。
+これは既定のexplicitモードでの単体の効果評価であり、発火精度、他skillとの相互作用、Codexでの効果を測らない。カタログ選択は後述するcatalogモードで分ける。
 ツール実行は上記のコンテナに隔離する。合成fixture専用に使う。
 
 `eval-artifacts/<experiment>/<run>-<variant>/`へ次を保存する。
@@ -151,15 +168,17 @@ review.jsonのreviewerを記入し、各criterionのpassをtrue/falseにして�
 ## 改善ループ
 
 方法の正本は [目的別評価の方針](../.agents/skills/agent-management/skill-governance/references/purpose-evaluation.md)。
-効果を見てskillを改良する作業では、単独のevalコマンドではなく次の入口を使う。
+skillの効果を比較する実験では、単独のevalコマンドではなく次の入口を使う。
+指示の整理だけの依頼では、新しいroundや有料実行を必須にしない。
+対象モデルとruntime、変更仮説を定め、未解決の判断に必要なskillとケースを選ぶ。
 低レベルの `evaluate-skill.py` は既存実験と探索用途のため残すが、直接実行しただけでは改善ループの完了にならない。
 
 ```sh
-python3 agent-observability/skill-loop.py init ~/.local/share/agent-observability/eval-loops/test-design-001 --skill test-design-review
+python3 agent-observability/skill-loop.py init ~/.local/share/agent-observability/eval-loops/test-design-001 --skill test-design-review --model <provider/model>
 # 生成された plan.json を記入する
 python3 agent-observability/skill-loop.py check ~/.local/share/agent-observability/eval-loops/test-design-001
 # ユーザーが依頼した有料評価の範囲内で実行する
-SKILL_EVAL_ISOLATED_RUN=1 python3 agent-observability/skill-loop.py run ~/.local/share/agent-observability/eval-loops/test-design-001
+python3 agent-observability/skill-loop.py run ~/.local/share/agent-observability/eval-loops/test-design-001
 # 各artifactのreview.jsonを証拠付きで採点する
 python3 agent-observability/skill-loop.py check ~/.local/share/agent-observability/eval-loops/test-design-001 --stage review
 # decision.json を記入する
@@ -182,7 +201,7 @@ python3 agent-observability/skill-loop.py check ~/.local/share/agent-observabili
 
 修正時は別の計画を作り、`candidate` を `{"path":"/absolute/candidate/SKILL.md","version":"sha256:..."}` にする。
 versionは `eval_contracts.tree_version(candidate_directory)` で取得する。
-`diagnosis` の `cause`、`evidence`、`change` と、`script_review` の `decision`（extract/defer）、`reason`、`input_output`、`failure`、`idempotence`、`verification` を記入する。
+`diagnosis` の `cause`、`evidence`、`change` と、`script_review` の `decision`（extract/defer）と `reason` を記入する。extractの場合だけ `input_output`、`failure`、`idempotence`、`verification` も必要になる。deferの過去記録に詳細があっても保持する。
 候補の採用には `mode: validate`、通常/境界/負例、各3回以上、少なくとも1件の `holdout: true` を必要とする。
 採用条件は品質改善、または後述の事前指定した効率改善。どちらも全候補結果の品質合格が必要。
 
@@ -229,7 +248,10 @@ python3 agent-observability/skill-loop.py check <round> --stage review
 python3 agent-observability/skill-loop.py report <round>
 ```
 
-reportはround内のreport.htmlとreport.jsonを更新する。
+reportはround内のreport.md、report.html、report.jsonを同じ保存済みデータから更新する。
+report.mdは判断用の説明であり、直接編集しない。計画はplan.json、採点は各artifactのreview.json、判断はdecision.jsonを更新して再生成する。
+対象モデルとruntime、変更仮説、比較した版、採点者、判断理由、未確認事項、同じ入力の比較リンクを記載する。
+判断が書かれていてもdecision検査を通らなければ未確定と表示する。候補の効率比較は現行と候補の品質で判定し、controlの不合格だけでは保留にしない。採用には別途decision検査の通過が必要。
 JSONには条件別の品質合否、使用量・時間の合計と範囲、未採点一覧、全結果を保存する。
 成果物は変えないため、レポート更新で採点hashは変わらない。
 HTMLのstateとcheckのエラーを先に確認する。未採点や欠落を成功として扱わない。
@@ -262,3 +284,53 @@ metricはtotal_tokensまたはduration_seconds。minimum_reductionは0より大�
 ## 日常確認の入口
 
 `agent-observability-report` で3ページを更新する。`report.html` は保存済みラウンドの状態・次の作業・判断理由、`usage.html` は利用履歴、`evals.html` は比較評価の詳細。改善状態は既存のstatus判定を再利用し、壊れた記録も確認対象として表示する。判断記録があってもゲート未通過なら未確定と表示し、モデル実行や配置を行わない。件数はスキル数ではなくラウンド数で、利用履歴の期間指定とは独立に全ラウンドを読む。
+
+改善状況の件数カードを選ぶと状態を絞り込める。検索と状態フィルタは併用し、「条件をクリア」で全件へ戻す。長いラウンド名・検査エラー・判断根拠は必要時に展開する。表示時点はヘッダーに明記し、改善状況の全期間と利用履歴の期間指定を区別する。
+
+画面設計では [Braintrustの比較導線](https://www.braintrust.dev/docs/evaluate/compare-experiments) と [Langfuseの実験画面](https://langfuse.com/docs/evaluation/experiments/experiments-via-ui) を参考に、概要・対象の絞り込み・詳細確認の順に整理した。
+
+### 現行状態と判断の整合性
+
+改善状況と比較評価のスキル一覧は、管理元に実在するスキルを対象にする。共有配置先との同梱ファイルのhash比較を表示するが、全エージェントの読み込み状態は保証しない。削除済みスキルのラウンドは表示しない。対象を特定できない破損記録は件数だけを通知し、元の記録は削除しない。
+
+ケース詳細もスキル集計と同じ現行評価条件hashで判定する。各ラウンドのstatusがdecidedの判断だけを有効な根拠として表示し、判断記録ファイルの存在だけでは採否を確定しない。有効な判断が競合した場合は要確認とし、ファイル名や更新時刻で優先順位を推測しない。履歴から削除された証拠を補完したり、未評価を不採用と解釈したりしない。
+
+## 入力の一致と品質を先に確認する
+
+モデル起動と版取得は標準入力をDEVNULLに接続し、呼び出し元のパイプ・here-documentを継承しない。各成果物のinput.jsonに課題文、追加システム指示、コマンド、テストデータと対象bundleのhashを保存する。プロバイダ既定のシステム指示全文はこの記録の対象外。traceの終了済みユーザーメッセージが課題文1件と完全一致しない場合はinput_mismatchとし、正常な比較結果に含めない。旧実験の入力混入は同条件比較の根拠に流用しない。
+
+テスト設計レビューはproblem_detection（問題の発見）、false_positives（誤指摘の回避）、missed_issues（見逃しの回避）、unnecessary_changes（不要な変更の回避）、necessary_additions（必要な追加提案）の5軸を別々に採点する。全軸はtrueが合格であり、平均で相殺しない。各軸に実際の成果物の箇所と根拠を残す。追加提案の必要性は検出する誤実装と結びつけ、単に提案数が少ないことを高評価にしない。
+
+機械verifierはレビュー成果物の存在・入力ファイル不変を検査するだけで、文章の正しさを保証しない。意味の採点では条件を伏せたレビューを優先し、判断の割れる指摘は別の採点者が確認する。採点対象に正解やrubricを渡さない。追加したケースは開発に使用済みなので独立holdoutとして扱わず、採用前に別ケースを用意する。品質と条件が揃うまで効率比較を保留し、トークン・時間は観測値として残す。有料実評価は明示依頼の範囲で別途実行する。
+
+デザイン目的を含むhuman_review_required対象は、keep/adopt/disableのdecisionにhuman_reviewを必要とする。kindはhuman、reviewer・evidence・conclusionは実際の人のレビュー、actionは判断対象の採否、artifact_versionsは比較した全成果物hashの一覧。AIだけで埋めない。人手レビュー未実施ならholdとして、比較対象と確認観点を提示する。
+
+## 行動検証のカタログ選択
+
+`invocation: catalog` のcaseは名前、description、SKILL.mdの場所だけを提示する。
+本文を強制注入せず、実際に読んだ資料と編集、検証コマンド、最終ファイル状態を保存する。
+controlには対象skillと依存資料を提示せず、同じ課題の完了を比較する。
+これは隔離カタログ内での選択実験であり、CodexやPiのnative discovery、起動時のdescription短縮、複数turnの効果は測らない。
+explicitとcatalogは別の計画にする。`init`にはモデルを明示し、`--case`で必要なcaseだけ選べる。
+
+```sh
+python3 agent-observability/skill-loop.py init /path/to/new-round --skill skill-maintenance --model <provider/model> --invocation catalog
+python3 agent-observability/skill-loop.py check /path/to/new-round
+# 承認された計画だけrunする。init/check/dry-runはモデルを呼ばない。
+```
+
+最初のケースは `.agents/evals/behavior-*.json` の3件。
+無関係な修正での非適用、誤字修正での必要資料の選択、承認済みの編集から検証完了までを扱う。
+調査だけの依頼で変更しない境界は既存の `validation-skill-maintenance-negative` も使う。
+3件を用意したことやverifierの動作確認を、モデルの行動改善の実証と扱わない。
+
+`behavior`の期待する読込、禁止する読込、必要な検証コマンド、変更後のファイル内容は同じケースの全条件に適用する。
+対象skillの読み込み自体をcontrolの失敗条件にしない。
+Piのtool_execution_start/endを確認し、検証は成功した終了イベントを必要とする。
+ファイル変更があるのにtool traceがない場合は検証不能として不合格にする。
+readの計測を迂回するbashは、課題に明記した検証コマンドだけを許可する。
+これは測定条件であり、通常作業にreadや特定のコマンドを強制する規則ではない。
+意味品質と不要な質問の妥当性はrubricで別に採点する。完了確認だけで会話品質の全体を保証しない。
+
+判定はbehavior_checks、入力のinvocation、全成果物のhashとともに記録する。
+形式やruntimeが変わったtraceを推測で成功扱いにせず、対応形式を確認して別条件で実行する。

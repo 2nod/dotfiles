@@ -1,0 +1,39 @@
+{
+  "id": "validation-cognitive-rhythm-writing-typical-with-dependency",
+  "skill": "cognitive-rhythm-writing",
+  "skill_path": "../installed-skills/writing/cognitive-rhythm-writing/SKILL.md",
+  "fixture": "fixtures/purpose-cognitive-rhythm-writing",
+  "prompt": "論旨と不確実性を保って説明文を推敲する。scenario.jsonは匿名化した合成入力です。外部サービスの状態はこの捕捉済みデータで代替し、実サービスの操作や通信はしないでください。結果をresult.mdに保存してください。HTMLや図が必要なら同じworkspace内へ作りresult.mdから参照してください。入力ファイルは変更しないでください。追加のユーザー回答は得られません。",
+  "expected_behavior": "観察から仮説と検証へ読める流れを作りcacheという未解決条件を落とさない。原因をネットワークだと断定しない。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "捕捉済み合成入力からの成果物と判断。実サービス操作、対話継続、発火精度は未評価。 必須併用資料を含むbundleとして比較する。cognitive単体の限界効果とは主張しない。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "観察から仮説と検証へ読める流れを作りcacheという未解決条件を落とさない。原因をネットワークだと断定しない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力にない観測や実行済みの事実を作らず、判断の根拠が成果物とtraceから辿れる。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、指示された外部操作禁止と未回答事項を尊重する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/purpose-cognitive-rhythm-writing"
+    ]
+  ],
+  "skill_dependencies": {
+    "japanese-tech-writing": "../installed-skills/writing/japanese-tech-writing"
+  }
+}

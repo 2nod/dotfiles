@@ -1,0 +1,7 @@
+{
+  "proposal": [
+    "自作writing/brief-teamでupstream writing/briefを参照",
+    "SOURCE.mdにはrepoとcommitだけ記録"
+  ],
+  "shadowing": false
+}

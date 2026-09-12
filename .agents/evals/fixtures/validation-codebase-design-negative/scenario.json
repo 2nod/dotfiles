@@ -1,0 +1,10 @@
+{
+  "api": [
+    "execute(sql)"
+  ],
+  "users": [
+    "report builder needs arbitrary SQL",
+    "fund transfer needs atomic operations"
+  ],
+  "requirement": "both supported"
+}

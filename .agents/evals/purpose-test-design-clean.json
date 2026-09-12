@@ -4,7 +4,7 @@
   "skill_path": "../skills/software-development/test-design-review/SKILL.md",
   "fixture": "fixtures/purpose-test-design-clean",
   "prompt": "Review the test design against the production behavior. Write findings.md with actionable findings and reasons, or explain why no changes are needed. Do not modify the source or tests.",
-  "expected_behavior": "価格2と数量3が期待値6の理由だと理解し、その値がtest case内に見えるかで判断する。 適切なテストを不要に書き換える提案をしない。 実際の箇所と影響に基づき指摘する。特定の重大度ラベル、単語、言語は要求しない。",
+  "expected_behavior": "重要入力がテスト本体に見えており、この点は変更不要と判断する。 契約にない誤った指摘をしない。 現行テストが保証する具体的な振る舞いを説明する。 未定義の業務要件を追加せず、元ファイルを変更しない。 追加提案は検出する具体的な誤実装と結びつける。追加不要の説明も認める。",
   "scenario": "negative",
   "evaluation": {
     "status": "ready",
@@ -12,16 +12,24 @@
   },
   "rubric": [
     {
-      "id": "purpose-1",
-      "criterion": "価格2と数量3が期待値6の理由だと理解し、その値がtest case内に見えるかで判断する。"
+      "id": "problem_detection",
+      "criterion": "重要入力がテスト本体に見えており、この点は変更不要と判断する。"
     },
     {
-      "id": "purpose-2",
-      "criterion": "適切なテストを不要に書き換える提案をしない。"
+      "id": "false_positives",
+      "criterion": "契約にない誤った指摘をしない。"
     },
     {
-      "id": "purpose-3",
-      "criterion": "実際の箇所と影響に基づき指摘する。特定の重大度ラベル、単語、言語は要求しない。"
+      "id": "missed_issues",
+      "criterion": "現行テストが保証する具体的な振る舞いを説明する。"
+    },
+    {
+      "id": "unnecessary_changes",
+      "criterion": "未定義の業務要件を追加せず、元ファイルを変更しない。"
+    },
+    {
+      "id": "necessary_additions",
+      "criterion": "追加提案は検出する具体的な誤実装と結びつける。追加不要の説明も認める。"
     }
   ],
   "verifiers": [

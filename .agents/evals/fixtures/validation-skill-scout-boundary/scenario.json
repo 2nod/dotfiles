@@ -1,0 +1,16 @@
+{
+  "signals": [
+    {
+      "skill": "archive-check",
+      "uses": 0,
+      "purpose": "年次の復元検証",
+      "next_needed": "year end"
+    },
+    {
+      "skill": "lookup",
+      "uses": 20,
+      "cases": 0
+    }
+  ],
+  "external_sources": []
+}

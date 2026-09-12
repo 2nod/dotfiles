@@ -5,14 +5,14 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import pathlib
 import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from comparison_checks import efficiency_passes
+
 from eval_contracts import (
-    execution_preflight,
     REPO,
     contract_version,
     load_catalog,
@@ -38,6 +38,22 @@ def required(obj, keys, prefix, errors):
     for key in keys:
         if not isinstance(obj.get(key), str) or not obj[key].strip():
             errors.append(f"{prefix}.{key}: 記録が必要")
+
+
+def human_review_errors(decision, measurements):
+    review = decision.get("human_review", {})
+    errors = []
+    required(review, ["reviewer", "evidence", "conclusion"], "human_review", errors)
+    if not isinstance(review, dict):
+        return errors
+    if review.get("kind") != "human" or review.get("action") != decision.get("action"):
+        errors.append("human_review: 対象の採否について人手の比較レビューが必要")
+    expected = {row.get("artifact_version") for pair in measurements for row in pair.values()}
+    versions = review.get("artifact_versions")
+    if (not expected or None in expected or not isinstance(versions, list)
+            or any(not isinstance(v, str) for v in versions) or set(versions) != expected):
+        errors.append("human_review: 比較した全成果物の版を記録してください")
+    return errors
 
 
 def validate(plan, stage="plan"):
@@ -86,6 +102,11 @@ def validate(plan, stage="plan"):
             loaded.append((entry, case))
         except (OSError, ValueError, KeyError, TypeError) as exc:
             errors.append(f"case: {exc}")
+    invocations = {case.get("invocation", "explicit") for _, case in loaded}
+    if len(invocations) > 1 or invocations - {"explicit", "catalog"}:
+        errors.append("invocation: 明示注入とカタログ選択を別の計画に分けてください")
+    if plan.get("invocation") is not None and invocations != {plan["invocation"]}:
+        errors.append("invocation: 計画とケースの呼び出し方法が不一致")
     candidate = plan.get("candidate")
     if candidate:
         if load_catalog().get(plan.get("skill"), {}).get("source") == "installed":
@@ -105,7 +126,9 @@ def validate(plan, stage="plan"):
         extraction = plan.get("script_review", {})
         if not isinstance(extraction, dict) or extraction.get("decision") not in ("extract", "defer"):
             errors.append("script_review.decision: extract または defer")
-        required(extraction, ["reason", "input_output", "failure", "idempotence", "verification"], "script_review", errors)
+        required(extraction, ["reason"], "script_review", errors)
+        if isinstance(extraction, dict) and extraction.get("decision") == "extract":
+            required(extraction, ["input_output", "failure", "idempotence", "verification"], "script_review", errors)
     efficiency = plan.get("efficiency")
     if efficiency is not None:
         if not isinstance(efficiency, dict):
@@ -173,6 +196,7 @@ def validate(plan, stage="plan"):
                     item.get("case") != case["id"]
                     or item.get("model") != plan["model"]
                     or item.get("contract_version") != entry["contract_version"]
+                    or item.get("invocation", "explicit") != case.get("invocation", "explicit")
                 ):
                     errors.append(f"{case['id']}: 対象または実行条件が不一致")
                 if candidate and item.get("candidate_version") != candidate["version"]:
@@ -208,6 +232,8 @@ def validate(plan, stage="plan"):
         errors.append("decision.action: keep / revise / disable / hold / adopt")
     if action in ("keep", "disable", "adopt") and plan["mode"] != "validate":
         errors.append("screenから採用、継続、無効化は判断できない")
+    if action in ("keep", "adopt", "disable") and load_catalog().get(plan.get("skill"), {}).get("human_review_required"):
+        errors.extend(human_review_errors(decision, measurements))
     if action == "adopt":
         if not candidate:
             errors.append("adopt: 修正版が必要")
@@ -230,29 +256,10 @@ def validate(plan, stage="plan"):
     return errors
 
 
-def efficiency_passes(policy, pairs):
-    """Require the declared reduction in every pair, never trade quality for cost."""
-    if not policy or not pairs:
-        return False
-    metric = policy["metric"]
-    for pair in pairs:
-        current, candidate = pair.get("treatment", {}), pair.get("candidate", {})
-        if current.get("success") is not True or candidate.get("success") is not True:
-            return False
-        baseline, measured = current.get(metric), candidate.get(metric)
-        if any(type(v) not in (int, float) or not math.isfinite(v) or v < 0
-               for v in (baseline, measured)):
-            return False
-        if baseline <= 0 or measured > baseline * (1 - policy["minimum_reduction"]):
-            return False
-    return True
-
-
 def launch(plan, directory):
     errors = validate(plan)
     if errors:
         raise ValueError("\n".join(errors))
-    execution_preflight()
     # Exclusive create reserves the entire call budget. Interrupted runs never auto-retry.
     write_new(directory / "started.json", plan)
     for entry in plan["cases"]:
@@ -355,7 +362,8 @@ def main():
     parser.add_argument("--review-file", type=pathlib.Path)
     parser.add_argument("--to", type=pathlib.Path)
     parser.add_argument("--candidate", type=pathlib.Path)
-    parser.add_argument("--model", default="openai-codex/gpt-5.6-sol")
+    parser.add_argument("--model")
+    parser.add_argument("--invocation", choices=["explicit", "catalog"], default="explicit")
     parser.add_argument(
         "--stage", choices=["plan", "review", "decision"], default="plan"
     )
@@ -386,6 +394,8 @@ def main():
             print(json.dumps(next_round(directory, args.to.expanduser().resolve(), args.candidate), ensure_ascii=False, indent=2))
             return 0
         if args.command == "init":
+            if not args.model:
+                raise ValueError("init requires an explicit --model")
             catalog = load_catalog()
             if args.skill not in catalog:
                 raise ValueError("--skill に台帳のskill名を指定")
@@ -395,6 +405,8 @@ def main():
                 if (
                     case.get("skill") == args.skill
                     and case.get("evaluation", {}).get("status") == "ready"
+                    and case.get("invocation", "explicit") == args.invocation
+                    and (not args.case or case.get("id") == args.case)
                 ):
                     cases.append(
                         {
@@ -405,6 +417,8 @@ def main():
                             "holdout": False,
                         }
                     )
+            if not cases:
+                raise ValueError("No ready cases match skill / invocation / case")
             write_new(
                 directory / "plan.json",
                 {
@@ -415,6 +429,7 @@ def main():
                     "reviewer": "",
                     "mode": "screen",
                     "model": args.model,
+                    "invocation": args.invocation,
                     "runs": 1,
                     "max_calls": 2 * len(cases),
                     "cases": cases,

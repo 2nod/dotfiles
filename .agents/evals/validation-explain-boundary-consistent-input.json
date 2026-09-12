@@ -1,0 +1,36 @@
+{
+  "id": "validation-explain-boundary-consistent-input",
+  "skill": "explain",
+  "skill_path": "../installed-skills/writing/explain/SKILL.md",
+  "fixture": "fixtures/validation-explain-boundary",
+  "prompt": "scenario.jsonのrequestで指定された題材を、audienceに合わせてfactsの範囲で説明し、result.mdへ保存してください。requestにある図の要否と長さの指定にも従ってください。資料は匿名の合成入力です。追加回答は得られません。元の入力は変更せず、実サービスへの通信や操作は行わないでください。提示されていない観測や実行結果を作らないでください。",
+  "expected_behavior": "受付と処理完了を区別し、ack後の失敗を説明する。ackで成功保証されるとしない。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "合成入力からの判断と文書品質。実サービス操作や主観的な読後感は別検証。 旧caseに混在した会議時間・説明題材の指示を統一した補足比較。旧fixture/verifierはそのまま用い、独立holdoutとは主張しない。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "受付と処理完了を区別し、ack後の失敗を説明する。ackで成功保証されるとしない。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力から確定できる事実と推測を区別し、実行していない検証や合意を作らない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、不要な変更や未依頼の外部操作を行わない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "captured",
+      "{case_dir}/fixtures/validation-explain-boundary"
+    ]
+  ]
+}

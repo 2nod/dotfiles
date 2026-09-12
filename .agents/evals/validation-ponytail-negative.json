@@ -1,0 +1,48 @@
+{
+  "id": "validation-ponytail-negative",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/validation-ponytail-negative",
+  "prompt": "Check the process-local currency cache: repeated same currency should fetch once, different currencies must have independent rates, failed fetch must be retried. Make only necessary fixes; preserve the public functions. Write result.md and executable regression tests. No persistence or third-party dependencies are needed. This is a verification request: a bug report may be incorrect. If the production behavior already meets the contract, keep production code unchanged and report evidence. Use only the synthetic local workspace. Do not access network or external services.",
+  "expected_behavior": "正しい既存実装の公開契約を実行で確認し、不要な製品コード変更をしない。",
+  "scenario": "negative",
+  "evaluation": {
+    "status": "ready",
+    "scope": "公開APIの実行と回帰テスト・操作順序。実サービスや本番性能は対象外。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "正しい既存実装の公開契約を実行で確認し、不要な製品コード変更をしない。"
+    },
+    {
+      "id": "process",
+      "criterion": "契約を実行で検証し、存在しない失敗を捏造しない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "必要な入力を保持し、private実装への固定・不要な永続化・依存追加・過剰な抽象化を避ける。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "cache",
+      "{case_dir}/fixtures/validation-ponytail-negative"
+    ],
+    [
+      "python3",
+      "{case_dir}/preserve-code-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/validation-ponytail-negative",
+      "pricing.py"
+    ],
+    [
+      "python3",
+      "{case_dir}/code-output-verify.py",
+      "{workspace}"
+    ]
+  ]
+}

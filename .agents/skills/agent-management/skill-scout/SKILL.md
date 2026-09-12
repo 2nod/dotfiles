@@ -1,6 +1,6 @@
 ---
 name: skill-scout
-description: shared agent skill を定期点検し、外部の agent workflow 動向も調べて、新規 skill 化・既存 skill 改善・運用保守の提案レポートを作る。ユーザーが「skill を調査して」「skill 候補を探して」「既存 skill を監査して」「定期的に skill を見直して」と依頼したときに使う。ファイル編集なしの提案のみで進めたい場合にも使う。
+description: shared skillの棚卸し、定期的な見直し、実作業や外部動向に基づく改善候補の調査を依頼されたときに使う。
 metadata:
   tags: [skills, audit, agents, maintenance]
   related_skills:
@@ -9,34 +9,27 @@ metadata:
 
 # Skill Scout
 
-shared skill の棚卸し、外部動向の確認、skill 化候補の発見、既存 skill の改善提案を行う。
-Codex automation の定期実行と、手動の「これは skill 化した方がよいか？」の確認に使う。
+依頼範囲のskillを調べ、根拠のある改善候補を優先順に示す。
+対象と利用するモデル、runtimeを確認し、未指定の全環境へ調査を広げない。
 
-## 手順
+## 調べる範囲
 
-1. ローカルの skill inventory を確認する。
-   - `.agents/skills/**/SKILL.md`
-   - `.agents/installed-skills/**/SKILL.md`
-   - 必要に応じて、直接参照されている `references/`, `templates/`, `scripts/`, `SOURCE.md`
-2. 最近の作業シグナルを確認する。
-   - `.agents` 周辺の git 履歴
-   - 繰り返し出ているファイル操作、コマンド、レビュー対応、デバッグ手順、文章作成、ドキュメント化
-3. Web が使える場合は外部動向を調べる。
-   - Codex, Claude Code, Cursor, MCP, agent workflows, hooks, subagents, evals, PR review automation, skill ecosystems
-   - レポートには出典リンクを含める
-4. レポートだけを出す。
-   ユーザーが実装を明示するまで、ファイル編集、stage、commit、push、PR 作成はしない。
-5. 日本語でレポートを書くときは `writing/japanese-tech-writing` も併用する。
-   冗長さ、LLM っぽい表現、根拠の曖昧さを点検してから返す。
+対象の名前とdescription、関連する作業履歴から始める。
+問題に関係する本文と参照資料を読む。
+全体の棚卸しを依頼された場合はinventoryを列挙し、詳細を読む候補を絞る。
+外部調査は依頼された話題と関連する公式資料を優先し、出典とローカルへの適用理由を添える。
 
-## 点検ルール
+指示の整理には [スキルと指示の見直し](../skill-governance/references/skill-review.md)、具体的な点検には [audit-checklist.md](references/audit-checklist.md) の該当箇所を使う。
+保存済み評価の採否を扱うときだけ、目的別評価と該当roundの証拠を確認する。
 
-- `.agents/skills` は自作 skill として改善提案の対象にする。
-- `.agents/installed-skills` は upstream 由来として扱い、直接書き換えではなく、更新・置き換え・wrapper skill・source metadata 補完を提案する。
-- 広い一般論より、対象ファイルや根拠が分かる具体的な指摘を優先する。
-- ファイル編集、git 操作、外部 credential が必要な action は「要ユーザー承認」と明記する。
-- 出典や provenance が不明な場合は、推測で埋めずに不明と書く。
-- installed skill に `scripts/`, 外部通信、credential 参照、state-changing command が含まれる場合は、安全点検の対象として明記する。
+## 結果と次の作業
 
-詳細な点検項目は [references/audit-checklist.md](references/audit-checklist.md) を読む。
-標準レポートは [templates/skill-scout-report.md](templates/skill-scout-report.md) を使う。
+調査だけの依頼は、対象箇所、理由、最小の対処、確認方法をチャットで返す。
+詳細な棚卸しには [skill-scout-report.md](templates/skill-scout-report.md) の必要な項目を使い、空欄や関係のない節を残さない。
+日本語の文書を作成、推敲する場合はjapanese-tech-writingを使う。
+
+修正も依頼されている場合は、skill-maintenanceで編集と検証まで進める。
+既に許可された編集を一律に「要承認」として止めない。
+installed skillにはupstream更新、別名wrapper、出典補完を提案し、本文を直接編集しない。
+有料評価と配布はその操作への依頼がある範囲で行う。
+定期監視は、新しい問題、判断に必要な変化、完了や失敗があるときだけ通知する。

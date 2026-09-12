@@ -1,0 +1,44 @@
+{
+  "id": "purpose-test-design-required-case",
+  "skill": "test-design-review",
+  "skill_path": "../skills/software-development/test-design-review/SKILL.md",
+  "fixture": "fixtures/purpose-test-design-required-case",
+  "prompt": "Review the test design against the production behavior. Write findings.md with actionable findings and reasons, or explain why no changes are needed. Do not modify the source or tests.",
+  "expected_behavior": "ゼロ数量しか検証していないことを指摘する。 assertEqualの引数順など、契約にない誤指摘をしない。 常に0を返す誤実装を検出できない点を見逃さない。 既存のゼロ数量テストを削除せず、元ファイルを変更しない。 正の価格と数量によるゼロ以外の具体的な期待値のテスト追加を提案する。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "単体skillの目的別評価。発火率と他skillとの併用は対象外"
+  },
+  "rubric": [
+    {
+      "id": "problem_detection",
+      "criterion": "ゼロ数量しか検証していないことを指摘する。"
+    },
+    {
+      "id": "false_positives",
+      "criterion": "assertEqualの引数順など、契約にない誤指摘をしない。"
+    },
+    {
+      "id": "missed_issues",
+      "criterion": "常に0を返す誤実装を検出できない点を見逃さない。"
+    },
+    {
+      "id": "unnecessary_changes",
+      "criterion": "既存のゼロ数量テストを削除せず、元ファイルを変更しない。"
+    },
+    {
+      "id": "necessary_additions",
+      "criterion": "正の価格と数量によるゼロ以外の具体的な期待値のテスト追加を提案する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "review",
+      "{case_dir}/fixtures/purpose-test-design-required-case"
+    ]
+  ]
+}

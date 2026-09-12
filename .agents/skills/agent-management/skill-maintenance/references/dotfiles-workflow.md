@@ -96,18 +96,11 @@ nix run .#switch -- <profile>
 
 ## 検証
 
-skill を追加・更新したら、まず次の最小検証を行う。
-
-```sh
-rg --files .agents | rg '(^|/)SKILL\.md$'
-rg -n '^(name|description):' .agents/skills .agents/installed-skills
-.agents/bin/check-skill-triggers
-git diff --cached --stat
-git status --short
-```
-
-`SKILL.md` が `references/`, `templates/`, `scripts/`, `assets/` を参照している場合は、参照先が存在することも確認する。
-shell 設定や補助 script を変更した場合は、対象 shell の構文検査や代表コマンドも実行する。
+変更に関係する検証を選ぶ。
+frontmatterと変更した参照先を確認し、descriptionを変更した場合は `.agents/bin/check-skill-triggers` を実行する。
+shell設定や補助scriptを変更した場合は、対象の構文検査と挙動を確認する。
+差分と `git status --short` で、依頼外の変更を含めていないことを確認する。
+文書修正だけの場合に、全skillの本文確認やruntime配布を要求しない。
 
 deploy 後、各 agent の runtime path に同じ skill 群が見えることを確認する。
 Claude Code は `~/.config/claude/skills` 直下の raw skill tree ではなく、`.claude-plugin/plugin.json` を持つ plugin の `skills/<skill-name>/SKILL.md` を読むため、`dotfiles-shared-skills` plugin 配下を確認する。
@@ -127,4 +120,4 @@ python3 .agents/skills/agent-management/skill-maintenance/scripts/check_inventor
 同名skillの重複、存在しないルート、循環リンクはエラーとする。`.git`、`__pycache__`、`.ruff_cache`は配布内容の比較から除く。
 実環境へ配布していない場合は「未配布」とし、合成入力の一致を実環境の確認済みと取り違えない。
 
-新規 file / directory は Nix flake から見えるように `git add` する。commit はユーザーの明示許可があるまでしない。
+新規ファイルをNixで検証する場合は、対象を明示してstageする。commit、push、配布はセッション内の許可範囲に従う。

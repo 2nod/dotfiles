@@ -1,0 +1,20 @@
+{
+  "client": {
+    "location": "host",
+    "host": "127.0.0.1",
+    "port": 15432
+  },
+  "db": {
+    "service": "db",
+    "port": 5432,
+    "published": 15432,
+    "healthy": true
+  },
+  "volumes": {
+    "db-data": {
+      "records": [
+        "keep"
+      ]
+    }
+  }
+}

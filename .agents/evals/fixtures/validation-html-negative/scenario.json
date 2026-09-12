@@ -1,0 +1,14 @@
+{
+  "states": [
+    "accepted",
+    "waiting",
+    "done",
+    "failed"
+  ],
+  "contract": "accepted does not imply done",
+  "audience": "nontechnical operator",
+  "widths": [
+    390,
+    1280
+  ]
+}

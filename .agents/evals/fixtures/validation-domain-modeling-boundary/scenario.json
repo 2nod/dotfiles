@@ -1,0 +1,11 @@
+{
+  "definitions": {
+    "booking": "席を確保した状態",
+    "payment": "支払状態"
+  },
+  "facts": [
+    "booking may be unpaid",
+    "payment may fail"
+  ],
+  "request": "用語と状態を整理"
+}

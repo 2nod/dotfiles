@@ -1,0 +1,36 @@
+{
+  "id": "validation-tdd-boundary",
+  "skill": "tdd",
+  "skill_path": "../installed-skills/engineering/tdd/SKILL.md",
+  "fixture": "fixtures/validation-tdd-boundary",
+  "prompt": "Inventory.reserve must reject zero, negative and excessive quantities with ValueError without changing stock. Valid reservations reduce stock. Check this behavior and implement only needed fixes with a reproducible regression test. Write result.md with actual test evidence. Use only the synthetic local workspace. Do not access network or external services.",
+  "expected_behavior": "入力で指定された不具合を再現し最小修正後に同じ回帰テストを成功させる。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "公開APIの実行と回帰テスト・操作順序。実サービスや本番性能は対象外。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "入力で指定された不具合を再現し最小修正後に同じ回帰テストを成功させる。"
+    },
+    {
+      "id": "process",
+      "criterion": "traceに対象の不具合による修正前の失敗と修正後の成功がある。構文・環境エラーを不具合再現としない。"
+    },
+    {
+      "id": "scope",
+      "criterion": "必要な入力を保持し、private実装への固定・不要な永続化・依存追加・過剰な抽象化を避ける。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/purpose-verify.py",
+      "{workspace}",
+      "inventory",
+      "{case_dir}/fixtures/validation-tdd-boundary"
+    ]
+  ]
+}
