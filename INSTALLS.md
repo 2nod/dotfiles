@@ -5,7 +5,7 @@
 ## 注意
 
 - `link_force` は既存のファイルやディレクトリを削除してから symlink を張ります。
-- `homebrew.onActivation.cleanup = "uninstall"` が有効なので、`homebrew.brews` / `homebrew.casks` から外した formula/cask は削除対象になります。
+- Homebrew 7 互換の `--force-cleanup` が有効なので、`homebrew.brews` / `homebrew.casks` から外した formula/cask は削除対象になります。
 - 初回適用前に、少なくとも次のファイルはバックアップ対象として確認してください。
   - `~/.zshenv`
   - `~/.zshrc`
@@ -32,7 +32,7 @@
 
 - `brew-nix.enable = true`
 - `homebrew.enable = true`
-- `homebrew.onActivation.cleanup = "uninstall"`
+- `homebrew.onActivation.cleanup = "none"`（Homebrew 7 の廃止済み `--cleanup` を出さない）
 - `homebrew.onActivation.autoUpdate = true`
 - `homebrew.onActivation.extraFlags = [ "--force-cleanup" ]`
 - `homebrew.casks`
@@ -123,6 +123,7 @@
   - `ruff`
   - `uv`
   - `wezterm`
+  - `wrangler`: Cloudflare CLI。認証は `wrangler login` で別途設定し、tokenやsecretはGitへ保存しない。
   - `yazi`
   - `zoxide`
 - ツール固有のパッケージは `nix/modules/home/programs/<tool>/` 側で入る
@@ -258,7 +259,7 @@ Brewfile は nix-darwin が生成するため、手元で `brew bundle install` 
   - `hunk`
   - `herdr`
 - casks は `homebrew.casks` に列挙した GUI アプリ
-- `homebrew` 自体の挙動は `cleanup = "uninstall"`、`autoUpdate = true`、`extraFlags = [ "--force-cleanup" ]`
+- `homebrew` 自体の挙動は `cleanup = "none"`、`autoUpdate = true`、`extraFlags = [ "--force-cleanup" ]`。後者により宣言外の formula/cask を削除する
 
 ## どこを見るか
 

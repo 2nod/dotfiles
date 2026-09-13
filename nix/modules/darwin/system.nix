@@ -26,7 +26,10 @@ in
       "stablyai/orca"
     ];
     onActivation = {
-      cleanup = "uninstall";
+      # Homebrew 7 disables `brew bundle install --cleanup`.  Keep the
+      # declarative cleanup behaviour through the supported --force-cleanup
+      # flag below without emitting the obsolete --cleanup flag.
+      cleanup = "none";
       autoUpdate = true;
       upgrade = true;
       extraFlags = [ "--force-cleanup" ];

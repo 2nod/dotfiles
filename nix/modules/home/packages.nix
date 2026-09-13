@@ -28,6 +28,7 @@
     pkgs.ruff
     pkgs.uv
     pkgs.wezterm
+    pkgs.wrangler
     pkgs.yazi
     pkgs.zoxide
   ];
