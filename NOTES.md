@@ -217,9 +217,8 @@
 - model routing: 拡張 `@yeliu84/pi-model-router` を `pi install npm:@yeliu84/pi-model-router` で導入。
   - settings.json の `"packages"` 追記は pi install が書く **live 管理**（Nix seed していない。必要になったら
     claude-code の activation cp 方式で seed する）
-  - `model-router.json`: 全 tier を `openai-codex` 内に収めた叩き（課金事故回避）。high=gpt-5.6-sol /
-    medium=gpt-5.5 / low=gpt-5.4-mini、classifier=mini。`claude` profile（opus/sonnet）は per-token 課金なので
-    使うとき `/router profile claude` で明示切替
+  - `model-router.json`: 全 tier を `openai-codex` 内に限定（課金事故回避）。high=gpt-6-astra /
+    medium=gpt-5.6-sol / low=gpt-5.4-mini、classifier=mini。Anthropic APIへのfallbackは持たない
   - 拡張の pin/profile/cost 状態は session 側（`router-state`）に持つので config ファイルは読み取り専用でよい
   - 使い方: TUI で `/router profile auto` で有効化 → `/router` で状態確認 / `/router pin high` で固定 /
     `/router debug on` で毎ターンの判定表示
