@@ -46,7 +46,7 @@
         "fallbacks": ["sol"]
       },
       "medium": { "model": "sol", "thinking": "medium" },
-      "low": { "model": "mini", "thinking": "low" }
+      "low": { "model": "luna", "thinking": "low" }
     }
   }
 }
