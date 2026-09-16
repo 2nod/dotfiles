@@ -92,6 +92,14 @@ let
     plugins."github@openai-curated" = {
       enabled = true;
     };
+    plugins."runpod@runpod" = {
+      enabled = true;
+    };
+
+    marketplaces.runpod = {
+      source_type = "git";
+      source = "https://github.com/runpod/runpod-plugins-official.git";
+    };
   };
 in
 {

@@ -31,6 +31,7 @@ let
       # the skill; the engine and DB are bootstrapped into ~/.agents/skills/agmsg
       # on first /agmsg run and kept there by agent-skills excludePatterns.
       "agmsg@fujibee-agmsg" = true;
+      "runpod@runpod" = true;
     };
     extraKnownMarketplaces = {
       openai-codex = {
@@ -43,6 +44,12 @@ let
         source = {
           source = "github";
           repo = "fujibee/agmsg";
+        };
+      };
+      runpod = {
+        source = {
+          source = "github";
+          repo = "runpod/runpod-plugins-official";
         };
       };
     };
