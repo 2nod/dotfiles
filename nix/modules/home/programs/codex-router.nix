@@ -107,8 +107,8 @@ in
         $DRY_RUN_CMD /usr/libexec/PlistBuddy -c 'Delete :EnvironmentVariables' "$trayPlist" 2>/dev/null || true
         $DRY_RUN_CMD /usr/libexec/PlistBuddy -c 'Add :EnvironmentVariables dict' "$trayPlist"
         $DRY_RUN_CMD /usr/libexec/PlistBuddy -c "Add :EnvironmentVariables:PATH string $trayPath" "$trayPlist"
-        $DRY_RUN_CMD launchctl bootout "gui/$(id -u)/io.github.codex-router.tray" 2>/dev/null || true
-        $DRY_RUN_CMD launchctl bootstrap "gui/$(id -u)" "$trayPlist" || {
+        $DRY_RUN_CMD /bin/launchctl bootout "gui/$(id -u)/io.github.codex-router.tray" 2>/dev/null || true
+        $DRY_RUN_CMD /bin/launchctl bootstrap "gui/$(id -u)" "$trayPlist" || {
           echo "codex-router: tray launch agent reload failed." >&2
         }
       fi
