@@ -4,11 +4,6 @@
   "phaseBias": 0.5,
   "maxSessionBudget": 10.0,
   "models": {
-    "fable": {
-      "model": "anthropic/claude-fable-5",
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
     "sol": {
       "model": "openai-codex/gpt-5.6-sol",
       "contextWindow": 372000,
@@ -29,14 +24,9 @@
       "contextWindow": 272000,
       "maxTokens": 128000
     },
-    "opus": {
-      "model": "anthropic/claude-opus-4-8",
-      "contextWindow": 1000000,
-      "maxTokens": 128000
-    },
-    "sonnet": {
-      "model": "anthropic/claude-sonnet-5",
-      "contextWindow": 1000000,
+    "astra": {
+      "model": "openai-codex/gpt-6-astra",
+      "contextWindow": 272000,
       "maxTokens": 128000
     }
   },
@@ -51,17 +41,12 @@
   "profiles": {
     "auto": {
       "high": {
-        "model": "fable",
+        "model": "astra",
         "thinking": "high",
-        "fallbacks": ["opus", "sol"]
+        "fallbacks": ["sol"]
       },
       "medium": { "model": "sol", "thinking": "medium" },
       "low": { "model": "luna", "thinking": "low" }
-    },
-    "claude": {
-      "high": { "model": "fable", "thinking": "high", "fallbacks": ["opus"] },
-      "medium": { "model": "sonnet", "thinking": "medium" },
-      "low": { "model": "sonnet", "thinking": "low" }
     }
   }
 }
