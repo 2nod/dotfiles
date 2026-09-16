@@ -90,9 +90,26 @@ in
         exit 0
       }
 
-      if [ ! -e "${config.home.homeDirectory}/Applications/Model Router.app" ]; then
+      trayApp="${config.home.homeDirectory}/Applications/Codex Router.app"
+      trayPlist="${config.home.homeDirectory}/Library/LaunchAgents/io.github.codex-router.tray.plist"
+      trayPath="${runtimePath}:/usr/bin:/bin:/usr/sbin:/sbin"
+
+      if [ ! -e "$trayApp" ]; then
         $DRY_RUN_CMD "${installDir}/bin/model-router-tray" || {
           echo "codex-router: tray install failed; run model-router-tray by hand to retry." >&2
+        }
+      fi
+
+      # launchd does not inherit the interactive shell's PATH. The native tray
+      # runs bin/control through /usr/bin/env node, so give only this agent the
+      # same pinned runtime as the CLI wrapper.
+      if [ -e "$trayPlist" ] && [ "$(/usr/libexec/PlistBuddy -c 'Print :EnvironmentVariables:PATH' "$trayPlist" 2>/dev/null || true)" != "$trayPath" ]; then
+        $DRY_RUN_CMD /usr/libexec/PlistBuddy -c 'Delete :EnvironmentVariables' "$trayPlist" 2>/dev/null || true
+        $DRY_RUN_CMD /usr/libexec/PlistBuddy -c 'Add :EnvironmentVariables dict' "$trayPlist"
+        $DRY_RUN_CMD /usr/libexec/PlistBuddy -c "Add :EnvironmentVariables:PATH string $trayPath" "$trayPlist"
+        $DRY_RUN_CMD launchctl bootout "gui/$(id -u)/io.github.codex-router.tray" 2>/dev/null || true
+        $DRY_RUN_CMD launchctl bootstrap "gui/$(id -u)" "$trayPlist" || {
+          echo "codex-router: tray launch agent reload failed." >&2
         }
       fi
     )
