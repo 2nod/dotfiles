@@ -16,7 +16,7 @@ let
   # 追従する upstream の revision。Nix を source of truth にするため、
   # checkout はここで固定し、更新はこの値の bump で行う。
   # `codex-router update` は使わないこと (HEAD が動いて宣言とずれる)。
-  rev = "866cb8b011fa8e16900c77c58249b71eec6436ca";
+  rev = "c6f58a39e0dadd306afa72ae7fdb4ca1425ca65a";
 
   # codex-router が要求する runtime。node は 22.19+ が必須で、python 依存は
   # uv が requirements/python.txt (hash 検証済み lock) から入れる。
