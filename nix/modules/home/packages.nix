@@ -23,6 +23,9 @@
     pkgs.rclone
     pkgs.ripgrep
     pkgs.roots
+    # stable nixpkgs still ships the old v1 CLI (no `network-volume`/`nv`
+    # command group); pkgs.unstable tracks upstream's v2 releases.
+    pkgs.unstable.runpodctl
     pkgs.terraform
     pkgs.pyright
     pkgs.ruff
