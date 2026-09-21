@@ -138,6 +138,60 @@ z sig        # ~/src/signoz など履歴マッチで移動
 - `nix run .#switch -- <profile>`: 指定したプロファイルで反映（途中で sudo を求められる）。
 - `nix run .#update`: `flake.lock` を更新する。
 
+## Lean 4の学習環境
+
+Home Managerで `elan` を導入し、`lean` と `lake` はelanのプロキシを使います。
+elanのバージョンは `flake.lock`、Lean本体のバージョンは各プロジェクトの `lean-toolchain` で固定します。
+別途 `elan-init` を実行したり、`~/.elan/bin` をPATHへ追加したりする必要はありません。
+
+設定を適用すると、Homebrew管理のVS CodeへLean 4拡張と依存するEven Better TOML拡張も配置されます。
+拡張の内容はNixpkgsの固定バージョンを使い、既存のsettings、keybindings、他の拡張を維持します。
+拡張の追加や更新時には発見用のキャッシュを削除するため、適用前にVS Codeを終了し、適用後に再起動してください。
+
+```sh
+# 使用中のprofileを指定して、通常のdotfilesと同じ方法で適用
+nix run .#switch -- <profile>
+
+# 新しいターミナルで確認
+elan --version
+
+# 教材などのlean-toolchainがあるフォルダで実行
+lean --version
+lake --version
+lean Lesson.lean
+lean Solutions.lean
+```
+
+`lean-toolchain` が指定するLeanが未導入なら、最初の実行時にelanが取得します。
+このダウンロードにはインターネット接続が必要で、本体は `~/.elan/toolchains` に保存されます。
+Lean本体のダウンロードはNixビルドの一部ではありません。
+
+自分で練習用フォルダを作る場合は、そのフォルダに `lean-toolchain` を作成します。
+次はLean 4.34.0を使う例です。
+
+```sh
+mkdir -p lean-practice
+cd lean-practice
+printf '%s\n' 'leanprover/lean4:v4.34.0' > lean-toolchain
+lean --version
+```
+
+VS Codeでそのフォルダを開き、`.lean` ファイルへ次を保存します。
+
+```lean
+example (P : Prop) : P → P := by
+  intro h
+  exact h
+```
+
+`intro h` の行末にカーソルを置くとInfoViewに `h : P` と `⊢ P` が表示され、`exact h` の行末ではゴールがなくなります。
+InfoViewが表示されない場合は、コマンドパレットの `Lean 4: Toggle Infoview` を使ってください。
+必要なLeanのダウンロードを拡張から確認された場合は、プロジェクトの指定バージョンを確認して取得します。
+
+プロジェクト外で `no default toolchain configured` が出る場合は、まず `lean-toolchain` のあるフォルダへ移動してください。
+この設定はグローバルな既定Leanバージョンを強制しません。
+Cursorへの拡張の導入はこの設定には含めていません。
+
 ## 変更と反映の流れ
 1. `flake.nix` を編集してパッケージや設定を追加する。
 2. 影響を確認したい場合は `nix run .#build -- <profile>` でビルドのみ行う。
