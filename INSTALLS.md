@@ -104,6 +104,7 @@
   - `bun`
   - `mise`
   - `deno`
+  - `elan`: `lean` / `lake` などのプロキシを提供。Lean本体のバージョンは各プロジェクトの `lean-toolchain` で指定。
   - `eza`
   - `fzf`
   - `gh`
@@ -140,6 +141,8 @@
 - `programs.delta`
 - `programs.lazygit`
 - `programs.vscode`
+  - `vscode.nix` の `home.file` で `leanprover.lean4` と、その依存拡張 `tamasfe.even-better-toml` をNix管理
+  - VS Code本体は既存のHomebrew caskを使用。他の手動インストール済み拡張は保持
 - `programs.cursor` / `cursor-ide.nix`
 - `programs.codex`
 - `programs.cmux`
@@ -179,6 +182,8 @@ Home Manager の activation で生成・差し替えされるもの。
 - `~/.config/git/config` and other Home Manager managed files
 - `~/Library/Application Support/Code/User/settings.json`
 - `~/Library/Application Support/Code/User/keybindings.json`
+- `~/.vscode/extensions/leanprover.lean4`
+- `~/.vscode/extensions/tamasfe.even-better-toml`
 - `~/Library/Application Support/Cursor/User/settings.json`
 - `~/Library/Application Support/Cursor/User/keybindings.json`
 - `~/.config/lazygit/config.yml`

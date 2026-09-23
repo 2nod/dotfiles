@@ -7,6 +7,8 @@
     pkgs.bun
     pkgs.mise
     pkgs.deno
+    # Provides lean/lake proxies; each project selects Lean via lean-toolchain.
+    pkgs.elan
     pkgs.eza
     pkgs.fzf
     pkgs.gh
