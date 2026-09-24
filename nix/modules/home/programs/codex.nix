@@ -94,6 +94,7 @@ let
     };
     plugins."runpod@runpod" = {
       enabled = true;
+      mcp_servers.runpod.enabled = false;
     };
 
     marketplaces.runpod = {
