@@ -63,7 +63,7 @@ let
     model_reasoning_effort = "high";
     web_search_request = true;
     personality = "pragmatic";
-    service_tier = "standard";
+    service_tier = "default";
     project_doc_fallback_filenames = [ "CLAUDE.md" ];
 
     shell_environment_policy = {
