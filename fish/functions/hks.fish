@@ -1,7 +1,8 @@
-function hks --description "Switch the live hunk session's source (wt/staged/ref/range), or clean zombies"
+function hks --description "Open or switch a hunk session's source (wt/staged/ref/range), or clean zombies"
     if test "$argv[1]" = clean
         set -l zombies
-        for pid in (hunk session list --json | jq -r '.sessions[].pid')
+        set -l sessions (hunk session list --json); or return 1
+        for pid in (printf '%s\n' $sessions | jq -r '.sessions[].pid')
             if test "$(ps -o tty= -p $pid | string trim)" = "??"
                 set -a zombies $pid
             end
@@ -32,13 +33,13 @@ function hks --description "Switch the live hunk session's source (wt/staged/ref
     end
 
     set -l repo (git rev-parse --show-toplevel) || return
-    set -l ids (hunk session list --json | jq -r --arg repo $repo \
+    set -l sessions (hunk session list --json); or return 1
+    set -l ids (printf '%s\n' $sessions | jq -r --arg repo $repo \
         '[.sessions[] | select(.repoRoot == $repo)] | sort_by(.launchedAt) | reverse | .[] | [.sessionId, .terminal.locations[0].tty // "?", .title] | @tsv')
 
     switch (count $ids)
         case 0
-            echo "hks: no live hunk session for $repo" >&2
-            return 1
+            hunk $cmd
         case 1
             hunk session reload --repo $repo -- $cmd
         case '*'
