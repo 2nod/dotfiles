@@ -172,6 +172,15 @@
                     config = final.config;
                   };
                 })
+                # nixos-25.11 の colima 0.10.1 は lima 1.2.2 を wrap する。
+                # colima は Rosetta 設定を lima 2 形式の `vmOpts.vz.rosetta` で
+                # 書くが、lima 1.2.2 はこれを unknown field として無視するため、
+                # `rosetta: true` / `--vz-rosetta` でも amd64 が QEMU で動く。
+                # unstable の colima は lima 2.x を wrap するのでそちらを使う。
+                # home.packages と launchd agent の両方が pkgs.colima を参照する。
+                (final: _prev: {
+                  colima = final.unstable.colima;
+                })
               ];
             }
             brew-nix.darwinModules.default

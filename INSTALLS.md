@@ -110,7 +110,7 @@
   - `gh`
   - `ghq`
   - `lazygit`
-  - `colima`
+  - `colima`: `nixpkgs-unstable` 版（lima 2.x）を overlay で差し替え。stable 版が wrap する lima 1.2.2 は Rosetta 設定を読めない。
   - `docker_29`
   - `lazydocker`
   - `google-cloud-sdk`
