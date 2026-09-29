@@ -433,6 +433,19 @@ class ObservabilityTest(unittest.TestCase):
         self.assertIn("旧形式 1", report)
         self.assertIn('<td data-label="結果">旧形式', report)
 
+    def test_report_keeps_unconfirmed_verification_out_of_success_and_failure(self) -> None:
+        base = {"agent": "codex", "session_id": "pending-result", "turn_id": "turn"}
+        self.record({**base, "event": "agent_started"})
+        self.record({**base, "event": "skill_activated", "skill": "tdd"})
+        self.record({**base, "event": "verification_finished", "verification": "test", "status": "unknown"})
+        self.record({**base, "event": "agent_end"})
+        subprocess.run([sys.executable, REPORTER, "--days", "1"],
+                       env=self.env, check=True, capture_output=True, text=True)
+        report = (self.root / "usage.html").read_text(encoding="utf-8")
+        self.assertIn('<td data-label="失敗" class=bad>0</td>', report)
+        self.assertIn('<td data-label="検証済" class=good>0</td>', report)
+        self.assertIn('<td data-label="結果">未検証<small>test: 未確認</small>', report)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -14,7 +14,6 @@ import re
 import statistics
 import subprocess
 import tempfile
-from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import cast
 import sys
@@ -30,6 +29,7 @@ from eval_contracts import (
 )
 
 from report_validation import validate_pages
+from usage_events import Turn, SkillStats, turn_outcome, parse_time, build_turns, aggregate
 from report_evidence import EvidenceSnapshot, load_reference_runs, result_counts
 from skill_current_state import deployment_state, collect_rounds, decision_state
 
@@ -41,53 +41,8 @@ ROOT = pathlib.Path(
 )
 
 
-@dataclass
-class Turn:
-    agent: str
-    session_id: str
-    turn_id: str
-    project: str
-    model: str
-    started: datetime
-    schema_version: int | None = None
-    ended: datetime | None = None
-    skills: set[str] = field(default_factory=set)
-    versions: dict[str, str] = field(default_factory=dict)
-    tools: int = 0
-    tool_counts: dict[str, int] = field(default_factory=dict)
-    verification_status: dict[str, str] = field(default_factory=dict)
-    verification_details: dict[str, str] = field(default_factory=dict)
-
-
-@dataclass
-class SkillStats:
-    uses: int = 0
-    verified: int = 0
-    failed: int = 0
-    unverified: int = 0
-    ongoing: int = 0
-    legacy: int = 0
-    tools: int = 0
-    tool_counts: dict[str, int] = field(default_factory=dict)
-    durations: list[float] = field(default_factory=list)
-    versions: set[str] = field(default_factory=set)
-    last_used: datetime | None = None
-
-
-def turn_outcome(turn: Turn) -> str:
-    if turn.schema_version != 2:
-        return "旧形式"
-    if not turn.ended:
-        return "終了記録なし"
-    if turn.verification_status and all(
-        status == "passed" for status in turn.verification_status.values()
-    ):
-        return "検証済み"
-    return "検証失敗" if turn.verification_status else "未検証"
-
-
 def format_verifications(turn: Turn) -> str:
-    labels = {"passed": "成功", "failed": "失敗"}
+    labels = {"passed": "成功", "failed": "失敗", "unknown": "未確認"}
     return " / ".join(
         f"{html.escape(kind)}: {labels[status]}"
         + (
@@ -159,15 +114,6 @@ def skill_link(skill: str, locations: dict[str, tuple[str, str, str]]) -> str:
 def skill_status(skill: str, locations: dict[str, tuple[str, str, str]]) -> str:
     location = locations.get(skill)
     return f"{location[1]} · {location[2]}" if location else "unknown"
-
-
-def parse_time(value: object) -> datetime | None:
-    if not isinstance(value, str):
-        return None
-    try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
 
 
 def load_events(days: int) -> list[dict[str, object]]:
@@ -416,130 +362,6 @@ def render_eval_rows(
         "".join(rows)
         or f'<tr><td colspan="{11 if include_contract else 10}" class=empty>表示期間内に比較評価の結果がありません。</td></tr>'
     )
-
-
-def build_turns(events: list[dict[str, object]]) -> list[Turn]:
-    turns: list[Turn] = []
-    active: dict[tuple[str, str, str], Turn] = {}
-    counters: dict[tuple[str, str, str], int] = {}
-
-    for event in events:
-        agent = str(event.get("agent", "unknown"))
-        session = str(event.get("session_id", "unknown"))
-        agent_id = str(event.get("agent_id", "root"))
-        owner = (agent, session, agent_id)
-        name = str(event.get("event", ""))
-        timestamp = parse_time(event.get("ts"))
-        if not timestamp:
-            continue
-
-        if name == "agent_started":
-            counters[owner] = counters.get(owner, 0) + 1
-            turn_id = str(event.get("turn_id") or counters[owner])
-            turn = Turn(
-                agent=agent,
-                session_id=session,
-                turn_id=turn_id,
-                project=pathlib.Path(str(event.get("cwd", ""))).name or "?",
-                model=str(event.get("model", "?")),
-                started=timestamp,
-                schema_version=(
-                    cast(int, event["schema_version"])
-                    if isinstance(event.get("schema_version"), int)
-                    else None
-                ),
-            )
-            active[owner] = turn
-            turns.append(turn)
-            continue
-
-        turn = active.get(owner)
-        event_turn_id = event.get("turn_id")
-        if event_turn_id and turn and turn.turn_id != str(event_turn_id):
-            turn = None
-        if not turn and name not in {"session_started", "session_ended"}:
-            turn = Turn(
-                agent=agent,
-                session_id=session,
-                turn_id=str(event_turn_id or "unknown"),
-                project=pathlib.Path(str(event.get("cwd", ""))).name or "?",
-                model=str(event.get("model", "?")),
-                started=timestamp,
-                schema_version=(
-                    cast(int, event["schema_version"])
-                    if isinstance(event.get("schema_version"), int)
-                    else None
-                ),
-            )
-            active[owner] = turn
-            turns.append(turn)
-        if not turn:
-            continue
-
-        if name == "skill_activated" and isinstance(event.get("skill"), str):
-            skill = str(event["skill"])
-            turn.skills.add(skill)
-            version = event.get("skill_version")
-            if isinstance(version, str):
-                turn.versions[skill] = version
-        elif name in {"tool_started", "verification_started"}:
-            turn.tools += 1
-            tool = event.get("tool")
-            if isinstance(tool, str):
-                turn.tool_counts[tool] = turn.tool_counts.get(tool, 0) + 1
-        elif name == "verification_finished":
-            verification = event.get("verification")
-            status = event.get("status")
-            if isinstance(verification, str) and status in {"passed", "failed"}:
-                turn.verification_status[verification] = str(status)
-                details = []
-                diagnostics = event.get("diagnostics")
-                if isinstance(diagnostics, (int, float)) and diagnostics:
-                    details.append(f"error {diagnostics:g}件")
-                warnings = event.get("warnings")
-                if isinstance(warnings, (int, float)) and warnings:
-                    details.append(f"warning {warnings:g}件")
-                if event.get("unconfirmed"):
-                    details.append("未確認")
-                if details:
-                    turn.verification_details[verification] = "・".join(details)
-                else:
-                    turn.verification_details.pop(verification, None)
-        elif name == "agent_end":
-            turn.ended = timestamp
-            active.pop(owner, None)
-    return turns
-
-
-def aggregate(turns: list[Turn]) -> dict[str, SkillStats]:
-    result: dict[str, SkillStats] = {}
-    for turn in turns:
-        for skill in turn.skills:
-            stats = result.setdefault(skill, SkillStats())
-            stats.uses += 1
-            stats.tools += turn.tools
-            if stats.last_used is None or turn.started > stats.last_used:
-                stats.last_used = turn.started
-            for tool, count in turn.tool_counts.items():
-                stats.tool_counts[tool] = stats.tool_counts.get(tool, 0) + count
-            version = turn.versions.get(skill)
-            if version:
-                stats.versions.add(version)
-            if turn.schema_version != 2:
-                stats.legacy += 1
-            elif not turn.ended:
-                stats.ongoing += 1
-            elif turn.verification_status and all(
-                status == "passed" for status in turn.verification_status.values()
-            ):
-                stats.verified += 1
-            elif turn.verification_status:
-                stats.failed += 1
-            else:
-                stats.unverified += 1
-            if turn.ended:
-                stats.durations.append((turn.ended - turn.started).total_seconds())
-    return result
 
 
 PAGE_STYLE = """
@@ -849,7 +671,7 @@ def render_overview(days: int, turns: list[Turn], stats: dict[str, SkillStats]) 
 <tbody>{"".join(skill_rows)}</tbody></table></div>
 <h2>最近の利用</h2><div class=table-scroll><table class=recent-table><thead><tr><th>時刻</th><th>エージェント</th><th>プロジェクト</th><th>スキル</th><th>結果</th></tr></thead>
 <tbody>{"".join(recent_rows)}</tbody></table></div>{toggle}
-<p class=note>利用回数はスキルごとの作業記録数で、検証済・検証失敗・未検証・終了記録なし・旧形式の合計です。終了記録なしは実行中とは限りません。1つの作業で複数のスキルを使うと、その分を重複して数えます。作業検証の成功率は、新形式（schema v2）の終了済み記録のうち、記録された全検証カテゴリの最終結果が成功した割合です。検証記録がない作業も分母に含み、旧形式・終了記録なしは含みません。スキル自体の有用性を表す数値ではありません。</p>"""
+<p class=note>利用回数はスキルごとの作業記録数で、検証済・検証失敗・未検証・終了記録なし・旧形式の合計です。終了記録なしは実行中とは限りません。1つの作業で複数のスキルを使うと、その分を重複して数えます。作業検証の成功率は、新形式（schema v2）の終了済み記録のうち、記録された全検証カテゴリの最終結果が成功した割合です。検証結果が未確認の作業は、失敗の記録がなければ未検証です。検証記録がない作業も分母に含み、旧形式・終了記録なしは含みません。過去の成功記録には終了コードなどの根拠が残っていないものもあります。スキル自体の有用性を表す数値ではありません。</p>"""
     return render_page("利用履歴", days, generated, "overview", body)
 
 
@@ -985,7 +807,6 @@ def render_saved_reports(root, evidence=None):
         'Codexなど別形式で保存した検証は、下のケース集計には含まれない場合があります。</p>'
         + render_source_sections(cards, "reports", "件")
     )
-
 
 
 def render_execution_history(case_id, evidence):
