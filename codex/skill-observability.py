@@ -8,6 +8,7 @@ import os
 import pathlib
 import re
 import runpy
+import shlex
 import sys
 from collections.abc import Callable
 from typing import Any, cast
@@ -35,7 +36,7 @@ def load_recorder() -> Callable[[dict[str, object]], int] | None:
 RECORD_EVENT = load_recorder()
 SKILL_PATH = re.compile(r"(?P<path>(?:~|/|\.{0,2}/)[^\s'\"]*?/([^/\s'\"]+)/SKILL\.md)")
 TEST = re.compile(
-    r"(?:^|\s)(?:pytest|go test|cargo test|npm test|pnpm test|yarn test)(?:\s|$)",
+    r"(?:^|\s)(?:pytest|python(?:3(?:\.\d+)?)? -m (?:pytest|unittest)|go test|cargo test|npm test|pnpm test|yarn test)(?:\s|$)",
     re.I,
 )
 BUILD = re.compile(r"(?:^|\s)(?:nix build|nix flake check)(?:\s|$)", re.I)
@@ -55,19 +56,50 @@ def strings(value: Any):
 def skill_paths(tool_input: Any, cwd: str):
     seen: set[str] = set()
     for text in strings(tool_input):
-        candidates = (
-            [text]
-            if text.endswith("SKILL.md")
-            else [match.group("path") for match in SKILL_PATH.finditer(text)]
-        )
+        # An entire `cat .../SKILL.md` command is not a path. Tokenization also
+        # preserves quoted paths containing spaces without executing the shell.
+        candidates = [text]
+        try:
+            candidates.extend(shlex.split(text))
+        except ValueError:
+            pass
+        candidates.extend(match.group("path") for match in SKILL_PATH.finditer(text))
         for candidate in candidates:
+            if not candidate.endswith("SKILL.md"):
+                continue
             path = pathlib.Path(candidate).expanduser()
             if not path.is_absolute():
                 path = pathlib.Path(cwd) / path
-            path = path.resolve()
-            if path.name == "SKILL.md" and str(path) not in seen:
+            try:
+                path = path.resolve()
+                exists = path.is_file()
+            except (OSError, RuntimeError, ValueError):
+                continue
+            if path.name == "SKILL.md" and exists and str(path) not in seen:
                 seen.add(str(path))
                 yield path
+
+
+def skill_read_input(tool_name: str, tool_input: Any):
+    """Recognize reads, not skill paths mentioned in patches or git commands."""
+    if tool_name.lower() in {"read", "read_file", "read_text_file"}:
+        return tool_input
+    if tool_name.lower() in {"bash", "shell", "shell_command", "exec_command"}:
+        return [
+            match.group(0)
+            for text in shell_commands(tool_input)
+            for match in re.finditer(r"(?:^|[\n;&|])\s*(?:cat|head|tail|sed|bat)\s+[^\n;&|]+", text)
+        ]
+    return []
+
+
+def shell_commands(tool_input: Any):
+    if isinstance(tool_input, str):
+        yield tool_input
+    elif isinstance(tool_input, dict):
+        for key in ("command", "cmd"):
+            if isinstance(tool_input.get(key), str):
+                yield tool_input[key]
 
 
 def number_value(value: Any) -> float:
@@ -102,11 +134,48 @@ def verification_kind(tool_name: str, tool_input: Any) -> str | None:
     lowered = tool_name.lower()
     if lowered in {"lsp_diagnostics", "lens_diagnostics"}:
         return "diagnostics"
-    if any(TEST.search(text) for text in strings(tool_input)):
+    if lowered not in {"bash", "shell", "shell_command", "exec_command"}:
+        return None
+    if any(TEST.search(text) for text in shell_commands(tool_input)):
         return "test"
-    if any(BUILD.search(text) for text in strings(tool_input)):
+    if any(BUILD.search(text) for text in shell_commands(tool_input)):
         return "build"
     return None
+
+
+def result_status(response: Any, kind: str | None) -> tuple[str, str]:
+    """Only terminal evidence can prove that a shell verification succeeded."""
+    if isinstance(response, str):
+        try:
+            response = json.loads(response)
+        except ValueError:
+            return "unknown", "unconfirmed"
+    if not isinstance(response, dict):
+        return "unknown", "unconfirmed"
+    details = response.get("details", {})
+    details = details if isinstance(details, dict) else {}
+    if response.get("is_error") or response.get("isError"):
+        return "failed", "error_flag"
+    if kind == "diagnostics":
+        errors, _ = diagnostic_counts(details)
+        if errors > 0 or details.get("timedOut"):
+            return "failed", "diagnostics"
+        if details.get("unconfirmed") or not any(
+            key in details for key in ("totalBlocking", "totalErrors", "totalWarnings", "diagnostics", "totalDiagnostics")
+        ):
+            return "unknown", "unconfirmed"
+        return "passed", "diagnostics"
+    codes = [
+        obj[key]
+        for obj in (response, details)
+        for key in ("exit_code", "exitCode")
+        if type(obj.get(key)) is int
+    ]
+    if codes:
+        return ("failed" if any(codes) else "passed"), "exit_code"
+    if kind:
+        return "unknown", "unconfirmed"
+    return "passed", "tool_response"
 
 
 def emit(base: dict[str, Any], **fields: Any) -> None:
@@ -137,6 +206,8 @@ def main() -> int:
     for key in ("turn_id", "model", "agent_id", "agent_type"):
         if hook.get(key):
             base[key] = hook[key]
+    if hook.get("tool_use_id"):
+        base["tool_use_id"] = hook["tool_use_id"]
 
     if event == "SessionStart":
         emit(base, event="session_started", state="idle")
@@ -155,7 +226,7 @@ def main() -> int:
         tool_input = hook.get("tool_input", {})
         kind = verification_kind(tool, tool_input)
         if event == "PreToolUse":
-            for path in skill_paths(tool_input, cwd):
+            for path in skill_paths(skill_read_input(tool, tool_input), cwd):
                 emit(
                     base,
                     event="skill_activated",
@@ -171,27 +242,22 @@ def main() -> int:
             )
         else:
             response = hook.get("tool_response")
+            if isinstance(response, str):
+                try:
+                    response = json.loads(response)
+                except ValueError:
+                    pass
             details = response.get("details", {}) if isinstance(response, dict) else {}
             if not isinstance(details, dict):
                 details = {}
             diagnostic_count, warning_count = diagnostic_counts(details)
-            failed = isinstance(response, dict) and bool(
-                response.get("is_error")
-                or response.get("isError")
-                or (
-                    kind == "diagnostics"
-                    and (
-                        diagnostic_count > 0
-                        or details.get("unconfirmed")
-                        or details.get("timedOut")
-                    )
-                )
-            )
+            status, evidence = result_status(response, kind)
             emit(
                 base,
                 event="verification_finished" if kind else "tool_finished",
                 tool=tool,
-                status="failed" if failed else "passed",
+                status=status,
+                result_evidence=evidence,
                 **({"verification": kind} if kind else {}),
                 **(
                     {"diagnostics": diagnostic_count, "warnings": warning_count}

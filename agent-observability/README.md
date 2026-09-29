@@ -40,8 +40,9 @@ pi と Codex の skill 利用イベントを、prompt や推論本文を保存�
 - `~/.local/share/agent-observability/events/YYYY-MM-DD.jsonl`: 追記専用の正本
 - `~/.local/share/agent-observability/live/*.json`: SwiftBar 用の現在状態
 
-保存するのはschema version、agent、model、session ID、project名、skill名とハッシュ、tool種別、検証結果、時刻だけ。
+保存するのはschema version、agent、model、session・turn・tool呼び出しのID、project名、skill名とハッシュ、tool種別、検証結果と判定根拠、時刻だけ。
 Codex の prompt、tool input、tool response、assistant message は保存しない。
+skillのハッシュは読み込んだ `SKILL.md` 本文のSHA-256で、同梱reference全体の版ではない。
 
 ## Reporter
 
@@ -50,6 +51,64 @@ Codex の prompt、tool input、tool response、assistant message は保存し�
 - 共通schema: `schema/event.schema.json`
 
 Codex App hook は重複実行を避けるため `hooks.json` に集約し、Herdr hook と共存する。
+Codexのread系toolと、cat・head・tail・sed・batによる実在ファイルの読み込み要求をskill利用として記録する。
+shellのglob・変数展開は行わず、読み込みの成否や、内容を判断に使ったかまでは示さない。
+test/buildの成功には構造化された終了コードを要求し、実行中の応答や結果不明は `status: unknown` とする。
+非同期実行の後続pollとの対応付けは行わないため、終了を別toolで確認した場合も未確認の記録が残る。
+`result_evidence` に判定根拠を記録し、過去のイベントは書き換えない。
+
+## 実利用ログから改善候補を探す
+
+`agent-observability-analyze-usage` はイベントを読み、会話レビューの候補と計測上の不足をJSONで返す。
+モデルを呼ばず、イベント、skill、比較評価の採点や採否は変更しない。
+Nix適用前はrepository内で次を実行できる。
+
+```sh
+python3 agent-observability/analyze-usage.py --days 30 --limit 10
+python3 agent-observability/analyze-usage.py --days 30 --skill skill-scout --limit 5
+```
+
+最初に `coverage` の最終記録時刻と件数、`data_quality` の版欠落・不正な行・検証の根拠欠落を確認する。
+イベントが途切れている場合は、未使用と収集停止を区別できない。
+カタログにない名前も、誤検出、過去の名前、runtime固有skillの可能性を確認してから判断する。
+
+`cohorts` はskill・runtime・モデル・観測した版ごとの作業数を示す。
+欠けた版は現在のファイルから補わず、版やモデルが途中で変わった作業も単一条件の作業と分ける。
+`turns_with_other_skills` は併用した作業数で、その成果を一つのskillへ帰属させない。
+`work_verification` は作業中の検証カテゴリの最終記録であり、skillの効果やタスクの完了判定ではない。
+`reported_passed` も、古いhookの判定が正しかったことを保証しない。
+
+`review_candidates` は失敗・結果未確認を先にし、同じ条件では新しい作業から並べる。
+`--limit` は候補の表示数だけを制限し、集計件数は変えない。
+`evidence` のファイル・行番号・行内容のSHA-256から根拠へ戻れる。
+会話はagent・session・turn IDと時刻から探す。Piなどの推定turn IDは `turn_id_inferred: true` で区別する。
+期間内の記録だけを読むため、開始が期間外にある作業にも `missing_turn_start` が付く。
+
+候補のIDを指定すると、未評価のレビュー票を出力する。同じ `--days`・`--skill` を指定する。
+保存する場合はrepository外に置く。
+
+```sh
+mkdir -p ~/.local/share/agent-observability/usage-reviews
+python3 agent-observability/analyze-usage.py --days 30 --skill skill-scout \
+  --review-template CANDIDATE_ID > ~/.local/share/agent-observability/usage-reviews/CANDIDATE_ID.json
+```
+
+元の会話と成果物を読んで、次を記入する。この票は調査メモであり、比較評価の採点票ではない。
+
+| 項目 | 記録すること |
+|---|---|
+| `reviewer` | AIか人か、採点者名 |
+| `conversation_evidence` | 元の会話・成果物の場所と行番号、観測した挙動。本文や秘密情報は転記しない |
+| `assessment.context` | 実作業、評価の準備、テストなど。評価対象として読んだだけのskillを実作業の寄与に数えない |
+| `assessment.applicability` | 依頼に適した用途だったか。誤発火なら依頼と適用条件のずれ |
+| `assessment.contribution`・`reason` | 役立った点、邪魔だった点、観測できた変化。分からなければ `unassessed` |
+| `alternative_explanations` | 併用skill、元の指示、モデル自身の能力など、skill以外で説明できること |
+| `improvement` | 変更する箇所、仮説、期待する挙動、合成ケース、次の作業 |
+
+レビューから、計測の修正、指示の修正、追加調査、現状維持を選ぶ。
+効果を比較する場合は、既存の目的別ケースを確認し、匿名化した再現例と仮説を下記の「改善ループ」へ渡す。
+レビュー票への記入だけで有料比較を起動したり、skillの採否を変更したりはしない。
+利用が観測された作業だけでは未発火の問題を調べられないため、選択精度はskillなしの依頼例も含めて別に確認する。
 
 ## 表示
 
@@ -61,7 +120,7 @@ Codex App hook は重複実行を避けるため `hooks.json` に集約し、Her
 
 採否と配置はスキル一覧に集約し、検証結果からリンクする。検証ケースは自作／外部導入の区分内でスキル別にまとめ、スキルを開いて確認する。検索・実行記録の絞り込みでは一致するスキルを展開し、ケースへの直接リンクでは絞り込みを解除して展開する。スキルの見出しに実行記録のあるケース数を表示する。比較評価と参考検証は同じ実行履歴に条件別の行として表示し、一覧の件数と一致させる。記録ありは青、記録なしは灰色の表示と文言で区別する。自作と外部導入の区分は管理台帳の`source`に従い、配置の有無とは混同しない。区分を特定できない履歴・複数区分を含むレポートは別枠に残す。未採点・比較対象の欠落がある成功率差は表示しない。未採点を失敗に数えず、未計測の値は0にせず「—」または「未記録」と表示する。成果物は存在するファイルだけにリンクし、欠落を明記する。古い評価条件は現在の継続候補として扱わない。
 レポートとSwiftBarのskill名は実際に読むローカル`SKILL.md`へリンクする。共有skillは`shared · authored/installed`、Codex同梱skillは`codex-system · bundled`と表示する。installed skillのupstream情報は`SOURCE.md`で管理する。
-検証率は、schema v2でskillを使った終了済みturnのうち、記録された検証カテゴリ（test・build・diagnostics）の最終結果がすべて成功した割合です。diagnosticsはerror・blocking・timeout・未確認を失敗とし、warningだけなら成功として件数を記録します。検証イベントがないturnは未検証、旧schemaのturnは集計対象外です。skillなしとの因果比較ではありません。
+検証率は、schema v2でskillを使った終了済みturnのうち、記録された検証カテゴリ（test・build・diagnostics）の最終結果がすべて成功した割合です。diagnosticsはerror・blocking・timeoutを失敗とし、warningだけなら成功として件数を記録します。Codexの結果未確認は `unknown` として残し、他カテゴリに失敗がなければ未検証に数えます。Piの既存collectorはdiagnosticsの未確認を失敗として記録します。検証イベントがないturnも未検証、旧schemaのturnは集計対象外です。skillなしとの因果比較ではありません。
 
 ### 表示の整合性
 

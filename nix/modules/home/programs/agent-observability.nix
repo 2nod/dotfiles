@@ -18,6 +18,8 @@ in
         config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agent-observability/evaluate-skill.py";
       ".local/bin/agent-observability-audit-evals".source =
         config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agent-observability/audit-evals.py";
+      ".local/bin/agent-observability-analyze-usage".source =
+        config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agent-observability/analyze-usage.py";
     };
   };
 }

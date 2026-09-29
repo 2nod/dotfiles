@@ -31,7 +31,9 @@
     "invocation": { "enum": ["explicit", "read"] },
     "tool": { "type": "string" },
     "verification": { "enum": ["diagnostics", "test", "build"] },
-    "status": { "enum": ["passed", "failed"] },
+    "status": { "enum": ["passed", "failed", "unknown"] },
+    "result_evidence": { "enum": ["exit_code", "error_flag", "diagnostics", "tool_response", "unconfirmed"] },
+    "tool_use_id": { "type": "string" },
     "diagnostics": { "type": "number", "minimum": 0 },
     "warnings": { "type": "number", "minimum": 0 },
     "unconfirmed": { "type": "boolean" }
