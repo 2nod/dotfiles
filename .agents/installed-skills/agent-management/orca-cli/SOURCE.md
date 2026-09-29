@@ -1,6 +1,6 @@
 # Source
 
 - Repository: https://github.com/stablyai/orca
-- Source path: https://github.com/stablyai/orca/tree/1c1b7829ec4017fdae25c9623e468b6e695a623d/skills/orca-cli
-- Pinned commit: `1c1b7829ec4017fdae25c9623e468b6e695a623d`
-- Pinned raw file: https://raw.githubusercontent.com/stablyai/orca/1c1b7829ec4017fdae25c9623e468b6e695a623d/skills/orca-cli/SKILL.md
+- Source path: https://github.com/stablyai/orca/tree/89cf55dfc8f2af9c2c57f8a977ef6fc769c4a46a/skills/orca-cli
+- Pinned commit: `89cf55dfc8f2af9c2c57f8a977ef6fc769c4a46a`
+- Pinned raw file: https://raw.githubusercontent.com/stablyai/orca/89cf55dfc8f2af9c2c57f8a977ef6fc769c4a46a/skills/orca-cli/SKILL.md
