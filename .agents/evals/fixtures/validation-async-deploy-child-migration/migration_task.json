@@ -1,0 +1,7 @@
+{
+  "task_id": "task-7",
+  "parent_run_id": "run-42",
+  "state": "retry_scheduled",
+  "latest_http_status": 500,
+  "attempts": 3
+}

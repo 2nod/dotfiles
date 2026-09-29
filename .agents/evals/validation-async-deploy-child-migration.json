@@ -1,0 +1,35 @@
+{
+  "id": "validation-async-deploy-child-migration",
+  "skill": "async-workflow-operations",
+  "skill_path": "../skills/software-development/async-workflow-operations/SKILL.md",
+  "fixture": "fixtures/validation-async-deploy-child-migration",
+  "prompt": "合成環境のデプロイが完了したか判定してください。parent_run.json と migration_task.json は捕捉済みの観測結果です。外部サービスへの通信や状態変更はせず、入力ファイルも変更しないでください。result.json に overall_status (complete/incomplete)、parent_status (success/failure)、migration_status (success/retrying/failure)、evidence (parent_run_id, migration_task_id, latest_http_status)、next_action (none/investigate_child_failure) を記録してください。追加のユーザー回答はありません。",
+  "expected_behavior": "親デプロイが成功しても、非同期 migration task が HTTP 500 で再試行中なら全体は未完了と判定する。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "匿名化した捕捉済み状態からの完了判定。実サービス操作は対象外。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "親の成功と非同期 migration の失敗を区別し、全体を未完了とする。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "親 run ID、子 task ID、HTTP 500 を捕捉済みデータから正しく示す。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を変更せず、外部サービスへの通信や状態変更を行わない。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/validation-async-deploy-child-migration-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/validation-async-deploy-child-migration"
+    ]
+  ]
+}
