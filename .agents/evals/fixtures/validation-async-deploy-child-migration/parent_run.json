@@ -1,0 +1,9 @@
+{
+  "run_id": "run-42",
+  "conclusion": "success",
+  "jobs": [
+    { "name": "build", "conclusion": "success" },
+    { "name": "update-service", "conclusion": "success" },
+    { "name": "enqueue-migration", "conclusion": "success", "waits_for_task": false }
+  ]
+}
