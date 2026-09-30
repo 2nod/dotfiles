@@ -12,6 +12,31 @@ sys.modules[spec.name] = report
 spec.loader.exec_module(report)
 
 class OperationsDashboardTest(unittest.TestCase):
+    def test_managed_rounds_preserve_the_skill_inventory_and_plan_errors(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            skill = root / "sample" / "SKILL.md"
+            skill.parent.mkdir()
+            skill.write_text("# Sample")
+            catalog = {"sample": {"path": str(skill), "source": "authored",
+                       "purpose": "Sample", "evidence": "Exact edit",
+                       "required_scenarios": ["typical"], "decision": "unassessed",
+                       "decision_reason": "No adoption", "script_candidate": "None"}}
+            for name in ("first-round", "second-round"):
+                folder = root / "eval-loops" / name
+                folder.mkdir(parents=True)
+                (folder / "plan.json").write_text(json.dumps({"skill": "sample"}))
+            evidence = report.EvidenceSnapshot(root, {}, [], catalog, {})
+
+            output = report.render_operations(30, root, evidence=evidence)
+
+            self.assertIn('data-skill="sample"', output)
+            self.assertIn("first-round", output)
+            self.assertIn("second-round", output)
+            self.assertEqual(output.count('<span class="status-badge">計画の修正待ち</span>'), 2)
+            self.assertIn("cases: 1件以上必要", output)
+            self.assertIn("判断材料不足", output)
+
     def test_empty_and_corrupt_round_are_not_success(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

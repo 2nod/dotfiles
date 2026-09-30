@@ -1004,8 +1004,8 @@ def render_operations(days: int, root: pathlib.Path, *, evidence=None) -> str:
         except (OSError, ValueError):
             pass
         escape = lambda value: html.escape(str(value))
-        evidence = "".join("<li>" + escape(value) + "</li>" for value in state.get("errors", []))
-        detail = '<details><summary>不足・条件の確認（' + str(len(state.get('errors', []))) + '件）</summary><ul>' + evidence + '</ul></details>' if evidence else ''
+        error_items = "".join("<li>" + escape(value) + "</li>" for value in state.get("errors", []))
+        detail = '<details><summary>不足・条件の確認（' + str(len(state.get('errors', []))) + '件）</summary><ul>' + error_items + '</ul></details>' if error_items else ''
         reason = escape(decision.get("reason", "判断の記録なし"))
         if decision:
             reason = escape(decisions.get(decision.get("action"), decision.get("action", ""))) + "：" + reason
