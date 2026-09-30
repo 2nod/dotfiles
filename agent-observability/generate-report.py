@@ -30,6 +30,7 @@ from eval_contracts import (
 
 from report_validation import validate_pages
 from usage_events import Turn, SkillStats, turn_outcome, parse_time, build_turns, aggregate
+from usage_input import read_usage
 from report_evidence import EvidenceSnapshot, load_reference_runs, result_counts
 from skill_current_state import deployment_state, collect_rounds, decision_state
 
@@ -44,7 +45,7 @@ ROOT = pathlib.Path(
 def format_verifications(turn: Turn) -> str:
     labels = {"passed": "成功", "failed": "失敗", "unknown": "未確認"}
     return " / ".join(
-        f"{html.escape(kind)}: {labels[status]}"
+        f"{html.escape(kind.split(chr(58), 1)[0])}: {labels[status]}"
         + (
             f"（{html.escape(turn.verification_details[kind])}）"
             if kind in turn.verification_details
@@ -117,25 +118,7 @@ def skill_status(skill: str, locations: dict[str, tuple[str, str, str]]) -> str:
 
 
 def load_events(days: int) -> list[dict[str, object]]:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-    events: list[dict[str, object]] = []
-    for path in sorted((ROOT / "events").glob("*.jsonl")):
-        try:
-            lines = path.read_text(encoding="utf-8").splitlines()
-        except OSError:
-            continue
-        for line in lines:
-            try:
-                raw = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if not isinstance(raw, dict):
-                continue
-            event = cast(dict[str, object], raw)
-            timestamp = parse_time(event.get("ts"))
-            if timestamp and timestamp >= cutoff:
-                events.append(event)
-    return sorted(events, key=lambda event: parse_time(event.get("ts")) or cutoff)
+    return read_usage(ROOT, days=days)["events"]
 
 
 def load_eval_cases() -> dict[str, dict[str, object]]:
@@ -578,7 +561,7 @@ def render_page(title: str, days: int, generated: str, active: str, body: str) -
 {nav}{body}<script>{PAGE_SCRIPT}</script></body></html>"""
 
 
-def render_overview(days: int, turns: list[Turn], stats: dict[str, SkillStats]) -> str:
+def render_overview(days: int, turns: list[Turn], stats: dict[str, SkillStats], usage=None) -> str:
     generated = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")
     locations = load_skill_locations()
     total_uses = sum(item.uses for item in stats.values())
@@ -671,8 +654,33 @@ def render_overview(days: int, turns: list[Turn], stats: dict[str, SkillStats]) 
 <tbody>{"".join(skill_rows)}</tbody></table></div>
 <h2>最近の利用</h2><div class=table-scroll><table class=recent-table><thead><tr><th>時刻</th><th>エージェント</th><th>プロジェクト</th><th>スキル</th><th>結果</th></tr></thead>
 <tbody>{"".join(recent_rows)}</tbody></table></div>{toggle}
-<p class=note>利用回数はスキルごとの作業記録数で、検証済・検証失敗・未検証・終了記録なし・旧形式の合計です。終了記録なしは実行中とは限りません。1つの作業で複数のスキルを使うと、その分を重複して数えます。作業検証の成功率は、新形式（schema v2）の終了済み記録のうち、記録された全検証カテゴリの最終結果が成功した割合です。検証結果が未確認の作業は、失敗の記録がなければ未検証です。検証記録がない作業も分母に含み、旧形式・終了記録なしは含みません。過去の成功記録には終了コードなどの根拠が残っていないものもあります。スキル自体の有用性を表す数値ではありません。</p>"""
+<p class=note>利用回数はスキルごとの作業記録数で、検証済・検証失敗・未検証・終了記録なし・旧形式の合計です。終了記録なしは実行中とは限りません。1つの作業で複数のスキルを使うと、その分を重複して数えます。作業検証の成功率は、新形式（schema v2 / v3）の終了済み記録のうち、記録された全検証の結果が成功した割合です。検証結果が未確認の作業は、失敗の記録がなければ未検証です。検証記録がない作業も分母に含み、旧形式・終了記録なしは含みません。過去の成功記録には終了コードなどの根拠が残っていないものもあります。スキル自体の有用性を表す数値ではありません。</p>"""
+    if usage is not None:
+        body = render_collection(usage) + body
     return render_page("利用履歴", days, generated, "overview", body)
+
+
+def render_collection(usage):
+    labels = {"running": "収集稼働中", "stopped": "収集停止の疑い", "not_started": "収集未開始",
+              "unreadable": "収集DBを読めません", "legacy_archive": "旧hookの保存記録",
+              "up_to_date": "取り込み済み", "partial": "一部の記録を確認できません",
+              "lagging": "取り込み中", "awaiting_line": "書き込み完了待ち",
+              "missing": "保存元未発見", "unconfigured": "未設定"}
+    collection = usage["collection"]
+    status = html.escape(labels.get(collection["state"], collection["state"]))
+    checked = html.escape(collection.get("last_success") or "未記録")
+    latest = html.escape(usage["events"][-1]["ts"] if usage["events"] else "表示期間内の記録なし")
+    rows = "".join(f'<li>{html.escape(row["runtime"])}: {html.escape(labels.get(row["state"], row["state"]))}'
+                   f'（未読 {row["unread_bytes"]:,} bytes / 不明な形式 {sum(row["issues"].values()):,}件）</li>'
+                   for row in collection.get("runtimes", []))
+    kinds = {kind: sum(e.get("event") == "skill_activated" and e.get("skill_evidence") == kind
+                      for e in usage["events"]) for kind in ("confirmed", "requested", "explicit")}
+    counts = (f'読み込み確認 {kinds["confirmed"]:,}件 / 要求のみ {kinds["requested"]:,}件 / '
+              f'明示指定 {kinds["explicit"]:,}件。利用回数は読み込みが確認できた作業を集計します。'
+              if usage["source"] == "native" else "新しいnativeログの集計とは別の履歴です。")
+    return (f'<section class=attention><strong>{status}</strong><p>収集確認: {checked}<br>最新の観測: {latest}</p>'
+            f'<ul>{rows}</ul><p>{counts}</p><p>入力の要確認: {len(usage["errors"]):,}件。'
+            'ログの更新がないことは、skillの未使用や無用を意味しません。詳細は agent-observability-doctor で確認できます。</p></section>')
 
 
 def render_artifacts(items):
@@ -1040,19 +1048,21 @@ def write_report(content: str, output: pathlib.Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--days", type=int, default=30)
+    parser.add_argument("--source", choices=("auto", "native", "legacy"), default="auto")
     parser.add_argument("--preview-dir", type=pathlib.Path, help="同じ検証済み3ページを保存する追加ディレクトリ")
     parser.add_argument("--open", action="store_true", dest="open_report")
     args = parser.parse_args()
     days = max(1, args.days)
     output = ROOT / "report.html"
     eval_output = ROOT / "evals.html"
-    turns = build_turns(load_events(days))
+    usage = read_usage(ROOT, days=days, source=args.source)
+    turns = build_turns(usage["events"])
     eval_results = load_eval_results(days)
     evidence = EvidenceSnapshot(ROOT, load_eval_cases(), eval_results, load_catalog(), load_skill_locations())
     usage_stats = aggregate(turns)
     pages = {
         "report.html": render_operations(days, ROOT, evidence=evidence),
-        "usage.html": render_overview(days, turns, usage_stats),
+        "usage.html": render_overview(days, turns, usage_stats, usage),
         "evals.html": render_evaluations(days, eval_results, evidence=evidence),
     }
     validate_pages(pages, evidence, usage_stats=usage_stats)

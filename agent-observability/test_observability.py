@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import json
 import os
 import pathlib
@@ -11,11 +12,9 @@ import tempfile
 import unittest
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-RECORDER = REPO / "agent-observability/record-event.py"
 REPORTER = REPO / "agent-observability/generate-report.py"
 EVALUATOR = REPO / "agent-observability/evaluate-skill.py"
 AUDITOR = REPO / "agent-observability/audit-evals.py"
-CODEX = REPO / "codex/skill-observability.py"
 EVAL_CASE = REPO / ".agents/evals/ponytail-cache.json"
 EVAL_FIXTURE = REPO / ".agents/evals/fixtures/ponytail-cache"
 EVAL_VERIFIER = REPO / ".agents/evals/ponytail-cache-verify.py"
@@ -30,154 +29,23 @@ class ObservabilityTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp.cleanup()
 
-    def record(self, event: dict[str, object]) -> None:
-        subprocess.run(
-            [sys.executable, RECORDER, json.dumps(event)], env=self.env, check=True
-        )
+    def write_event(self, event: dict[str, object]) -> None:
+        """Write a saved-event fixture without invoking the retired collector."""
+        directory = self.root / "events"
+        directory.mkdir(exist_ok=True)
+        row = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "schema_version": 2,
+            **event,
+        }
+        with (directory / "sample.jsonl").open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(row) + "\n")
 
     def events(self) -> list[dict[str, object]]:
-        files = list((self.root / "events").glob("*.jsonl"))
-        try:
-            return [json.loads(line) for line in files[0].read_text().splitlines()]
-        except (IndexError, OSError, json.JSONDecodeError) as exc:
-            self.fail(f"failed to read event journal: {exc}")
-
-    def test_event_journal_and_live_state(self) -> None:
-        skill = self.root / "skills/tdd/SKILL.md"
-        skill.parent.mkdir(parents=True)
-        skill.write_text("# TDD\n", encoding="utf-8")
-        base = {"agent": "pi", "session_id": "s1", "cwd": "/tmp"}
-
-        self.record({**base, "event": "session_started", "state": "idle"})
-        self.record({**base, "event": "agent_started", "state": "working"})
-        self.record(
-            {
-                **base,
-                "event": "skill_activated",
-                "skill": "tdd",
-                "skill_path": str(skill),
-            }
-        )
-        self.record({**base, "event": "agent_end", "state": "idle"})
-
-        live_files = list((self.root / "live").glob("*.json"))
-        try:
-            live = json.loads(live_files[0].read_text())
-        except (IndexError, OSError, json.JSONDecodeError) as exc:
-            self.fail(f"failed to read live state: {exc}")
-        self.assertEqual(live["state"], "idle")
-        self.assertEqual(live["skills"], ["tdd"])
-        activated = self.events()[2]
-        self.assertTrue(str(activated["skill_version"]).startswith("sha256:"))
-        self.assertEqual(activated["cwd"], "tmp")
-        self.assertNotIn("skill_path", activated)
-
-        self.record({**base, "event": "session_ended", "state": "idle"})
-        self.assertEqual(list((self.root / "live").glob("*.json")), [])
-
-    def test_codex_hook_translation_omits_prompt(self) -> None:
-        skill = self.root / "skills/ponytail/SKILL.md"
-        skill.parent.mkdir(parents=True)
-        skill.write_text("# Ponytail\n", encoding="utf-8")
-        deployed_recorder = self.root / ".local/bin/agent-observability-record"
-        deployed_recorder.parent.mkdir(parents=True)
-        deployed_recorder.symlink_to(RECORDER)
-        env = {**self.env, "HOME": str(self.root)}
-        env.pop("AGENT_OBSERVABILITY_RECORDER", None)
-
-        prompts = {
-            "hook_event_name": "UserPromptSubmit",
-            "session_id": "c1",
-            "turn_id": "t1",
-            "cwd": str(self.root),
-            "model": "gpt-test",
-            "prompt": "Use $ponytail on secret material",
-        }
-        reads = {
-            **prompts,
-            "hook_event_name": "PreToolUse",
-            "tool_name": "read",
-            "tool_input": {"path": str(skill)},
-            "tool_use_id": "tool-1",
-        }
-        test_run = {
-            **prompts,
-            "hook_event_name": "PreToolUse",
-            "tool_name": "Bash",
-            "tool_input": {"command": "python -m pytest"},
-        }
-        build_run = {
-            **prompts,
-            "hook_event_name": "PreToolUse",
-            "tool_name": "Bash",
-            "tool_input": {"command": "nix build"},
-        }
-        diagnostic_warning = {
-            **prompts,
-            "hook_event_name": "PreToolUse",
-            "tool_name": "lens_diagnostics",
-            "tool_input": {"mode": "all"},
-        }
-        warning_result = {
-            **diagnostic_warning,
-            "hook_event_name": "PostToolUse",
-            "tool_response": {"details": {"totalWarnings": 2}},
-        }
-        diagnostic_error = {**diagnostic_warning, "tool_use_id": "diagnostic-error"}
-        error_result = {
-            **diagnostic_error,
-            "hook_event_name": "PostToolUse",
-            "tool_response": {"details": {"totalErrors": 1}},
-        }
-        for hook in (
-            prompts,
-            reads,
-            test_run,
-            build_run,
-            diagnostic_warning,
-            warning_result,
-            diagnostic_error,
-            error_result,
-        ):
-            subprocess.run(
-                [sys.executable, CODEX],
-                input=json.dumps(hook),
-                text=True,
-                env=env,
-                check=True,
-            )
-
-        events = self.events()
-        self.assertEqual(
-            [event["skill"] for event in events if event["event"] == "skill_activated"],
-            ["ponytail", "ponytail"],
-        )
-        self.assertNotIn("secret material", json.dumps(events))
-        self.assertTrue(all(event.get("schema_version") == 2 for event in events))
-        self.assertEqual(
-            [
-                event["verification"]
-                for event in events
-                if event["event"] == "verification_started"
-            ],
-            ["test", "build", "diagnostics", "diagnostics"],
-        )
-        self.assertEqual(
-            [
-                event["status"]
-                for event in events
-                if event["event"] == "verification_finished"
-            ],
-            ["passed", "failed"],
-        )
-        self.assertEqual(
-            [
-                (event.get("diagnostics"), event.get("warnings"))
-                for event in events
-                if event["event"] == "verification_finished"
-            ],
-            [(0, 2), (1, 0)],
-        )
+        return [
+            json.loads(line)
+            for line in (self.root / "events/sample.jsonl").read_text().splitlines()
+        ]
 
     def test_ponytail_eval_fixture_and_dry_run(self) -> None:
         workspace = self.root / "eval-workspace"
@@ -275,8 +143,8 @@ class ObservabilityTest(unittest.TestCase):
             "cwd": "/private/work/super-secret-project",
             "model": "test-model",
         }
-        self.record({**base, "event": "agent_started", "state": "working"})
-        self.record(
+        self.write_event({**base, "event": "agent_started", "state": "working"})
+        self.write_event(
             {
                 **base,
                 "event": "skill_activated",
@@ -284,10 +152,10 @@ class ObservabilityTest(unittest.TestCase):
                 "invocation": "explicit",
             }
         )
-        self.record(
+        self.write_event(
             {**base, "event": "skill_activated", "skill": "tdd", "invocation": "read"}
         )
-        self.record(
+        self.write_event(
             {
                 **base,
                 "event": "verification_started",
@@ -295,7 +163,7 @@ class ObservabilityTest(unittest.TestCase):
                 "tool": "bash",
             }
         )
-        self.record(
+        self.write_event(
             {
                 **base,
                 "event": "verification_finished",
@@ -303,7 +171,7 @@ class ObservabilityTest(unittest.TestCase):
                 "status": "passed",
             }
         )
-        self.record({**base, "event": "agent_end", "state": "idle"})
+        self.write_event({**base, "event": "agent_end", "state": "idle"})
 
         eval_dir = self.root / "eval-results"
         eval_dir.mkdir()
@@ -394,14 +262,14 @@ class ObservabilityTest(unittest.TestCase):
             "session_id": "verification-session",
             "cwd": "/tmp/project",
         }
-        self.record({**base, "event": "agent_started", "state": "working"})
-        self.record({**base, "event": "skill_activated", "skill": "tdd"})
+        self.write_event({**base, "event": "agent_started", "state": "working"})
+        self.write_event({**base, "event": "skill_activated", "skill": "tdd"})
         for verification, status in (
             ("test", "failed"),
             ("test", "passed"),
             ("diagnostics", "failed"),
         ):
-            self.record(
+            self.write_event(
                 {
                     **base,
                     "event": "verification_finished",
@@ -410,11 +278,11 @@ class ObservabilityTest(unittest.TestCase):
                     **({"diagnostics": 3} if verification == "diagnostics" else {}),
                 }
             )
-        self.record({**base, "event": "agent_end", "state": "idle"})
+        self.write_event({**base, "event": "agent_end", "state": "idle"})
         legacy = {**base, "session_id": "legacy-session", "schema_version": 1}
-        self.record({**legacy, "event": "agent_started", "state": "working"})
-        self.record({**legacy, "event": "skill_activated", "skill": "tdd"})
-        self.record({**legacy, "event": "agent_end", "state": "idle"})
+        self.write_event({**legacy, "event": "agent_started", "state": "working"})
+        self.write_event({**legacy, "event": "skill_activated", "skill": "tdd"})
+        self.write_event({**legacy, "event": "agent_end", "state": "idle"})
 
         subprocess.run(
             [sys.executable, REPORTER, "--days", "1"],
@@ -435,10 +303,10 @@ class ObservabilityTest(unittest.TestCase):
 
     def test_report_keeps_unconfirmed_verification_out_of_success_and_failure(self) -> None:
         base = {"agent": "codex", "session_id": "pending-result", "turn_id": "turn"}
-        self.record({**base, "event": "agent_started"})
-        self.record({**base, "event": "skill_activated", "skill": "tdd"})
-        self.record({**base, "event": "verification_finished", "verification": "test", "status": "unknown"})
-        self.record({**base, "event": "agent_end"})
+        self.write_event({**base, "event": "agent_started"})
+        self.write_event({**base, "event": "skill_activated", "skill": "tdd"})
+        self.write_event({**base, "event": "verification_finished", "verification": "test", "status": "unknown"})
+        self.write_event({**base, "event": "agent_end"})
         subprocess.run([sys.executable, REPORTER, "--days", "1"],
                        env=self.env, check=True, capture_output=True, text=True)
         report = (self.root / "usage.html").read_text(encoding="utf-8")

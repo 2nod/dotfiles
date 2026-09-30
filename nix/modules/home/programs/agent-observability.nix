@@ -1,25 +1,40 @@
 {
   config,
   dotfilesDir,
+  pkgs,
   ...
 }:
 let
-  recorder = "${config.home.homeDirectory}/.local/bin/agent-observability-record";
+  pythonEntry =
+    filename:
+    pkgs.writeShellScript "agent-observability-${filename}" ''
+      exec ${pkgs.python3}/bin/python3 ${pkgs.lib.escapeShellArg "${dotfilesDir}/agent-observability/${filename}"} "$@"
+    '';
 in
 {
   home = {
-    sessionVariables.AGENT_OBSERVABILITY_RECORDER = recorder;
     file = {
-      ".local/bin/agent-observability-record".source =
-        config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agent-observability/record-event.py";
-      ".local/bin/agent-observability-report".source =
-        config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agent-observability/generate-report.py";
-      ".local/bin/agent-observability-eval".source =
-        config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agent-observability/evaluate-skill.py";
-      ".local/bin/agent-observability-audit-evals".source =
-        config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agent-observability/audit-evals.py";
-      ".local/bin/agent-observability-analyze-usage".source =
-        config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agent-observability/analyze-usage.py";
+      ".local/bin/agent-observability-report".source = pythonEntry "generate-report.py";
+      ".local/bin/agent-observability-eval".source = pythonEntry "evaluate-skill.py";
+      ".local/bin/agent-observability-audit-evals".source = pythonEntry "audit-evals.py";
+      ".local/bin/agent-observability-analyze-usage".source = pythonEntry "analyze-usage.py";
+      ".local/bin/agent-observability-collect".source = pythonEntry "collect-usage.py";
+      ".local/bin/agent-observability-doctor".source = pythonEntry "doctor.py";
+    };
+  };
+  launchd.agents.agent-observability-collect = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${pkgs.python3}/bin/python3"
+        "${dotfilesDir}/agent-observability/collect-usage.py"
+        "--once"
+      ];
+      RunAtLoad = true;
+      StartInterval = 60;
+      ProcessType = "Background";
+      LowPriorityIO = true;
+      Umask = 63;
     };
   };
 }

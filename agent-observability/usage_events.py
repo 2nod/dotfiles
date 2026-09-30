@@ -45,7 +45,7 @@ class SkillStats:
 
 
 def turn_outcome(turn: Turn) -> str:
-    if turn.schema_version != 2:
+    if turn.schema_version not in {2, 3}:
         return "旧形式"
     if not turn.ended:
         return "終了記録なし"
@@ -101,7 +101,7 @@ def build_turns(events: list[dict[str, object]]) -> list[Turn]:
                 model=str(event.get("model", "?")),
                 started=timestamp,
                 agent_id=agent_id,
-                turn_id_inferred=not bool(event_turn_id),
+                turn_id_inferred=bool(event.get("turn_id_inferred")) or not bool(event_turn_id),
                 schema_version=(
                     cast(int, event["schema_version"])
                     if isinstance(event.get("schema_version"), int)
@@ -118,7 +118,8 @@ def build_turns(events: list[dict[str, object]]) -> list[Turn]:
             active[owner] = turn
         elif name == "skill_activated" and isinstance(event.get("skill"), str):
             skill = str(event["skill"])
-            turn.skills.add(skill)
+            if event.get("schema_version") != 3 or (event.get("skill_evidence") == "confirmed" and not event.get("branch_unverified")):
+                turn.skills.add(skill)
             version = event.get("skill_version")
             if isinstance(version, str):
                 turn.versions[skill] = version
@@ -130,6 +131,8 @@ def build_turns(events: list[dict[str, object]]) -> list[Turn]:
         elif name == "verification_finished":
             verification = event.get("verification")
             status = event.get("status")
+            if event.get("schema_version") == 3 and verification and event.get("tool_use_id"):
+                verification = f"{verification}:{event['tool_use_id']}"
             if isinstance(verification, str) and isinstance(status, str) and status in {"passed", "failed", "unknown"}:
                 turn.verification_status[verification] = str(status)
                 details = []
@@ -166,7 +169,7 @@ def aggregate(turns: list[Turn]) -> dict[str, SkillStats]:
             version = turn.versions.get(skill)
             if version:
                 stats.versions.add(version)
-            if turn.schema_version != 2:
+            if turn.schema_version not in {2, 3}:
                 stats.legacy += 1
             elif not turn.ended:
                 stats.ongoing += 1

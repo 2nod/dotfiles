@@ -14,6 +14,7 @@
       inherit
         config
         dotfilesDir
+        pkgs
         ;
     })
     (import ./herdr.nix {

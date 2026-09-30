@@ -17,6 +17,7 @@ Temporary Items
 .apdisk
 
 # Tooling caches
+__pycache__/
 .luarc.json
 .mypy_cache/
 .devenv
