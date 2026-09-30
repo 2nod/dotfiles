@@ -1,0 +1,24 @@
+{
+  "id": "behavior-triage-repository-scope",
+  "skill": "daily-task-triage",
+  "skill_path": "../skills/productivity/daily-task-triage/SKILL.md",
+  "fixture": "fixtures/behavior-triage-repository-scope",
+  "prompt": "今の状況を整理して。このリポジトリの作業についてです。repo-status.jsonが現在の作業記録です。daily.jsonには別の仕事の一覧もあります。result.jsonへscope（対象範囲）、branch、changed_files、checksを記録してください。scopeはrepositoryまたはdaily、checksはpassedまたはnot_runです。入力ファイルは保持し、確認にはreadを使ってください。匿名の合成入力だけを扱い、外部サービスへの通信や操作は行わないでください。",
+  "expected_behavior": "作業中リポジトリの確認を日次整理へ広げず、その記録から対象と検証の未実施を正しく返す。",
+  "scenario": "negative",
+  "invocation": "catalog",
+  "behavior": {
+    "required_reads": ["/workspace/repo-status.json"],
+    "forbidden_reads": ["/skills/*", "/workspace/daily.json"],
+    "unchanged_except": ["result.json"]
+  },
+  "evaluation": {
+    "status": "ready",
+    "scope": "合成カタログでの適用範囲と読取対象、記録の正確さ。曖昧な会話全般やnative discovery、文章の読みやすさは測らない。"
+  },
+  "rubric": [
+    {"id": "scope", "criterion": "単一リポジトリの状況確認に限定し、全タスクの取得や日次計画、不要な対象確認へ広げない。"},
+    {"id": "grounding", "criterion": "入力にある差分と検証の未実施を保持し、実行していない検証や完了を作らない。"}
+  ],
+  "verifiers": [["python3", "{case_dir}/triage-repository-scope-verify.py", "{workspace}"]]
+}

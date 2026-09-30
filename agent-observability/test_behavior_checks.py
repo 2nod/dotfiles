@@ -70,11 +70,13 @@ class BehaviorTests(unittest.TestCase):
         self.assertFalse(check_behavior(rules, 'I ran python3 verify.py', {}, {})['passed'])
         self.assertFalse(check_behavior(rules, trace(calls).splitlines()[0], {}, {})['passed'])
 
-    def test_all_behavior_fixtures_fail_before_and_pass_after_minimal_change(self):
+    def test_declared_file_expectations_fail_before_and_pass_after_minimal_change(self):
         cases = ROOT.parent / '.agents/evals'
         for path in sorted(cases.glob('behavior-*.json')):
             with self.subTest(case=path.name), tempfile.TemporaryDirectory() as tmp:
                 case = runner.load_case(path)
+                if 'files' not in case['behavior']:
+                    continue  # Custom artifact verifiers have their own minimal outcome check.
                 fixture = cases / case['fixture']
                 before = {p.relative_to(fixture).as_posix(): p.read_bytes() for p in fixture.rglob('*') if p.is_file()}
                 after = {**before, **{p: text.encode() for p, text in case['behavior']['files'].items()}}
@@ -91,3 +93,25 @@ class BehaviorTests(unittest.TestCase):
                         dest.parent.mkdir(parents=True, exist_ok=True)
                         dest.write_bytes(data)
                     self.assertEqual(subprocess.run(command).returncode, expected_exit)
+
+    def test_repository_triage_scope_and_read_boundaries(self):
+        cases = ROOT.parent / '.agents/evals'
+        case = runner.load_case(cases / 'behavior-triage-repository-scope.json')
+        fixture = cases / case['fixture']
+        before = {p.name: p.read_bytes() for p in fixture.iterdir()}
+        after = {**before, 'result.json': json.dumps({'scope': 'repository', 'branch': 'feature/sample',
+                 'changed_files': ['src/widget.py'], 'checks': 'not_run'}).encode()}
+        calls = [('read', {'path': 'repo-status.json'}), ('write', {'path': 'result.json'})]
+        self.assertTrue(check_behavior(case['behavior'], trace(calls), before, after)['passed'])
+        for forbidden in ('daily.json', '/skills/SKILL.md'):
+            self.assertFalse(check_behavior(case['behavior'], trace(calls + [('read', {'path': forbidden})]), before, after)['passed'])
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            command = [sys.executable, str(cases / 'triage-repository-scope-verify.py'), str(work)]
+            self.assertEqual(subprocess.run(command).returncode, 1)
+            (work / 'result.json').write_bytes(after['result.json'])
+            self.assertEqual(subprocess.run(command).returncode, 0)
+            wrong = json.loads(after['result.json'])
+            wrong['scope'] = 'daily'
+            (work / 'result.json').write_text(json.dumps(wrong))
+            self.assertEqual(subprocess.run(command).returncode, 1)

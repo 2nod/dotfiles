@@ -15,6 +15,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from eval_contracts import load_catalog
 from usage_events import build_turns, parse_time, turn_outcome
+from usage_input import read_usage
 
 
 VERSION = re.compile(r"sha256:[0-9a-f]{64}\Z")
@@ -22,48 +23,9 @@ OUTCOMES = {
     "検証済み": "reported_passed", "検証失敗": "reported_failed",
     "未検証": "unverified", "終了記録なし": "no_end", "旧形式": "legacy",
 }
-TEXT_FIELDS = (
-    "agent", "session_id", "agent_id", "turn_id", "event", "model", "skill",
-    "skill_version", "invocation", "verification", "status", "result_evidence",
-)
-
-
 def read_events(root, days, now):
-    """Retain file/line evidence and report unreadable input instead of hiding it."""
-    cutoff = now - timedelta(days=days)
-    events, errors = [], []
-    for path in sorted((root / "events").glob("*.jsonl")):
-        # Journals use UTC dates. Skip whole older journals before reading them.
-        try:
-            if datetime.strptime(path.stem, "%Y-%m-%d").date() < cutoff.date():
-                continue
-        except ValueError:
-            pass
-        try:
-            lines = path.read_text(encoding="utf-8").splitlines()
-        except (OSError, UnicodeError) as error:
-            errors.append({"path": str(path), "reason": type(error).__name__})
-            continue
-        for number, line in enumerate(lines, 1):
-            try:
-                event = json.loads(line)
-            except ValueError:
-                event = None
-            timestamp = parse_time(event.get("ts")) if isinstance(event, dict) else None
-            if not timestamp or not event.get("event") or any(
-                event.get(key) is not None and not isinstance(event[key], str) for key in TEXT_FIELDS
-            ):
-                errors.append({"path": str(path), "line": number, "reason": "invalid event or timestamp"})
-                continue
-            if not cutoff <= timestamp <= now:
-                continue
-            event["_source"] = {
-                "path": str(path), "line": number,
-                "sha256": hashlib.sha256(line.encode("utf-8")).hexdigest(),
-            }
-            events.append(event)
-    events.sort(key=lambda event: parse_time(event["ts"]))
-    return events, errors
+    data = read_usage(root, days, now)
+    return data["events"], data["errors"]
 
 
 def observed_version(events, skill):
@@ -75,15 +37,18 @@ def observed_version(events, skill):
     return (versions[0] if len(versions) == 1 and not missing_reads else None), versions, missing_reads
 
 
-def analyze(root, *, days=30, now=None, catalog=None, skill=None):
+def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto"):
     now = now or datetime.now(timezone.utc)
     catalog = catalog if catalog is not None else load_catalog()
-    events, errors = read_events(root, days, now)
+    data = read_usage(root, days, now, source)
+    events, errors = data["events"], data["errors"]
     turns = build_turns(events)
     activations = [e for e in events if e.get("event") == "skill_activated"]
     verifications = [e for e in events if e.get("event") == "verification_finished"]
     quality = {
         "invalid_rows_or_files": len(errors),
+        "skill_evidence": dict(Counter(e.get("skill_evidence", "legacy") for e in activations)),
+        "branch_observations_excluded": sum(bool(e.get("branch_unverified")) for e in events),
         "read_activations_without_version": sum(
             e.get("invocation") == "read" and not VERSION.fullmatch(str(e.get("skill_version", "")))
             for e in activations
@@ -121,9 +86,10 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None):
             reasons.append("verification_result_unconfirmed")
         if any(not e.get("result_evidence") for e in turn.observations if e.get("event") == "verification_finished"):
             reasons.append("historical_verification_without_evidence_kind")
-        evidence = [e["_source"] for e in turn.observations if "_source" in e and e.get("event") in {
+        evidence = [ref for e in turn.observations if e.get("event") in {
             "agent_started", "skill_activated", "verification_finished", "agent_end",
-        }]
+        } for ref in e.get("_evidence", [e["_source"]] if "_source" in e else [])]
+        evidence = list({json.dumps(ref, sort_keys=True): ref for ref in evidence}.values())
         identity = [turn.agent, turn.session_id, turn.agent_id,
                     None if turn.turn_id_inferred else turn.turn_id, turn.started.isoformat()]
         candidate = {
@@ -167,6 +133,7 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None):
         "schema_version": 1,
         "generated_at": now.isoformat(), "window_start": (now - timedelta(days=days)).isoformat(),
         "event_root": str(root), "selected_skill": skill,
+        "source": data["source"], "collection": data["collection"],
         "coverage": {
             "events": len(events), "skill_activations": len(activations),
             "observed_turns": len(turns), "reviewable_turns": len(candidates),
@@ -175,6 +142,7 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None):
             "agents": dict(Counter(str(e.get("agent", "unknown")) for e in events)),
         },
         "data_quality": quality, "input_errors": errors,
+        "input_error_counts": dict(Counter(e["reason"] for e in errors)),
         "cohorts": sorted(cohorts.values(), key=lambda row: (-row["turns"], row["skill"], row["agent"], str(row["model"]))),
         "review_candidates": candidates,
         "limitations": [
@@ -182,7 +150,9 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None):
             "Read the original conversation and user feedback before assessing usefulness; prompts are not collected here.",
             "Reported historical verification success may lack exit-status evidence; missing fields are not reconstructed.",
             "Skill versions hash SKILL.md only, not the complete bundle or references.",
-            "No recent events may mean inactivity or missing collection. This analysis cannot distinguish them.",
+            "Native usage totals require a confirmed skill read; requests and explicit mentions are reported separately.",
+            "Forked histories with unverified origins are excluded from skill usage totals.",
+            "Collection health distinguishes source freshness from activity; incomplete parsing can still miss activity.",
         ],
     }
 
@@ -209,15 +179,18 @@ def main():
         "AGENT_OBSERVABILITY_DIR", str(Path.home() / ".local/share/agent-observability"))))
     parser.add_argument("--days", type=int, default=30)
     parser.add_argument("--skill")
+    parser.add_argument("--source", choices=("auto", "native", "legacy"), default="auto")
     parser.add_argument("--limit", type=int, default=10, help="Maximum conversation candidates; cohort counts remain complete")
+    parser.add_argument("--all-errors", action="store_true", help="Include every input error reference (default: first 50)")
     parser.add_argument("--review-template", metavar="ID", help="Print an unscored review record for a candidate ID")
     args = parser.parse_args()
     if args.days < 1 or args.limit < 1:
         parser.error("--days and --limit must be positive")
     root = args.root.expanduser().resolve()
-    if not (root / "events").is_dir():
-        parser.error("event directory does not exist: " + str(root / "events"))
-    result = analyze(root, days=args.days, skill=args.skill)
+    if not (root / "events").is_dir() and not (root / "usage.sqlite3").exists():
+        parser.error("no saved usage data: " + str(root))
+    result = analyze(root, days=args.days, skill=args.skill, source=args.source)
+    input_failed = result["source"] == "native" and result["collection"]["state"] in {"unreadable", "not_started"}
     if args.review_template:
         candidate = next((c for c in result["review_candidates"] if c["id"] == args.review_template), None)
         if candidate is None:
@@ -226,8 +199,11 @@ def main():
     else:
         result["candidates_truncated"] = len(result["review_candidates"]) > args.limit
         result["review_candidates"] = result["review_candidates"][:args.limit]
+        result["input_errors_truncated"] = not args.all_errors and len(result["input_errors"]) > 50
+        if not args.all_errors:
+            result["input_errors"] = result["input_errors"][:50]
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0
+    return 1 if input_failed else 0
 
 
 if __name__ == "__main__":

@@ -4,6 +4,27 @@
 指示の棚卸しや文書保守は [スキルと指示の見直し](../.agents/skills/agent-management/skill-governance/references/skill-review.md) から、比較実験は下記の「改善ループ」から始める。
 文書整理の完了は、効果の実証やruntimeへの配布完了を意味しない。
 
+Codex、Claude Code、Piの保存済み会話ログを、user launchdから60秒ごとに増分取り込みする。
+分析用hookとPiの計測拡張は削除済みで、trust設定は不要。
+構造化された記録から読取の確認と検証結果を抽出し、解析できない形式は欠落として表示する。
+[収集方式と対応範囲](../docs/design/agent-usage-ingestion.md)に保存、再開、重複排除の契約をまとめている。
+
+```sh
+agent-observability-collect --once --dry-run  # 保存元だけを確認
+agent-observability-collect --once            # 追記分を取り込む
+agent-observability-doctor                    # 稼働と未読、解析の欠落を確認
+agent-observability-analyze-usage --days 30    # 会話レビューの候補を出す
+agent-observability-analyze-usage --source legacy --days 30  # 旧hook記録を別に確認
+```
+
+配布前は上記の入口に対応する `collect-usage.py`、`doctor.py`、`analyze-usage.py` をこのディレクトリから実行できる。
+対象を限定する場合は `~/.config/agent-observability/sources.json` に、例えば次を保存する。
+指定したruntimeとディレクトリだけを読み、既定の保存元とは混ぜない。
+
+```json
+{"codex":["~/.codex/sessions"],"claude-code":["~/.config/claude/projects"],"pi":["~/.pi/agent/sessions"]}
+```
+
 ## 比較評価の実行環境
 
 モデル利用は明示指定した実行に限る。計画・採点・レポート作成はモデルを起動しない。
@@ -33,29 +54,29 @@ readはUTF-8テキスト、editは一意な完全一致を扱う。
 画像、外部サービス、複数ターンが目的に不可欠なケースは、この環境での合成入力だけで検証完了にしない。
 旧ホスト実行とコンテナ実行の結果は混ぜない。
 
-pi と Codex の skill 利用イベントを、prompt や推論本文を保存せずローカルへ記録する。
+保存済みイベントをローカルで分析する。
 
 ## 保存先
 
-- `~/.local/share/agent-observability/events/YYYY-MM-DD.jsonl`: 追記専用の正本
-- `~/.local/share/agent-observability/live/*.json`: SwiftBar 用の現在状態
+- `~/.local/share/agent-observability/usage.sqlite3`: nativeログのschema 3観測、根拠参照、checkpoint、収集状態
+- `~/.local/share/agent-observability/events/YYYY-MM-DD.jsonl`: 過去の収集で保存した利用イベント
 
-保存するのはschema version、agent、model、session・turn・tool呼び出しのID、project名、skill名とハッシュ、tool種別、検証結果と判定根拠、時刻だけ。
-Codex の prompt、tool input、tool response、assistant message は保存しない。
-skillのハッシュは読み込んだ `SKILL.md` 本文のSHA-256で、同梱reference全体の版ではない。
+旧collectorが保存したのはschema version、agent、model、session・turn・tool呼び出しのID、project名、skill名とハッシュ、tool種別、検証結果と判定根拠、時刻。
+Codexのprompt、tool input、tool response、assistant messageは含まない。
+記録されたskillのハッシュは読み込んだ`SKILL.md`本文のSHA-256で、同梱reference全体の版ではない。
 
-## Reporter
+## 過去ログの読み取り
 
-- pi: `pi/extensions/skill-observability.ts` がNodeで直接保存する
-- Codex: `codex/skill-observability.py` が同一Pythonプロセス内でrecorderを呼ぶ
-- 共通schema: `schema/event.schema.json`
+`analyze-usage.py`と`generate-report.py`は `usage_input.py` を通して保存済みイベントを読む。
+DBがあればnativeを既定とし、旧hook記録と混ぜない。DB異常時も旧記録へ切り替えない。
+共通schemaは`schema/event.schema.json`、turnの復元は`usage_events.py`で管理する。
 
-Codex App hook は重複実行を避けるため `hooks.json` に集約し、Herdr hook と共存する。
-Codexのread系toolと、cat・head・tail・sed・batによる実在ファイルの読み込み要求をskill利用として記録する。
-shellのglob・変数展開は行わず、読み込みの成否や、内容を判断に使ったかまでは示さない。
-test/buildの成功には構造化された終了コードを要求し、実行中の応答や結果不明は `status: unknown` とする。
-非同期実行の後続pollとの対応付けは行わないため、終了を別toolで確認した場合も未確認の記録が残る。
-`result_evidence` に判定根拠を記録し、過去のイベントは書き換えない。
+旧Codex collectorではread系toolと、cat・head・tail・sed・batによる実在ファイルの読み込み要求をskill利用として記録していた。
+shellのglob・変数展開はせず、読み込みの成否や、内容を判断に使ったかまでは示さない。
+最後の実装ではtest/buildの成功に構造化された終了コードを要求し、実行中の応答や結果不明を`status: unknown`としていた。
+ただし実環境への反映時期によって記録の粒度は異なり、過去ログすべてにこの判定が適用されたとは限らない。
+非同期実行の後続pollとの対応付けもないため、終了を別toolで確認した場合に未確認の記録が残る。
+記録にある`result_evidence`と元の会話を確認し、過去のイベントは書き換えない。
 
 ## 実利用ログから改善候補を探す
 
@@ -68,8 +89,9 @@ python3 agent-observability/analyze-usage.py --days 30 --limit 10
 python3 agent-observability/analyze-usage.py --days 30 --skill skill-scout --limit 5
 ```
 
-最初に `coverage` の最終記録時刻と件数、`data_quality` の版欠落・不正な行・検証の根拠欠落を確認する。
-イベントが途切れている場合は、未使用と収集停止を区別できない。
+最初に `collection` の稼働と解析の欠落、`coverage` の最終観測時刻と件数、`data_quality` の版欠落と検証根拠を確認する。
+新形式の利用回数は読取確認がある作業を対象とする。指定と要求のみの件数は `data_quality.skill_evidence` で分ける。
+元ログが更新されていないことやcollectorが正常なことだけでは、skillの未使用を確定できない。
 カタログにない名前も、誤検出、過去の名前、runtime固有skillの可能性を確認してから判断する。
 
 `cohorts` はskill・runtime・モデル・観測した版ごとの作業数を示す。
@@ -80,6 +102,7 @@ python3 agent-observability/analyze-usage.py --days 30 --skill skill-scout --lim
 
 `review_candidates` は失敗・結果未確認を先にし、同じ条件では新しい作業から並べる。
 `--limit` は候補の表示数だけを制限し、集計件数は変えない。
+入力エラーは理由ごとの全件数と先頭50件の参照を返す。`--all-errors` で参照を全件出力できる。
 `evidence` のファイル・行番号・行内容のSHA-256から根拠へ戻れる。
 会話はagent・session・turn IDと時刻から探す。Piなどの推定turn IDは `turn_id_inferred: true` で区別する。
 期間内の記録だけを読むため、開始が期間外にある作業にも `missing_turn_start` が付く。
@@ -112,15 +135,16 @@ python3 agent-observability/analyze-usage.py --days 30 --skill skill-scout \
 
 ## 表示
 
-`swiftbar/plugins/agent-skills.10s.py` が30分以内に更新されたlive stateを表示する。
+`swiftbar/plugins/agent-skills.10s.py`は収集状態とレポートを開くメニューを表示する。
+heartbeatが古い場合や解析の欠落がある場合は `Skills !` と表示する。`Check collection` で元ログの追記も確認できる。
 `Open report` は3ページを同時生成し、スキル一覧の`report.html`を開く。
 - `report.html`（スキル一覧）: 自作・外部導入（installed）別の採否と配置、全期間の判断までの残作業。ケース比較の要約は直近30日（`--days`で変更）。
 - `evals.html`（検証結果）: 自作・外部導入別の保存済み検証レポートへのリンク（全期間）と、`eval-results`にあるケースの比較・成果物・履歴（直近30日）。別形式のCodex検証は参考検証としてケースの実行記録に表示し、成功記録と元レポートを示す。比較判定・採用判定へは混ぜない。
 - `usage.html`: 直近30日の利用履歴と作業検証。
 
 採否と配置はスキル一覧に集約し、検証結果からリンクする。検証ケースは自作／外部導入の区分内でスキル別にまとめ、スキルを開いて確認する。検索・実行記録の絞り込みでは一致するスキルを展開し、ケースへの直接リンクでは絞り込みを解除して展開する。スキルの見出しに実行記録のあるケース数を表示する。比較評価と参考検証は同じ実行履歴に条件別の行として表示し、一覧の件数と一致させる。記録ありは青、記録なしは灰色の表示と文言で区別する。自作と外部導入の区分は管理台帳の`source`に従い、配置の有無とは混同しない。区分を特定できない履歴・複数区分を含むレポートは別枠に残す。未採点・比較対象の欠落がある成功率差は表示しない。未採点を失敗に数えず、未計測の値は0にせず「—」または「未記録」と表示する。成果物は存在するファイルだけにリンクし、欠落を明記する。古い評価条件は現在の継続候補として扱わない。
-レポートとSwiftBarのskill名は実際に読むローカル`SKILL.md`へリンクする。共有skillは`shared · authored/installed`、Codex同梱skillは`codex-system · bundled`と表示する。installed skillのupstream情報は`SOURCE.md`で管理する。
-検証率は、schema v2でskillを使った終了済みturnのうち、記録された検証カテゴリ（test・build・diagnostics）の最終結果がすべて成功した割合です。diagnosticsはerror・blocking・timeoutを失敗とし、warningだけなら成功として件数を記録します。Codexの結果未確認は `unknown` として残し、他カテゴリに失敗がなければ未検証に数えます。Piの既存collectorはdiagnosticsの未確認を失敗として記録します。検証イベントがないturnも未検証、旧schemaのturnは集計対象外です。skillなしとの因果比較ではありません。
+レポートのskill名は実際に読むローカル`SKILL.md`へリンクする。共有skillは`shared · authored/installed`、Codex同梱skillは`codex-system · bundled`と表示する。installed skillのupstream情報は`SOURCE.md`で管理する。
+検証率は、schema v2 / v3でskillを使った終了済みturnのうち、記録された検証（test・build・diagnostics）の結果がすべて成功した割合です。diagnosticsはerror・blocking・timeoutを失敗とし、warningだけなら成功として件数を記録します。Codexの結果未確認は `unknown` として残し、他カテゴリに失敗がなければ未検証に数えます。旧Pi collectorはdiagnosticsの未確認を失敗として記録していました。検証イベントがないturnも未検証、旧schemaのturnは集計対象外です。skillなしとの因果比較ではありません。
 
 ### 表示の整合性
 
@@ -202,7 +226,7 @@ agent-observability-report
 - index.html（生成HTMLもエスケープした文字列として表示）
 - review.json（目的別採点票）
 
-日常の利用イベントはこれまで通りpromptや出力を保存しない。
+保存済みの日常利用イベントにはpromptや出力を含まない。
 評価runに限って、匿名化した合成入力とその生成物を保存する。
 実案件や秘密情報をfixtureへ入れない。
 verifierの実行前に成果物を保存し、verifier自身の変更をagentの成果として数えない。

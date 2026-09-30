@@ -3,12 +3,32 @@
   "$id": "https://local/agent-observability/event.schema.json",
   "title": "Agent observability event",
   "type": "object",
-  "required": ["schema_version", "agent", "session_id", "event", "ts"],
+  "required": [
+    "schema_version",
+    "agent",
+    "session_id",
+    "event",
+    "ts"
+  ],
   "properties": {
-    "schema_version": { "type": "integer", "minimum": 1 },
-    "agent": { "enum": ["pi", "codex"] },
-    "session_id": { "type": "string", "minLength": 1 },
-    "turn_id": { "type": "string" },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "agent": {
+      "enum": [
+        "pi",
+        "codex",
+        "claude-code"
+      ]
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "turn_id": {
+      "type": "string"
+    },
     "event": {
       "enum": [
         "session_started",
@@ -22,21 +42,103 @@
         "session_ended"
       ]
     },
-    "ts": { "type": "string", "format": "date-time" },
-    "cwd": { "type": "string" },
-    "model": { "type": "string" },
-    "state": { "enum": ["working", "idle"] },
-    "skill": { "type": "string" },
-    "skill_version": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
-    "invocation": { "enum": ["explicit", "read"] },
-    "tool": { "type": "string" },
-    "verification": { "enum": ["diagnostics", "test", "build"] },
-    "status": { "enum": ["passed", "failed", "unknown"] },
-    "result_evidence": { "enum": ["exit_code", "error_flag", "diagnostics", "tool_response", "unconfirmed"] },
-    "tool_use_id": { "type": "string" },
-    "diagnostics": { "type": "number", "minimum": 0 },
-    "warnings": { "type": "number", "minimum": 0 },
-    "unconfirmed": { "type": "boolean" }
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cwd": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "working",
+        "idle"
+      ]
+    },
+    "skill": {
+      "type": "string"
+    },
+    "skill_version": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "invocation": {
+      "enum": [
+        "explicit",
+        "read"
+      ]
+    },
+    "tool": {
+      "type": "string"
+    },
+    "verification": {
+      "enum": [
+        "diagnostics",
+        "test",
+        "build"
+      ]
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed",
+        "unknown"
+      ]
+    },
+    "result_evidence": {
+      "enum": [
+        "exit_code",
+        "error_flag",
+        "diagnostics",
+        "tool_response",
+        "unconfirmed"
+      ]
+    },
+    "tool_use_id": {
+      "type": "string"
+    },
+    "diagnostics": {
+      "type": "number",
+      "minimum": 0
+    },
+    "warnings": {
+      "type": "number",
+      "minimum": 0
+    },
+    "unconfirmed": {
+      "type": "boolean"
+    },
+    "agent_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "native_event_id": {
+      "type": "string"
+    },
+    "ingested_at": {
+      "type": "string"
+    },
+    "parser_version": {
+      "type": "integer"
+    },
+    "turn_id_inferred": {
+      "type": "boolean"
+    },
+    "branch_unverified": {
+      "type": "boolean"
+    },
+    "skill_evidence": {
+      "enum": [
+        "confirmed",
+        "requested",
+        "explicit"
+      ]
+    }
   },
   "additionalProperties": true
 }

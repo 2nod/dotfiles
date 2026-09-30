@@ -15,18 +15,6 @@ let
 
   tomlFormat = pkgs.formats.toml { };
   jsonFormat = pkgs.formats.json { };
-  observabilityCommand = "${pkgs.python3}/bin/python3 ${codexHomeDir}/skill-observability.py";
-  observabilityHook = [
-    {
-      hooks = [
-        {
-          type = "command";
-          command = observabilityCommand;
-          timeout = 2;
-        }
-      ];
-    }
-  ];
 
   appHooks = {
     hooks = {
@@ -38,19 +26,9 @@ let
               command = "bash '${codexHomeDir}/herdr-agent-state.sh' session";
               timeout = 10;
             }
-            {
-              type = "command";
-              command = observabilityCommand;
-              timeout = 2;
-            }
           ];
         }
       ];
-      UserPromptSubmit = observabilityHook;
-      PreToolUse = observabilityHook;
-      PostToolUse = observabilityHook;
-      Stop = observabilityHook;
-      SessionEnd = observabilityHook;
     };
   };
 
@@ -162,8 +140,6 @@ in
     file = {
       "${codexHomeDir}/AGENTS.md".source =
         config.lib.file.mkOutOfStoreSymlink "${codexDotfilesDir}/AGENTS.md";
-      "${codexHomeDir}/skill-observability.py".source =
-        config.lib.file.mkOutOfStoreSymlink "${codexDotfilesDir}/skill-observability.py";
       "${codexHomeDir}/hooks.json" = {
         source = jsonFormat.generate "codex-hooks" appHooks;
         force = true;
