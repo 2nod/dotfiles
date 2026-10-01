@@ -1,0 +1,21 @@
+{
+  "id": "skill-maintenance-fixed-mtime",
+  "skill": "skill-maintenance",
+  "skill_path": "../skills/agent-management/skill-maintenance/SKILL.md",
+  "fixture": "fixtures/skill-maintenance-fixed-mtime",
+  "prompt": "The deploy.py helper distributes skill directories, including their references. Our build normalizes every file timestamp to 1 second after the epoch. After a reference changes to different text of the same byte length, deployment reports success but a reader still sees the old text. Fix the helper and verify that both SKILL.md and bundled references refresh. Preserve the command interface: python3 deploy.py SOURCE TARGET. This is a synthetic local filesystem task; do not access real agent directories or the network.",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Local deployment with fixed timestamps and equal-size content changes; no Nix or real agent dependency."
+  },
+  "rubric": [
+    {
+      "id": "contents",
+      "criterion": "Deployment refreshes complete skill contents even when byte length and timestamp do not change."
+    }
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/skill-maintenance-fixed-mtime-verify.py", "{workspace}"]
+  ]
+}

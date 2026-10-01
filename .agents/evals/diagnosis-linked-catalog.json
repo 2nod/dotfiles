@@ -1,0 +1,19 @@
+{
+  "id": "diagnosis-linked-catalog",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-linked-catalog",
+  "prompt": "After deployment replaced document folders with directory symlinks, find_cards silently omits the linked cards. Diagnose and fix the shared catalog scanner. Preserve direct directories, arbitrary nesting and logical published paths; dangling links and directory cycles must not hang discovery. Run the supplied public regression test before and after the fix. Work only in this synthetic local workspace; no network or real user directories.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Synthetic filesystem discovery and public regression checks. Does not verify application UI or real deployment."
+  },
+  "rubric": [
+    {"id": "discovery", "criterion": "Find direct and linked cards at arbitrary depth without looping, retaining logical published paths."},
+    {"id": "feedback", "criterion": "Observe the supplied regression failure before editing and success afterward; use the shared scanner seam."}
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-linked-catalog-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosis-linked-catalog"]
+  ]
+}

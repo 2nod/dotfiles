@@ -7,6 +7,7 @@
 Codex、Claude Code、Piの保存済み会話ログを、user launchdから60秒ごとに増分取り込みする。
 分析用hookとPiの計測拡張は削除済みで、trust設定は不要。
 構造化された記録から読取の確認と検証結果を抽出し、解析できない形式は欠落として表示する。
+シェル構文の解析対象外と分岐履歴の除外は、読取エラーと分けて表示する。
 [収集方式と対応範囲](../docs/design/agent-usage-ingestion.md)に保存、再開、重複排除の契約をまとめている。
 
 ```sh
@@ -102,7 +103,8 @@ python3 agent-observability/analyze-usage.py --days 30 --skill skill-scout --lim
 
 `review_candidates` は失敗・結果未確認を先にし、同じ条件では新しい作業から並べる。
 `--limit` は候補の表示数だけを制限し、集計件数は変えない。
-入力エラーは理由ごとの全件数と先頭50件の参照を返す。`--all-errors` で参照を全件出力できる。
+入力エラーと解析上の制限は、それぞれ理由ごとの全件数と先頭50件の参照を返す。
+`--all-errors` で両方の参照を全件出力できる。
 `evidence` のファイル・行番号・行内容のSHA-256から根拠へ戻れる。
 会話はagent・session・turn IDと時刻から探す。Piなどの推定turn IDは `turn_id_inferred: true` で区別する。
 期間内の記録だけを読むため、開始が期間外にある作業にも `missing_turn_start` が付く。
@@ -135,9 +137,12 @@ python3 agent-observability/analyze-usage.py --days 30 --skill skill-scout \
 
 ## 表示
 
-`swiftbar/plugins/agent-skills.10s.py`は収集状態とレポートを開くメニューを表示する。
-heartbeatが古い場合や解析の欠落がある場合は `Skills !` と表示する。`Check collection` で元ログの追記も確認できる。
-`Open report` は3ページを同時生成し、スキル一覧の`report.html`を開く。
+`swiftbar/plugins/agent-skills.1m.py`は保存済みログの解析を1分ごとに表示する。
+`agent-observability-analyze-usage` の直近30日の結果を使い、skillを読んだ作業数、作業中の検証結果、agent別の作業数、利用の多いskill、失敗・結果未確認を優先したレビュー候補を示す。
+作業数は複数skillを併用しても1作業とし、skill別件数では各skillへ計上する。これはskillの有用性や採否の採点ではない。
+収集状態と記録の不足は補足のメニューへ置く。収集停止や解析の欠落は `Skillログ !` とし、メニュー先頭に注意を示し、runtime別に理由と件数を表示する。
+解析を取得できない場合は件数を未確認とし、0件にはしない。過去の検証失敗、シェル構文の解析対象外、分岐履歴の除外だけではメニューバーの警告を出さない。
+利用履歴・比較評価・配置と採否をそれぞれ開ける。各アクションは3ページを同時生成し、`--page usage|evals|skills` で選んだページを開く（既定は`skills`）。レビュー候補の根拠と収集の詳細は既存CLIで確認する。
 - `report.html`（スキル一覧）: 自作・外部導入（installed）別の採否と配置、全期間の判断までの残作業。ケース比較の要約は直近30日（`--days`で変更）。
 - `evals.html`（検証結果）: 自作・外部導入別の保存済み検証レポートへのリンク（全期間）と、`eval-results`にあるケースの比較・成果物・履歴（直近30日）。別形式のCodex検証は参考検証としてケースの実行記録に表示し、成功記録と元レポートを示す。比較判定・採用判定へは混ぜない。
 - `usage.html`: 直近30日の利用履歴と作業検証。

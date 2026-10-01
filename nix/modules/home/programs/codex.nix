@@ -10,6 +10,13 @@ let
   codexXdgDir = "${config.xdg.configHome}/codex";
   codexDotfilesDir = "${dotfilesDir}/codex";
 
+  # Codex discovers both the authoring tree when opened in dotfiles and the
+  # deployed ~/.agents/skills tree. Keep only the deployed copies enabled.
+  localSkillsDir = ../../../../.agents/skills;
+  localSkillFiles = builtins.filter (path: builtins.baseNameOf path == "SKILL.md") (
+    lib.filesystem.listFilesRecursive localSkillsDir
+  );
+
   # agmsg hardcodes this path for its SQLite store, team registry, and run state.
   agmsgSkillDir = "${config.home.homeDirectory}/.agents/skills/agmsg";
 
@@ -39,10 +46,15 @@ let
     sandbox_mode = "workspace-write";
     allow_login_shell = true;
     model_reasoning_effort = "high";
-    web_search_request = true;
+    web_search = "live";
     personality = "pragmatic";
     service_tier = "default";
     project_doc_fallback_filenames = [ "CLAUDE.md" ];
+
+    skills.config = map (path: {
+      path = "${dotfilesDir}/.agents/skills/${lib.removePrefix "${toString localSkillsDir}/" (toString path)}";
+      enabled = false;
+    }) localSkillFiles;
 
     shell_environment_policy = {
       "inherit" = "all";

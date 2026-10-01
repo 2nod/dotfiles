@@ -82,7 +82,17 @@ def load_skill_locations() -> dict[str, tuple[str, str, str]]:
     )
     locations: dict[str, tuple[str, str, str]] = {}
     for scope, root in roots:
-        for skill_path in root.rglob("SKILL.md"):
+        visited = set()
+        for directory, dirs, files in os.walk(root, followlinks=True):
+            resolved = pathlib.Path(directory).resolve()
+            if resolved in visited:
+                dirs[:] = []
+                continue
+            visited.add(resolved)
+            dirs.sort()
+            if "SKILL.md" not in files:
+                continue
+            skill_path = pathlib.Path(directory) / "SKILL.md"
             try:
                 content = skill_path.read_text(encoding="utf-8")
             except OSError:
@@ -663,7 +673,7 @@ def render_overview(days: int, turns: list[Turn], stats: dict[str, SkillStats], 
 def render_collection(usage):
     labels = {"running": "収集稼働中", "stopped": "収集停止の疑い", "not_started": "収集未開始",
               "unreadable": "収集DBを読めません", "legacy_archive": "旧hookの保存記録",
-              "up_to_date": "取り込み済み", "partial": "一部の記録を確認できません",
+              "up_to_date": "取り込み済み", "partial": "未対応の記録・読取エラーあり",
               "lagging": "取り込み中", "awaiting_line": "書き込み完了待ち",
               "missing": "保存元未発見", "unconfigured": "未設定"}
     collection = usage["collection"]
@@ -671,7 +681,8 @@ def render_collection(usage):
     checked = html.escape(collection.get("last_success") or "未記録")
     latest = html.escape(usage["events"][-1]["ts"] if usage["events"] else "表示期間内の記録なし")
     rows = "".join(f'<li>{html.escape(row["runtime"])}: {html.escape(labels.get(row["state"], row["state"]))}'
-                   f'（未読 {row["unread_bytes"]:,} bytes / 不明な形式 {sum(row["issues"].values()):,}件）</li>'
+                   f'（未読 {row["unread_bytes"]:,} bytes / 未対応・エラー {sum(row["issues"].values()):,}件'
+                   f' / 解析上の制限 {sum(row.get("limitations", {}).values()):,}件）</li>'
                    for row in collection.get("runtimes", []))
     kinds = {kind: sum(e.get("event") == "skill_activated" and e.get("skill_evidence") == kind
                       for e in usage["events"]) for kind in ("confirmed", "requested", "explicit")}
@@ -680,6 +691,7 @@ def render_collection(usage):
               if usage["source"] == "native" else "新しいnativeログの集計とは別の履歴です。")
     return (f'<section class=attention><strong>{status}</strong><p>収集確認: {checked}<br>最新の観測: {latest}</p>'
             f'<ul>{rows}</ul><p>{counts}</p><p>入力の要確認: {len(usage["errors"]):,}件。'
+            f'解析上の制限: {len(usage.get("limitations", [])):,}件。'
             'ログの更新がないことは、skillの未使用や無用を意味しません。詳細は agent-observability-doctor で確認できます。</p></section>')
 
 
@@ -1051,10 +1063,11 @@ def main() -> int:
     parser.add_argument("--source", choices=("auto", "native", "legacy"), default="auto")
     parser.add_argument("--preview-dir", type=pathlib.Path, help="同じ検証済み3ページを保存する追加ディレクトリ")
     parser.add_argument("--open", action="store_true", dest="open_report")
+    parser.add_argument("--page", choices=("skills", "usage", "evals"), default="skills",
+                        help="Page to open after generating the reports")
     args = parser.parse_args()
     days = max(1, args.days)
-    output = ROOT / "report.html"
-    eval_output = ROOT / "evals.html"
+    output = ROOT / {"skills": "report.html", "usage": "usage.html", "evals": "evals.html"}[args.page]
     usage = read_usage(ROOT, days=days, source=args.source)
     turns = build_turns(usage["events"])
     eval_results = load_eval_results(days)

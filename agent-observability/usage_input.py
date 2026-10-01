@@ -9,6 +9,7 @@ from pathlib import Path
 import sqlite3
 
 from usage_events import parse_time
+from usage_native import ANALYSIS_LIMITATIONS
 from usage_store import DB_NAME, connect, health
 
 TEXT_FIELDS = (
@@ -24,10 +25,13 @@ def reconcile(previous, current):
     if previous == current:
         return previous
     kind = current.get("event")
-    mutable = {"skill_evidence"} if kind == "skill_activated" else {
+    mutable = {"ts"} if kind in {"agent_started", "agent_end"} else {"skill_evidence"} if kind == "skill_activated" else {
         "ts", "status", "result_evidence"} if kind == "verification_finished" else set()
     if {k: v for k, v in previous.items() if k not in mutable} != {k: v for k, v in current.items() if k not in mutable}:
         return None
+    if kind in {"agent_started", "agent_end"}:
+        choose = min if kind == "agent_started" else max
+        return choose((previous, current), key=lambda event: parse_time(event["ts"]))
     if kind == "skill_activated" and {previous.get("skill_evidence"), current.get("skill_evidence")} == {"requested", "confirmed"}:
         return current if current["skill_evidence"] == "confirmed" else previous
     if kind == "verification_finished" and "unknown" in {previous.get("status"), current.get("status")}:
@@ -133,5 +137,8 @@ def read_usage(root, days=30, now=None, source="auto"):
     else:
         events, errors = legacy_events(root, days, now)
         collection = {"state": "legacy_archive", "last_success": None, "runtimes": []}
+    limitations = [item for item in errors if item["reason"] in ANALYSIS_LIMITATIONS]
+    errors = [item for item in errors if item["reason"] not in ANALYSIS_LIMITATIONS]
     events.sort(key=lambda event: (parse_time(event["ts"]), event.get("native_event_id", "")))
-    return {"events": events, "errors": errors, "source": source, "collection": collection}
+    return {"events": events, "errors": errors, "limitations": limitations,
+            "source": source, "collection": collection}

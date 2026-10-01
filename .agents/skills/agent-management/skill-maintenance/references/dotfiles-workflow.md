@@ -80,9 +80,15 @@ skill 本体は共通。`agent-skills-nix` が `.agents/skills` と `.agents/ins
 
 | deploy 先 | 主な reader | 備考 |
 | --- | --- | --- |
-| `~/.agents/skills` | Codex など | `copy-tree` |
+| `~/.agents/skills` | Codex / ローカル Cursor | `symlink-tree` |
 | `~/.config/claude/skills/dotfiles-shared-skills` | Claude Code | generated plugin |
-| `~/.cursor/skills` | Cursor / cursor-agent | `symlink-tree` |
+
+ローカル Cursor は `~/.agents/skills` を読むため、`~/.cursor/skills` へは重複配布しない。
+Cursor の Cloud Agents 同期は `~/.cursor/skills` が対象なので、必要な場合に限り
+専用 target を設定する。読み込み先と同期対象は [Cursor の公式仕様](https://cursor.com/docs/skills) を確認する。
+
+共通配布先は Nix store へのリンクにする。Nix のファイルは更新時刻が固定されるため、
+サイズ・更新時刻だけで比較するコピーでは、同じサイズの内容変更を見落とす。
 
 `.agents/installed-skills` は third-party 保管庫。
 `agent-skills-nix` の `installed` source 経由で runtime へ deploy する。
@@ -111,8 +117,7 @@ Claude Code は `~/.config/claude/skills` 直下の raw skill tree ではなく�
 python3 .agents/skills/agent-management/skill-maintenance/scripts/check_inventory.py \
   --source .agents/skills --source .agents/installed-skills \
   --target ~/.agents/skills \
-  --target ~/.config/claude/skills/dotfiles-shared-skills/skills \
-  --target ~/.cursor/skills
+  --target ~/.config/claude/skills/dotfiles-shared-skills/skills
 ```
 
 終了コード0は一致、1は欠落や内容差分、2は入力不備を表す。結果はJSONで返り、ファイルは変更しない。

@@ -1,0 +1,31 @@
+{
+  "id": "skill-maintenance-retire-target",
+  "skill": "skill-maintenance",
+  "skill_path": "../skills/agent-management/skill-maintenance/SKILL.md",
+  "fixture": "fixtures/skill-maintenance-retire-target",
+  "prompt": "Both local readers now discover runtime/shared. Retire the redundant runtime/legacy deployment in deployment.json and clean up its already deployed managed skill. runtime/legacy/.managed.json lists the managed directories; preserve manually installed skills there. The source and shared deployment must remain unchanged, including bundled references. Work only in this synthetic workspace; do not use network or real agent directories.",
+  "expected_behavior": "Disable future deployment to the retired target and remove its existing managed skill, while preserving manual skills and the complete shared bundle.",
+  "scenario": "boundary",
+  "rubric": [
+    {
+      "id": "complete-retirement",
+      "criterion": "Remove the retired target from future deployment and remove its existing managed skill from discovery."
+    },
+    {
+      "id": "preservation",
+      "criterion": "Preserve the source, shared bundle including references, and manually installed skills."
+    }
+  ],
+  "evaluation": {
+    "status": "ready",
+    "scope": "Synthetic deployment configuration and filesystem cleanup only; does not verify actual agent discovery."
+  },
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/skill-maintenance-retire-target-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/skill-maintenance-retire-target"
+    ]
+  ]
+}
