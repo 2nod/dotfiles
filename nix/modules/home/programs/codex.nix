@@ -23,6 +23,30 @@ let
   tomlFormat = pkgs.formats.toml { };
   jsonFormat = pkgs.formats.json { };
 
+  # llm-agents' source build lacks the package layout required by the daemon
+  # in 0.159.2. Repackage its cached binaries without rebuilding Rust.
+  # Copy files: executable discovery resolves symlinks, and daemon installation
+  # rejects links that escape the package root.
+  codexPackage =
+    pkgs.runCommand "codex-packaged-${pkgs.llm-agents.codex.version}"
+      {
+        inherit (pkgs.llm-agents.codex) version meta;
+      }
+      ''
+        mkdir -p "$out/bin" "$out/codex-path"
+        cp ${pkgs.llm-agents.codex}/bin/* "$out/bin/"
+        cp -R ${pkgs.llm-agents.codex}/share "$out/share"
+        cp ${pkgs.ripgrep}/bin/rg "$out/codex-path/rg"
+        cp ${
+          jsonFormat.generate "codex-package.json" {
+            layoutVersion = 1;
+            inherit (pkgs.llm-agents.codex) version;
+            target = pkgs.stdenv.hostPlatform.rust.rustcTarget;
+            entrypoint = "bin/codex";
+          }
+        } "$out/codex-package.json"
+      '';
+
   appHooks = {
     hooks = {
       SessionStart = [
@@ -108,7 +132,7 @@ in
   };
 
   home = {
-    packages = [ pkgs.llm-agents.codex ];
+    packages = [ codexPackage ];
 
     sessionVariables = {
       CODEX_HOME = codexHomeDir;

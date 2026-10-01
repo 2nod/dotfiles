@@ -1,0 +1,19 @@
+{
+  "id": "diagnosis-runtime-package",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-runtime-package",
+  "prompt": "The packaged runner passes --version but daemon-start reports incomplete runtime package. Diagnose and fix the release assembler in bundle.py. Run python3 check_start.py before and after the repair. Preserve the runtime implementation, version and executable mode; releases must remain usable after compiler output is removed. Work only in this synthetic local workspace, without network or real user directories.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Synthetic package assembly and real subprocess startup. Does not test an actual daemon, platform signing or package manager."
+  },
+  "rubric": [
+    {"id": "feedback", "criterion": "Observe daemon-start's exact failure before editing; a successful --version alone is insufficient."},
+    {"id": "package", "criterion": "Repair assembly so metadata and helpers are deployed with the executable, preserving its mode and independence from compiler output."}
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-runtime-package-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosis-runtime-package"]
+  ]
+}
