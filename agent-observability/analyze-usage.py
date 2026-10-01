@@ -47,6 +47,7 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto")
     verifications = [e for e in events if e.get("event") == "verification_finished"]
     quality = {
         "invalid_rows_or_files": len(errors),
+        "analysis_limit_rows": len(data["limitations"]),
         "skill_evidence": dict(Counter(e.get("skill_evidence", "legacy") for e in activations)),
         "branch_observations_excluded": sum(bool(e.get("branch_unverified")) for e in events),
         "read_activations_without_version": sum(
@@ -129,6 +130,8 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto")
         parse_time(item["started_at"]), item["id"],
     ), reverse=True)
     latest = parse_time(events[-1]["ts"]) if events else None
+    skill_turns = Counter(name for candidate in candidates for name in
+                          {row["name"] for row in candidate["skills"]})
     return {
         "schema_version": 1,
         "generated_at": now.isoformat(), "window_start": (now - timedelta(days=days)).isoformat(),
@@ -143,6 +146,15 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto")
         },
         "data_quality": quality, "input_errors": errors,
         "input_error_counts": dict(Counter(e["reason"] for e in errors)),
+        "input_limitations": data["limitations"],
+        "input_limitation_counts": dict(Counter(e["reason"] for e in data["limitations"])),
+        "work_summary": {
+            "turns_with_skills": len(candidates),
+            "outcomes": dict(Counter(candidate["work_verification"] for candidate in candidates)),
+            "by_agent": dict(Counter(candidate["agent"] for candidate in candidates)),
+            "top_skills": [{"skill": name, "turns": count} for name, count in
+                           sorted(skill_turns.items(), key=lambda item: (-item[1], item[0]))[:5]],
+        },
         "cohorts": sorted(cohorts.values(), key=lambda row: (-row["turns"], row["skill"], row["agent"], str(row["model"]))),
         "review_candidates": candidates,
         "limitations": [
@@ -202,6 +214,8 @@ def main():
         result["input_errors_truncated"] = not args.all_errors and len(result["input_errors"]) > 50
         if not args.all_errors:
             result["input_errors"] = result["input_errors"][:50]
+            result["input_limitations_truncated"] = len(result["input_limitations"]) > 50
+            result["input_limitations"] = result["input_limitations"][:50]
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 1 if input_failed else 0
 

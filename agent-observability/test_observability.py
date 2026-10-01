@@ -255,6 +255,15 @@ class ObservabilityTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((self.root / "report.html").is_file())
+        for page, filename in [('usage', 'usage.html'), ('evals', 'evals.html')]:
+            with self.subTest(page=page):
+                result = subprocess.run(
+                    [deployed_reporter, '--days', '1', '--page', page],
+                    env=self.env, capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), str(self.root / filename))
+                self.assertTrue((self.root / filename).is_file())
 
     def test_report_uses_latest_result_per_verification_category(self) -> None:
         base = {

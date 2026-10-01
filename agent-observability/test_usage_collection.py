@@ -267,6 +267,47 @@ class CollectionTest(unittest.TestCase):
         self.run_collect()
         self.assertEqual(build_turns(self.read()["events"])[0].skills, {"review"})
 
+    def test_supported_wrapper_and_unrelated_items_are_not_gaps(self):
+        wrapper = codex("response_item", {"type": "custom_tool_call", "name": "exec",
+            "call_id": "wrapper", "input": 'text(await tools.exec_command({cmd: "cat /skills/review/SKILL.md"}))'})
+        self.write("a.jsonl", codex_start() + [
+            codex("response_item", {"type": "custom_tool_call", "name": "apply_patch", "call_id": "patch", "input": "PRIVATE_PATCH"}),
+            wrapper, command("read", "cat /skills/review/SKILL.md"),
+            codex("response_item", {"type": "custom_tool_call_output", "call_id": "wrapper", "output": []}),
+            codex("event_msg", {"type": "item_completed", "turn_id": "turn-one", "item": {
+                "type": "FunctionCallOutput", "id": "other", "name": "create_thread", "output": "PRIVATE_OUTPUT"}}), codex_end()])
+        self.run_collect()
+        self.assertEqual(self.read()["errors"], [])
+        self.assertEqual(build_turns(self.read()["events"])[0].skills, {"review"})
+
+    def test_wrapper_without_inner_evidence_stays_visible_across_passes(self):
+        self.write("a.jsonl", codex_start() + [codex("response_item", {
+            "type": "custom_tool_call", "name": "exec", "call_id": "wrapper", "input": "PRIVATE_JAVASCRIPT"})])
+        self.run_collect()
+        self.write("a.jsonl", [codex("response_item", {"type": "custom_tool_call_output", "call_id": "wrapper", "output": []})], mode="a")
+        self.run_collect()
+        self.assertEqual([e["reason"] for e in self.read()["errors"]], ["unsupported_codex_wrapper"])
+
+    def test_large_compaction_is_ignored_but_large_activity_stays_visible(self):
+        self.write("a.jsonl", codex_start() + [
+            codex("compacted", {"message": "x" * 2000}),
+            codex("response_item", {"type": "custom_tool_call", "input": "x" * 2000}),
+            command("read", "cat /skills/review/SKILL.md"), codex_end()])
+        with patch("usage_store.MAX_LINE", 1024):
+            self.run_collect()
+        self.assertEqual([e["reason"] for e in self.read()["errors"]], ["oversized_record_skipped"])
+        self.assertEqual(build_turns(self.read()["events"])[0].skills, {"review"})
+
+    def test_analysis_limits_do_not_mean_ingestion_failed(self):
+        self.write("a.jsonl", codex_start(forked_from_id="parent") + [command("script", "python3 - <<'PY'\nprint(1)\nPY")])
+        self.run_collect()
+        runtime = health(self.root)["runtimes"][0]
+        self.assertEqual(runtime["state"], "up_to_date")
+        self.assertEqual(runtime["limitations"], {"branch_origin_unverified": 1, "unsupported_shell_syntax": 1})
+        self.assertEqual(runtime["issues"], {})
+        self.assertEqual(self.read()["errors"], [])
+        self.assertEqual({row["reason"] for row in self.read()["limitations"]}, set(runtime["limitations"]))
+
     def test_health_idle_new_source_lag_stopped_missing_and_unconfigured(self):
         self.write("a.jsonl", codex_start())
         self.run_collect()
@@ -309,6 +350,31 @@ class CollectionTest(unittest.TestCase):
         data = self.read()
         self.assertIn("conflicting_native_identity", [e["reason"] for e in data["errors"]])
         self.assertEqual(aggregate(build_turns(data["events"])), {})
+
+    def test_replicated_lifecycle_timestamps_do_not_discard_the_turn(self):
+        rows = codex_start() + [command("read", "cat /skills/review/SKILL.md"), codex_end()]
+        self.write("a.jsonl", rows)
+        copied = json.loads(json.dumps(rows))
+        copied[2]["timestamp"] = "2030-01-01T10:00:01Z"
+        copied[-1]["timestamp"] = "2030-01-01T10:00:02Z"
+        self.write("copy.jsonl", copied)
+        self.run_collect()
+        data = self.read()
+        self.assertEqual(data["errors"], [])
+        lifecycle = {e["event"]: e for e in data["events"] if e["event"] in {"agent_started", "agent_end"}}
+        self.assertEqual(lifecycle["agent_started"]["ts"], "2030-01-01T10:00:00+00:00")
+        self.assertEqual(lifecycle["agent_end"]["ts"], "2030-01-01T10:00:02+00:00")
+        self.assertTrue(all(len(e["_evidence"]) == 2 for e in lifecycle.values()))
+        self.assertEqual(aggregate(build_turns(data["events"]))["review"].uses, 1)
+
+    def test_replicated_project_conflict_stays_visible_despite_timestamp_difference(self):
+        rows = codex_start()
+        self.write("a.jsonl", rows)
+        rows[0]["payload"]["cwd"] = "/other/project"
+        rows[-1]["timestamp"] = "2030-01-01T10:00:01Z"
+        self.write("copy.jsonl", rows)
+        self.run_collect()
+        self.assertIn("conflicting_native_identity", [e["reason"] for e in self.read()["errors"]])
 
     def test_failed_skill_read_and_compound_test_are_not_success(self):
         self.write("a.jsonl", codex_start() + [command("read", "cat /skills/missing/SKILL.md", 1),

@@ -69,6 +69,12 @@ class UsageAnalysisTest(unittest.TestCase):
         ])
         report = self.analyze()
         self.assertEqual(report["coverage"]["reviewable_turns"], 5)
+        self.assertEqual(report['work_summary'], {
+            'turns_with_skills': 5,
+            'outcomes': {'reported_passed': 5},
+            'by_agent': {'codex': 4, 'pi': 1},
+            'top_skills': [{'skill': 'guide', 'turns': 5}, {'skill': 'check', 'turns': 1}],
+        })
         guide = [row for row in report["cohorts"] if row["skill"] == "guide"]
         self.assertEqual(len(guide), 4)
         most_used = guide[0]
@@ -199,6 +205,7 @@ class UsageAnalysisTest(unittest.TestCase):
         report = json.loads(result.stdout)
         self.assertTrue(report["candidates_truncated"])
         self.assertEqual(len(report["review_candidates"]), 1)
+        self.assertEqual(report['work_summary']['turns_with_skills'], 2)
         self.assertEqual(report["cohorts"][0]["turns"], 2)
         candidate_id = report["review_candidates"][0]["id"]
         result = run("--review-template", candidate_id)
