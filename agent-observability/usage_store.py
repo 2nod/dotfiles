@@ -11,7 +11,7 @@ from pathlib import Path
 import sqlite3
 import time
 
-from usage_native import NativeParser, PARSER_VERSIONS, RUNTIMES
+from usage_native import ANALYSIS_LIMITATIONS, NativeParser, PARSER_VERSIONS, RUNTIMES
 
 DB_NAME = "usage.sqlite3"
 MAX_LINE = 16 * 1024 * 1024
@@ -134,6 +134,34 @@ def fingerprints(stream, cursor):
     return head, boundary
 
 
+def is_compaction_prefix(raw):
+    """Identify the outer record type without decoding a huge history payload."""
+    prefix = raw.decode("utf-8", errors="replace")
+    decoder = json.JSONDecoder()
+    offset = len(prefix) - len(prefix.lstrip())
+    if prefix[offset:offset + 1] != "{":
+        return False
+    offset += 1
+    try:
+        while True:
+            offset += len(prefix[offset:]) - len(prefix[offset:].lstrip())
+            key, offset = decoder.raw_decode(prefix, offset)
+            offset += len(prefix[offset:]) - len(prefix[offset:].lstrip())
+            if prefix[offset:offset + 1] != ":":
+                return False
+            offset += 1
+            offset += len(prefix[offset:]) - len(prefix[offset:].lstrip())
+            value, offset = decoder.raw_decode(prefix, offset)
+            if key == "type":
+                return value == "compacted"
+            offset += len(prefix[offset:]) - len(prefix[offset:].lstrip())
+            if prefix[offset:offset + 1] != ",":
+                return False
+            offset += 1
+    except (ValueError, RecursionError):
+        return False
+
+
 def ingest_file(db, path, runtime, source, budget, *, stamp=None, before_commit=None):
     path = str(Path(path).resolve())
     stamp = stamp or now_iso()
@@ -175,6 +203,7 @@ def ingest_file(db, path, runtime, source, budget, *, stamp=None, before_commit=
                 if len(raw) > MAX_LINE:
                     # Large image/output records need not pin the whole session forever.
                     # Drain in bounded chunks; the gap remains explicitly observable.
+                    irrelevant = is_compaction_prefix(raw)
                     skipped = len(raw)
                     while not raw.endswith(b"\n"):
                         raw = stream.readline(64 * 1024)
@@ -186,8 +215,9 @@ def ingest_file(db, path, runtime, source, budget, *, stamp=None, before_commit=
                         break
                     line += 1
                     cursor += skipped
-                    db.execute("INSERT OR IGNORE INTO issues VALUES (?,?,?,?)",
-                               (path, generation, line, "oversized_record_skipped"))
+                    if not irrelevant:
+                        db.execute("INSERT OR IGNORE INTO issues VALUES (?,?,?,?)",
+                                   (path, generation, line, "oversized_record_skipped"))
                     continue
                 if not raw.endswith(b"\n"):
                     pending = True
@@ -291,6 +321,8 @@ def health(root, *, roots=None, now=None, probe=True):
             rows = [f for f in files if f["runtime"] == runtime]
             source_rows = [s for s in sources if s["runtime"] == runtime]
             runtime_issues = {i["code"]: i["count"] for i in issues if i["runtime"] == runtime}
+            limitations = {code: count for code, count in runtime_issues.items() if code in ANALYSIS_LIMITATIONS}
+            runtime_issues = {code: count for code, count in runtime_issues.items() if code not in ANALYSIS_LIMITATIONS}
             lag, waiting, missing, pending, errors, replay = 0, 0, 0, 0, 0, 0
             known = {r["path"] for r in rows}
             new = [p for p, pair in discovered.items() if pair[0] == runtime and p not in known]
@@ -319,7 +351,8 @@ def health(root, *, roots=None, now=None, probe=True):
                      "awaiting_line" if pending else "up_to_date")
             runtimes.append({"runtime": runtime, "state": state, "files": len(rows), "new_files": len(new),
                              "unread_bytes": lag, "missing_files": missing, "file_errors": errors,
-                             "pending_lines": pending, "replaying_files": replay, "issues": runtime_issues})
+                             "pending_lines": pending, "replaying_files": replay, "issues": runtime_issues,
+                             "limitations": limitations})
         return {"state": "stopped" if stopped else "running", "last_start": meta.get("last_start"),
                 "last_success": last, "seconds_since_success": round(age, 1) if age is not None else None,
                 "sources": sources, "runtimes": runtimes}

@@ -11,6 +11,29 @@ report = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = report
 spec.loader.exec_module(report)
 
+class SkillLocationDiscoveryTest(unittest.TestCase):
+    def test_deployed_links_keep_names_origins_and_readable_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            deployed = root / 'deployed'
+            category = deployed / 'category'
+            category.mkdir(parents=True)
+            for name in ('authored-demo', 'installed-demo'):
+                source = root / 'store' / name
+                source.mkdir(parents=True)
+                (source / 'SKILL.md').write_text(f'---\nname: {name}\n---\n')
+                if name == 'installed-demo':
+                    (source / 'SOURCE.md').write_text('Synthetic upstream source')
+                (category / name).symlink_to(source, target_is_directory=True)
+            (root / 'store/authored-demo/cycle').symlink_to(deployed, target_is_directory=True)
+            (category / 'missing').symlink_to(root / 'missing', target_is_directory=True)
+            with patch.dict(report.os.environ, {'AGENT_SKILLS_DIRS': str(deployed)}):
+                locations = report.load_skill_locations()
+            self.assertEqual(locations, {
+                name: ((category / name / 'SKILL.md').as_uri(), 'shared', origin)
+                for name, origin in [('authored-demo', 'authored'), ('installed-demo', 'installed')]
+            })
+
 class OperationsDashboardTest(unittest.TestCase):
     def test_managed_rounds_preserve_the_skill_inventory_and_plan_errors(self):
         with tempfile.TemporaryDirectory() as tmp:

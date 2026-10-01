@@ -8,7 +8,9 @@ import posixpath
 import re
 import shlex
 
-PARSER_VERSIONS = {"codex": 2, "claude-code": 3, "pi": 2}
+PARSER_VERSIONS = {"codex": 3, "claude-code": 3, "pi": 2}
+# These retain evidence of an analysis boundary, not a failed log read.
+ANALYSIS_LIMITATIONS = {"branch_origin_unverified", "unsupported_shell_syntax"}
 RUNTIMES = ("codex", "claude-code", "pi")
 READ_TOOLS = {"read", "read_file", "read_text_file"}
 SHELL_TOOLS = {"bash", "shell", "shell_command", "exec_command", "commandexecution"}
@@ -304,6 +306,8 @@ class NativeParser:
                 item = payload.get("item", {})
                 itype, iid = item.get("type"), item.get("id")
                 if itype == "CommandExecution":
+                    for wrapper in self.state.get("wrappers", {}).values():
+                        wrapper["inner_execution"] = True
                     start = {**base, "ts": timestamp(payload.get("started_at_ms")) or base.get("ts")}
                     self.start(start, "exec_command", {"command": item.get("command")}, iid, ref)
                     if item.get("status") in {"completed", "failed", "declined"} or type(item.get("exit_code")) is int:
@@ -315,11 +319,22 @@ class NativeParser:
                     self.start(base, name, item.get("arguments", {}), iid, ref)
                     result = item.get("result", {})
                     self.finish(iid, result if isinstance(result, dict) else {}, row, ref)
+                elif itype == "FunctionCallOutput":
+                    # A standalone result has no input to infer a skill read from.
+                    result = item.get("output", {})
+                    self.finish(iid, result if isinstance(result, dict) else {}, row, ref)
                 elif itype not in {"AgentMessage", "Reasoning", "FileChange", "ContextCompaction", "Extension", "Plan", "WebSearch", "ImageView", "CollabAgentToolCall", "EnteredReviewMode", "ExitedReviewMode", "HookPrompt", "SubAgentActivity"}:
                     self.issue("unsupported_codex_item")
-        elif kind == "response_item" and not self.state.get("item_history"):
+        elif kind == "response_item":
             base = self.context(row)
             itype, call = payload.get("type"), payload.get("call_id")
+            if itype == "custom_tool_call_output":
+                wrapper = self.state.get("wrappers", {}).pop(call, None)
+                if wrapper and not wrapper["inner_execution"]:
+                    self.issue("unsupported_codex_wrapper")
+                return
+            if self.state.get("item_history"):
+                return
             if itype == "function_call":
                 name = payload.get("name", "unknown")
                 try:
@@ -336,7 +351,9 @@ class NativeParser:
                         result = {}
                 self.finish(call, result, row, ref)
             elif itype == "custom_tool_call":
-                self.issue("unsupported_codex_wrapper")
+                # Patch input is unrelated to reads/tests; never parse or execute it.
+                if payload.get("name", "").split(".")[-1] != "apply_patch" and call:
+                    self.state.setdefault("wrappers", {})[call] = {"inner_execution": False}
 
     def claude_code(self, row, ref):
         if row.get("sessionId"):

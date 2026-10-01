@@ -1,0 +1,19 @@
+{
+  "id": "diagnosis-replicated-event-time",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-replicated-event-time",
+  "prompt": "Replicated lifecycle events are discarded as conflicts when only their observation ticks differ. Diagnose and fix reconcile_event at the shared merge boundary. For otherwise identical open events retain the earliest tick; for close events retain the latest. Genuine identity, group, kind and outcome conflicts must stay visible. Do not mutate inputs or relax merging of unknown event kinds. Run the supplied public test before and after the fix. Use only this synthetic local workspace; no network or real user data.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic synthetic reconciliation with positive and negative public checks. Does not prove recovery of missing historical data."
+  },
+  "rubric": [
+    {"id": "reconciliation", "criterion": "Reconcile timestamp-only lifecycle replicas in either input order, preserving inputs and genuine conflicts."},
+    {"id": "feedback", "criterion": "Observe the regression failure before editing and success after the shared merger fix."}
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-replicated-event-time-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosis-replicated-event-time"]
+  ]
+}

@@ -84,7 +84,9 @@ in
     targets = {
       agents = {
         dest = "$HOME/.agents/skills";
-        structure = "copy-tree";
+        # Nix fixes file mtimes, so rsync's size/mtime check can miss edits
+        # of the same size in copy-tree. Store links change with the bundle.
+        structure = "symlink-tree";
       };
       claude = {
         # Claude Code loads user skills from plugin directories containing
@@ -94,8 +96,9 @@ in
         enable = false;
       };
       cursor = {
-        dest = "$HOME/.cursor/skills";
-        structure = "symlink-tree";
+        # Local Cursor reads ~/.agents/skills too. Enable a separate target
+        # only if these skills need Cursor's Cloud Agents sync.
+        enable = false;
       };
     };
   };
