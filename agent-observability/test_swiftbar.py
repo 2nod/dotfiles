@@ -68,12 +68,16 @@ class SwiftBarTest(unittest.TestCase):
         self.assertTrue(output.startswith('Skillログ 3|'))
         self.assertIn('シェル構文の解析対象外: 8件', output)
         self.assertIn('解析上の制限（読取エラーとは別）: 10件', output)
-        row['state'] = 'partial'
         row['issues'] = {'unsupported_codex_wrapper': 3}
         output = self.render(analysis)
-        self.assertTrue(output.startswith('Skillログ 3 !|'))
+        self.assertTrue(output.startswith('Skillログ 3|'))
         self.assertIn('内部の実行記録がない旧Codexラッパー: 3件', output)
-        self.assertIn('注意: 未対応の記録または収集状態を確認', output)
+        self.assertIn('保存ログ全体の解析不足', output)
+        self.assertIn('読み込みを確認できたskill利用作業数', output)
+        row['state'] = 'partial'
+        output = self.render(analysis)
+        self.assertTrue(output.startswith('Skillログ 3 !|'))
+        self.assertIn('注意: 収集状態を確認', output)
 
     def test_empty_confirmed_analysis_is_distinct_from_unavailable_analysis(self):
         analysis = self.analysis()

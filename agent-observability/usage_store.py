@@ -346,7 +346,7 @@ def health(root, *, roots=None, now=None, probe=True):
             state = ("unconfigured" if not roots.get(runtime) else
                      "missing" if not any(s["state"] == "available" for s in source_rows) else
                      "stopped" if stopped else
-                     "partial" if errors or missing or runtime_issues else
+                     "partial" if errors or missing else
                      "lagging" if new or replay or lag > waiting else
                      "awaiting_line" if pending else "up_to_date")
             runtimes.append({"runtime": runtime, "state": state, "files": len(rows), "new_files": len(new),

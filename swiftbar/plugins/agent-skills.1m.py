@@ -17,7 +17,7 @@ STATES = {
     'running': '稼働中', 'stopped': '停止の疑い', 'not_started': '未開始',
     'unreadable': '読み取り不可', 'unavailable': '解析を取得できません',
     'legacy_archive': '旧ログを参照', 'up_to_date': '取り込み済み',
-    'partial': '未対応の記録・読取エラーあり', 'lagging': '取り込み中',
+    'partial': 'ファイルの読取エラー・欠落あり', 'lagging': '取り込み中',
     'awaiting_line': '書き込み完了待ち', 'missing': '保存元未発見', 'unconfigured': '未設定',
 }
 OUTCOMES = {
@@ -52,11 +52,11 @@ def render(analysis):
     )
     summary = analysis.get('work_summary')
     title = f"Skillログ {summary['turns_with_skills']:,}" if summary else 'Skillログ'
-    notice = ' · 未対応の記録または収集状態を確認' if attention else ''
-    print(f"{title}{' !' if attention else ''}| sfimage=brain.head.profile tooltip=直近{DAYS}日のskill利用作業数{notice}")
+    notice = ' · 収集状態を確認' if attention else ''
+    print(f"{title}{' !' if attention else ''}| sfimage=brain.head.profile tooltip=直近{DAYS}日に読み込みを確認できたskill利用作業数 · 解析不足は詳細に表示{notice}")
     print('---')
     if attention:
-        print('注意: 未対応の記録または収集状態を確認')
+        print('注意: 収集状態を確認')
     if summary:
         source = '通常の保存ログ' if analysis['source'] == 'native' else '旧hookの保存ログ'
         print(f'直近{DAYS}日 · {source}')
@@ -95,6 +95,10 @@ def render(analysis):
     print(f"--最終収集: {timestamp(collection.get('last_success'))}")
     for row in collection.get('runtimes', []):
         print(f"--{text(AGENTS.get(row['runtime'], row['runtime']))}: {STATES.get(row['state'], text(row['state']))}")
+    print('保存ログ全体の解析不足')
+    for row in collection.get('runtimes', []):
+        if row.get('issues') or row.get('limitations'):
+            print(f"--{text(AGENTS.get(row['runtime'], row['runtime']))}")
         for code, count in row.get('issues', {}).items():
             print(f"----{text(ISSUES.get(code, code))}: {count:,}件")
         for code, count in row.get('limitations', {}).items():
