@@ -1,5 +1,7 @@
 [
   {"id": "sample-a", "classification": "confirmed_regression", "ready_for_eval": true},
   {"id": "sample-b", "classification": "confirmed_regression", "ready_for_eval": true},
-  {"id": "sample-c", "classification": "confirmed_regression", "ready_for_eval": true}
+  {"id": "sample-c", "classification": "confirmed_regression", "ready_for_eval": true},
+  {"id": "sample-d", "classification": "confirmed_regression", "ready_for_eval": true},
+  {"id": "sample-e", "classification": "confirmed_regression", "ready_for_eval": true}
 ]

@@ -97,13 +97,16 @@ class SwiftBarTest(unittest.TestCase):
         analysis['evaluation_candidates'] = [{'id': 'b' * 20, 'skill': 'guide', 'label': '通常の利用記録'}]
         analysis['evaluation_candidate_count'] = 8
         analysis['case_preparation'] = {'state': 'failed'}
+        analysis['case_review_summary'] = {'reviewed': 2, 'pending': 5, 'needs_review': 1}
         output = self.render(analysis)
         self.assertIn('3作業 · 直近30日', output)
         menu = self.submenu(output, 'レビューと評価ケース')
         self.assertIn('評価ケース候補 · 8組', menu)
         self.assertIn('候補の保存に失敗', menu)
         self.assertIn('param3=--case-proposal param4=' + 'b' * 20, menu)
-        self.assertIn('原因・既存ケースとの重複は未確認', menu)
+        self.assertIn('結果・設計あり: 2作業 / 未確認: 5作業', menu)
+        self.assertIn('根拠・設計の再確認: 1作業', menu)
+        self.assertIn('未確認の作業は原因・ケース重複の確認が必要', menu)
 
     def test_collection_failures_remain_visible_with_actionable_details(self):
         for state, runtime in [('running', 'partial'), ('stopped', 'up_to_date'),
