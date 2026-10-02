@@ -1,0 +1,19 @@
+{
+  "id": "diagnosis-sticky-health",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-sticky-health",
+  "prompt": "The monitor reports an ongoing ingestion error forever after it encounters a saved record it cannot interpret, although all current inputs have been consumed. Diagnose and fix snapshot at the shared status boundary. Live status must depend on current_faults, unread and paused; saved_gaps must remain visible unchanged in the returned snapshot. Preserve warnings for actual current faults, stopped ingestion and backlog. Run the supplied public test before and after editing. Use only this synthetic local workspace; no network or user logs.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic separation of live ingestion health and retained coverage gaps. Does not prove recovery of historical records or actual GUI refresh."
+  },
+  "rubric": [
+    {"id": "health", "criterion": "Saved gaps remain visible but do not override live status, while current faults, pauses and backlog still affect it."},
+    {"id": "feedback", "criterion": "Observe the regression failure before editing and success after fixing the shared status boundary."}
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-sticky-health-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosis-sticky-health"]
+  ]
+}

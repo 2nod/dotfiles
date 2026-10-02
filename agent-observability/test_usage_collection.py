@@ -107,11 +107,14 @@ class CollectionTest(unittest.TestCase):
         self.run_collect()
         first = self.read()
         self.assertEqual([e["reason"] for e in first["errors"]], ["invalid_json"])
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "awaiting_line")
         self.assertFalse(any(e["event"] == "skill_activated" for e in first["events"]))
         with path.open("ab") as stream:
             stream.write(tail[50:] + b"\n")
         self.run_collect()
         self.assertEqual(len([e for e in self.read()["events"] if e["event"] == "skill_activated"]), 1)
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "up_to_date")
+        self.assertEqual(health(self.root)["runtimes"][0]["issues"], {"invalid_json": 1})
 
     def test_checkpoint_transaction_rolls_back_after_failure(self):
         path = self.write("a.jsonl", codex_start() + [command("read", "cat /skills/review/SKILL.md")])
@@ -139,6 +142,7 @@ class CollectionTest(unittest.TestCase):
         self.assertEqual(build_turns(self.read()["events"])[0].skills, {"new"})
         self.assertTrue(all(not e["_source"]["available"] for e in self.read()["events"]))
         self.assertEqual(health(self.root)["runtimes"][0]["missing_files"], 1)
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "partial")
 
     def test_parser_version_replay_and_single_writer(self):
         self.write("a.jsonl", codex_start() + [command("a", "cat /skills/review/SKILL.md")])
@@ -287,6 +291,14 @@ class CollectionTest(unittest.TestCase):
         self.write("a.jsonl", [codex("response_item", {"type": "custom_tool_call_output", "call_id": "wrapper", "output": []})], mode="a")
         self.run_collect()
         self.assertEqual([e["reason"] for e in self.read()["errors"]], ["unsupported_codex_wrapper"])
+        runtime = health(self.root)["runtimes"][0]
+        self.assertEqual(runtime["state"], "up_to_date")
+        self.assertEqual(runtime["issues"], {"unsupported_codex_wrapper": 1})
+        # A current file failure must still warn even with the same saved gap.
+        with writer(self.root) as db:
+            with db:
+                db.execute("UPDATE files SET error='OSError'")
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "partial")
 
     def test_large_compaction_is_ignored_but_large_activity_stays_visible(self):
         self.write("a.jsonl", codex_start() + [
