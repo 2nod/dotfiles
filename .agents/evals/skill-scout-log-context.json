@@ -1,0 +1,19 @@
+{
+  "id": "skill-scout-log-context",
+  "skill": "skill-scout",
+  "skill_path": "../skills/agent-management/skill-scout/SKILL.md",
+  "fixture": "fixtures/skill-scout-log-context",
+  "prompt": "Review the automatically prepared candidates.json using the synthetic events.json. The current draft labels every nonzero test exit as a confirmed skill regression and ready for evaluation. Correct each classification using exclude (evaluation setup, not real skill use), normal_example (the observed checks meet their stated expectations), or needs_context_review (insufficient evidence about the intended behavior and cause). Keep every ID. ready_for_eval is true only when a synthetic reproduction and independently checked verifier have been supplied; these inputs do not contain them. Preserve events.json. Use only this local synthetic workspace, with no network or real user logs.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic classification of evaluation setup, intentional red/green checks and ambiguous co-use failures. Does not prove a skill's effect or correctness of generated reproductions."
+  },
+  "rubric": [
+    {"id": "context", "criterion": "Distinguish evaluation preparation and successful expected checks from uncertain work failures."},
+    {"id": "evidence", "criterion": "Preserve the evidence and avoid inventing a cause, oracle or ready evaluation case."}
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/skill-scout-log-context-verify.py", "{workspace}", "{case_dir}/fixtures/skill-scout-log-context"]
+  ]
+}

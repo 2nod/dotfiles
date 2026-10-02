@@ -65,10 +65,10 @@ class SwiftBarTest(unittest.TestCase):
         self.assertNotIn('旧形式の記録: 0', breakdown)
         self.assertIn('--2作業  Codex', breakdown)
         self.assertIn('--3作業  guide／injected line| length=48 symbolize=false', breakdown)
-        reviews = self.submenu(output, 'レビュー候補 · 1件表示')
+        reviews = self.submenu(output, 'レビューと評価ケース')
         self.assertIn('----guide| length=48', reviews)
         self.assertIn('param3=--review-template param4=' + 'a' * 20, reviews)
-        self.assertNotIn('guide', reviews.splitlines()[1])
+        self.assertNotIn('guide', next(line for line in reviews.splitlines() if ' · Codex · ' in line))
         for page in ('usage', 'evals', 'skills'):
             self.assertIn('param2=--page param3=' + page, output)
         self.assertNotIn('成功率', output)
@@ -91,6 +91,19 @@ class SwiftBarTest(unittest.TestCase):
         self.assertIn('8件  シェル構文の解析対象外', saved)
         self.assertNotIn('版情報のない読み込み', saved)
         self.assertNotIn('入力の要確認: 7件', quality)  # This total mixes both scopes.
+
+    def test_case_proposal_action_and_preparation_failure_do_not_hide_usage(self):
+        analysis = self.analysis()
+        analysis['evaluation_candidates'] = [{'id': 'b' * 20, 'skill': 'guide', 'label': '通常の利用記録'}]
+        analysis['evaluation_candidate_count'] = 8
+        analysis['case_preparation'] = {'state': 'failed'}
+        output = self.render(analysis)
+        self.assertIn('3作業 · 直近30日', output)
+        menu = self.submenu(output, 'レビューと評価ケース')
+        self.assertIn('評価ケース候補 · 8組', menu)
+        self.assertIn('候補の保存に失敗', menu)
+        self.assertIn('param3=--case-proposal param4=' + 'b' * 20, menu)
+        self.assertIn('原因・既存ケースとの重複は未確認', menu)
 
     def test_collection_failures_remain_visible_with_actionable_details(self):
         for state, runtime in [('running', 'partial'), ('stopped', 'up_to_date'),

@@ -214,6 +214,41 @@ class UsageAnalysisTest(unittest.TestCase):
         self.assertEqual(run("--days", "0").returncode, 2)
         self.assertEqual(run("--review-template", "missing").returncode, 2)
 
+    def test_cli_prepares_all_groups_before_limit_and_leaves_case_answers_unfilled(self):
+        events = [*self.turn(turn_id='success'), *self.turn(turn_id='failure', status='failed')]
+        for index, event in enumerate(events):
+            event['ts'] = (datetime.now(timezone.utc) - timedelta(minutes=1) + timedelta(seconds=index)).isoformat()
+            if event['event'] == 'skill_activated':
+                event['skill'] = 'ponytail'
+            event['prompt'] = 'PRIVATE_PROMPT'
+        self.write(events)
+        cases = self.root / 'cases'
+        cases.mkdir()
+        (cases / 'example.json').write_text(json.dumps({
+            'id': 'example', 'skill': 'ponytail', 'scenario': 'typical', 'evaluation': {'status': 'ready'}}))
+        command = [sys.executable, str(SCRIPT), '--root', str(self.root), '--cases', str(cases), '--limit', '1']
+        run = subprocess.run([*command, '--prepare-cases'], capture_output=True, text=True, check=True)
+        result = json.loads(run.stdout)
+        snapshot = json.loads((self.root / 'eval-candidates.json').read_text())
+        self.assertEqual(result['case_preparation']['state'], 'updated')
+        self.assertEqual(result['evaluation_candidate_count'], 2)
+        self.assertEqual(len(result['evaluation_candidates']), 1)
+        self.assertEqual(len(snapshot['evaluation_candidates']), 2)
+        group = result['evaluation_candidates'][0]
+        self.assertEqual(group['related_cases'][0]['id'], 'example')
+        run = subprocess.run([*command, '--case-proposal', group['id']], capture_output=True, text=True, check=True)
+        proposal = json.loads(run.stdout)
+        self.assertEqual(proposal['status'], 'needs_context_review')
+        self.assertTrue(all(value is None for value in proposal['design'].values()))
+        self.assertEqual(proposal['observations'][0]['observation']['id'], group['examples'][0])
+        self.assertTrue(proposal['observations'][0]['observation']['evidence'])
+        self.assertNotIn('PRIVATE_PROMPT', json.dumps(snapshot) + run.stdout)
+        (cases / 'broken.json').write_text('{}')
+        run = subprocess.run(command, capture_output=True, text=True, check=True)
+        broken = json.loads(run.stdout)
+        self.assertTrue(broken['case_catalog_errors'])
+        self.assertIsNone(broken['evaluation_candidates'][0]['missing_scenarios'])
+
 
 if __name__ == "__main__":
     unittest.main()
