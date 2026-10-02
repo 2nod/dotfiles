@@ -20,6 +20,7 @@ class SwiftBarTest(unittest.TestCase):
     def analysis(self, state='running', runtime='up_to_date'):
         return {
             'source': 'native',
+            'input_error_counts': {'unsupported_codex_wrapper': 6, 'conflicting_native_identity': 1},
             'coverage': {'latest_event_at': '2026-01-20T12:00:00+00:00'},
             'collection': {'state': state, 'runtimes': [{'runtime': 'codex', 'state': runtime}]},
             'data_quality': {'invalid_rows_or_files': 7, 'read_activations_without_version': 2,
@@ -28,7 +29,7 @@ class SwiftBarTest(unittest.TestCase):
                              'outcomes': {'reported_passed': 1, 'reported_failed': 1, 'unverified': 1},
                              'by_agent': {'codex': 2, 'pi': 1},
                              'top_skills': [{'skill': 'guide|injected\nline', 'turns': 3}]},
-            'review_candidates': [{'started_at': '2026-01-20T12:00:00+00:00', 'agent': 'codex',
+            'review_candidates': [{'id': 'a' * 20, 'started_at': '2026-01-20T12:00:00+00:00', 'agent': 'codex',
                                    'skills': [{'name': 'guide'}], 'work_verification': 'reported_failed',
                                    'review_reasons': ['verification_failed']}],
         }
@@ -39,52 +40,89 @@ class SwiftBarTest(unittest.TestCase):
             plugin.render(analysis)
         return output.getvalue()
 
-    def test_analysis_drives_metrics_candidates_and_page_actions(self):
+    def submenu(self, output, title):
+        lines = output.splitlines()
+        start = next(i for i, line in enumerate(lines) if line.split('|')[0] == title)
+        children = []
+        for line in lines[start + 1:]:
+            if not line.startswith('--') or line == '---':
+                break
+            children.append(line)
+        return '\n'.join(children)
+
+    def test_overview_is_compact_and_actions_reach_their_evidence(self):
         output = self.render(self.analysis())
-        self.assertTrue(output.startswith('Skillログ 3|'))
-        self.assertIn('skill利用の作業: 3件', output)
-        for label in ('検証済', '検証失敗', '未検証'):
-            self.assertIn(f'--{label}: 1件', output)
-        self.assertIn('--Codex: 2件', output)
-        self.assertIn('--guide／injected line: 3作業', output)
-        self.assertIn('guide · 検証失敗', output)
-        self.assertLess(output.index('skill利用の作業'), output.index('収集と記録の不足'))
+        self.assertTrue(output.startswith('Skills|'))
+        self.assertIn('dropdown=false', output.splitlines()[0])
+        self.assertIn('3作業 · 直近30日', output)
+        roots = [line for line in output.splitlines()[2:] if not line.startswith('--')]
+        self.assertLessEqual(len(roots), 12)
+        self.assertLess(output.index('収集は稼働中'), output.index('利用の内訳'))
+        breakdown = self.submenu(output, '利用の内訳')
+        self.assertIn('検証成功の記録あり: 1作業', breakdown)
+        self.assertIn('検証失敗の記録あり: 1作業', breakdown)
+        self.assertIn('検証結果は未確認: 1作業', breakdown)
+        self.assertNotIn('旧形式の記録: 0', breakdown)
+        self.assertIn('--2作業  Codex', breakdown)
+        self.assertIn('--3作業  guide／injected line| length=48 symbolize=false', breakdown)
+        reviews = self.submenu(output, 'レビュー候補 · 1件表示')
+        self.assertIn('----guide| length=48', reviews)
+        self.assertIn('param3=--review-template param4=' + 'a' * 20, reviews)
+        self.assertNotIn('guide', reviews.splitlines()[1])
         for page in ('usage', 'evals', 'skills'):
             self.assertIn('param2=--page param3=' + page, output)
-        self.assertIn('--入力の要確認: 7件', output)
         self.assertNotIn('成功率', output)
 
-    def test_attention_comes_from_collection_not_historical_verification_failures(self):
-        for state, runtime in [('running', 'partial'), ('stopped', 'up_to_date')]:
-            with self.subTest(state=state, runtime=runtime):
-                self.assertTrue(self.render(self.analysis(state, runtime)).startswith('Skillログ 3 !|'))
-
-    def test_limits_remain_visible_without_claiming_a_read_error(self):
+    def test_saved_gaps_are_scoped_and_do_not_raise_live_warnings(self):
         analysis = self.analysis()
-        row = analysis['collection']['runtimes'][0]
-        row['limitations'] = {'unsupported_shell_syntax': 8, 'branch_origin_unverified': 2}
+        runtime = analysis['collection']['runtimes'][0]
+        runtime.update(issues={'unsupported_codex_wrapper': 6},
+                       limitations={'unsupported_shell_syntax': 8, 'branch_origin_unverified': 2})
         analysis['data_quality']['analysis_limit_rows'] = 10
         output = self.render(analysis)
-        self.assertTrue(output.startswith('Skillログ 3|'))
-        self.assertIn('シェル構文の解析対象外: 8件', output)
-        self.assertIn('解析上の制限（読取エラーとは別）: 10件', output)
-        row['issues'] = {'unsupported_codex_wrapper': 3}
+        self.assertTrue(output.startswith('Skills|'))
+        quality = self.submenu(output, '記録の信頼性 · 不足あり')
+        window, saved = quality.split('--保存ログ全体の解析範囲')
+        self.assertIn('--直近30日の観測', window)
+        self.assertIn('版情報のない読み込み: 2件', window)
+        self.assertIn('矛盾する観測（集計から除外）: 1件', window)
+        self.assertNotIn('旧Codexラッパー', window)
+        self.assertIn('6件  内部の実行記録がない旧Codexラッパー', saved)
+        self.assertIn('8件  シェル構文の解析対象外', saved)
+        self.assertNotIn('版情報のない読み込み', saved)
+        self.assertNotIn('入力の要確認: 7件', quality)  # This total mixes both scopes.
+
+    def test_collection_failures_remain_visible_with_actionable_details(self):
+        for state, runtime in [('running', 'partial'), ('stopped', 'up_to_date'),
+                               ('running', 'lagging'), ('running', 'missing')]:
+            with self.subTest(state=state, runtime=runtime):
+                analysis = self.analysis(state, runtime)
+                analysis['collection']['runtimes'][0].update(file_errors=2, unread_bytes=512)
+                output = self.render(analysis)
+                self.assertTrue(output.startswith('Skills !|'))
+                status = self.submenu(output, '収集に要確認')
+                self.assertIn('読取失敗: 2 ファイル', status)
+                self.assertIn('未読: 512 bytes', status)
+                self.assertIn('収集の詳細を開く', status)
+
+    def test_legacy_is_not_presented_as_confirmed_native_usage(self):
+        analysis = self.analysis(state='legacy_archive')
+        analysis['source'] = 'legacy'
+        analysis['collection']['runtimes'] = []
         output = self.render(analysis)
-        self.assertTrue(output.startswith('Skillログ 3|'))
-        self.assertIn('内部の実行記録がない旧Codexラッパー: 3件', output)
-        self.assertIn('保存ログ全体の解析不足', output)
-        self.assertIn('読み込みを確認できたskill利用作業数', output)
-        row['state'] = 'partial'
-        output = self.render(analysis)
-        self.assertTrue(output.startswith('Skillログ 3 !|'))
-        self.assertIn('注意: 収集状態を確認', output)
+        self.assertIn('旧hookが記録したスキル利用', output)
+        self.assertIn('旧ログを表示中', output)
+        self.assertIn('読取対象の旧ログの解析範囲', output)
+        self.assertNotIn('保存ログ全体', output)
+        self.assertNotIn('読み込みを確認できた作業', output)
 
     def test_empty_confirmed_analysis_is_distinct_from_unavailable_analysis(self):
         analysis = self.analysis()
         analysis['work_summary'] = {'turns_with_skills': 0, 'outcomes': {}, 'by_agent': {}, 'top_skills': []}
         analysis['review_candidates'] = []
         output = self.render(analysis)
-        self.assertTrue(output.startswith('Skillログ 0|'))
+        self.assertTrue(output.startswith('Skills|'))
+        self.assertIn('0作業 · 直近30日', output)
         self.assertIn('期間内の候補なし', output)
         for failure in [OSError(), subprocess.TimeoutExpired('analyze', 15), None]:
             with self.subTest(failure=failure):
@@ -92,6 +130,7 @@ class SwiftBarTest(unittest.TestCase):
                 output = StringIO()
                 with patch.object(plugin.subprocess, 'run', side_effect=failure, return_value=result), redirect_stdout(output):
                     plugin.main()
-                self.assertTrue(output.getvalue().startswith('Skillログ !|'))
+                self.assertTrue(output.getvalue().startswith('Skills !|'))
                 self.assertIn('利用件数は未確認', output.getvalue())
-                self.assertNotIn('Skillログ 0', output.getvalue())
+                self.assertNotIn('0作業', output.getvalue())
+                self.assertNotIn('旧ログの解析範囲', output.getvalue())

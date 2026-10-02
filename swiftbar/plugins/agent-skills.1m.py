@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# <xbar.title>Skill usage</xbar.title>
+# <swiftbar.hideAbout>true</swiftbar.hideAbout>
+# <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
+# <swiftbar.hideLastUpdated>true</swiftbar.hideLastUpdated>
 """Show saved usage analysis and open its evidence; never run evaluations."""
 from __future__ import annotations
 
@@ -21,8 +25,8 @@ STATES = {
     'awaiting_line': '書き込み完了待ち', 'missing': '保存元未発見', 'unconfigured': '未設定',
 }
 OUTCOMES = {
-    'reported_passed': '検証済', 'reported_failed': '検証失敗',
-    'unverified': '未検証', 'no_end': '終了記録なし', 'legacy': '旧形式',
+    'reported_passed': '検証成功の記録あり', 'reported_failed': '検証失敗の記録あり',
+    'unverified': '検証結果は未確認', 'no_end': '終了記録なし', 'legacy': '旧形式の記録',
 }
 ISSUES = {
     'unsupported_codex_wrapper': '内部の実行記録がない旧Codexラッパー',
@@ -44,73 +48,114 @@ def timestamp(value):
     return datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone().strftime('%m/%d %H:%M')
 
 
+def report_action(label, page, depth=0):
+    if REPORTER.is_file():
+        print(f"{'--' * depth}{label}| bash='{REPORTER}' param1=--open param2=--page param3={page} param4=--days param5={DAYS} terminal=false sfimage=arrow.up.right.square")
+
+
 def render(analysis):
     collection = analysis['collection']
-    states = {row['state'] for row in collection.get('runtimes', [])}
-    attention = collection['state'] not in {'running', 'legacy_archive'} or bool(
-        states - {'up_to_date', 'awaiting_line', 'unconfigured'}
+    runtimes = collection.get('runtimes', [])
+    attention = collection['state'] not in {'running', 'legacy_archive'} or any(
+        row['state'] not in {'up_to_date', 'awaiting_line', 'unconfigured'} for row in runtimes
     )
     summary = analysis.get('work_summary')
-    title = f"Skillログ {summary['turns_with_skills']:,}" if summary else 'Skillログ'
-    notice = ' · 収集状態を確認' if attention else ''
-    print(f"{title}{' !' if attention else ''}| sfimage=brain.head.profile tooltip=直近{DAYS}日に読み込みを確認できたskill利用作業数 · 解析不足は詳細に表示{notice}")
+    quality = analysis.get('data_quality', {})
+    incomplete = any(quality.get(key, 0) for key in (
+        'invalid_rows_or_files', 'analysis_limit_rows', 'read_activations_without_version',
+        'unconfirmed_verification_results',
+    )) or any(row.get('issues') or row.get('limitations') for row in runtimes)
+    native = analysis.get('source') == 'native'
+    icon = 'exclamationmark.triangle' if attention else 'brain.head.profile'
+    print(f"Skills{' !' if attention else ''}| sfimage={icon} dropdown=false tooltip=スキル利用の確認 · 直近{DAYS}日")
     print('---')
-    if attention:
-        print('注意: 収集状態を確認')
     if summary:
-        source = '通常の保存ログ' if analysis['source'] == 'native' else '旧hookの保存ログ'
-        print(f'直近{DAYS}日 · {source}')
-        print(f"skill利用の作業: {summary['turns_with_skills']:,}件")
-        print(f"最終観測: {timestamp(analysis['coverage']['latest_event_at'])}")
-        print('作業中の検証')
-        for outcome, label in OUTCOMES.items():
-            print(f"--{label}: {summary['outcomes'].get(outcome, 0):,}件")
-        print('agent別の利用作業')
-        for agent, count in sorted(summary['by_agent'].items()):
-            print(f"--{text(AGENTS.get(agent, agent))}: {count:,}件")
-        print('利用の多いskill（併用はそれぞれに計上）')
+        print(f"{summary['turns_with_skills']:,}作業 · 直近{DAYS}日| size=18")
+        print('スキルの読み込みを確認できた作業| size=11' if native else '旧hookが記録したスキル利用| size=11')
+    else:
+        print('利用件数は未確認| size=18')
+        print('利用解析を取得できません| size=11')
+    status = ('収集に要確認' if attention else
+              '旧ログを表示中' if collection['state'] == 'legacy_archive' else '収集は稼働中')
+    status_icon = 'exclamationmark.triangle' if attention else 'clock.arrow.circlepath'
+    print(f"{status}| sfimage={status_icon}")
+    print(f"--状態: {STATES.get(collection['state'], text(collection['state']))}")
+    print(f"--最終収集: {timestamp(collection.get('last_success'))}")
+    for row in runtimes:
+        print(f"--{text(AGENTS.get(row['runtime'], row['runtime']))}: {STATES.get(row['state'], text(row['state']))}")
+        for key, label, unit in [('unread_bytes', '未読', 'bytes'), ('file_errors', '読取失敗', 'ファイル'),
+                                 ('missing_files', '保存元の欠落', 'ファイル'), ('replaying_files', '再解析中', 'ファイル')]:
+            if row.get(key):
+                print(f"----{label}: {row[key]:,} {unit}")
+    if DOCTOR.is_file():
+        print(f"--収集の詳細を開く| bash='{DOCTOR}' terminal=true")
+    print('---')
+    if summary:
+        print('利用の内訳| sfimage=chart.bar')
+        print(f"--直近{DAYS}日 · 作業単位")
+        print(f"--最終観測: {timestamp(analysis['coverage']['latest_event_at'])}")
+        print('-----')
+        for agent, count in sorted(summary['by_agent'].items(), key=lambda pair: (-pair[1], pair[0])):
+            print(f"--{count:,}作業  {text(AGENTS.get(agent, agent))}")
+        print('-----')
+        print('--よく使ったスキル（併用はそれぞれに計上）')
         for row in summary['top_skills']:
-            print(f"--{text(row['skill'])}: {row['turns']:,}作業")
-        print('確認する作業記録（失敗・結果未確認を優先）')
-        candidates = analysis.get('review_candidates', [])
+            print(f"--{row['turns']:,}作業  {text(row['skill'])}| length=48 symbolize=false")
+        print('-----')
+        print('--作業内の検証記録（スキルの評価ではありません）')
+        for outcome, label in OUTCOMES.items():
+            count = summary['outcomes'].get(outcome, 0)
+            if count:
+                print(f"--{label}: {count:,}作業")
+        candidates = analysis.get('review_candidates', [])[:3]
+        print(f"レビュー候補 · {len(candidates)}件表示| sfimage=text.magnifyingglass")
+        print(f'--直近{DAYS}日 · 検証失敗・結果未確認を優先')
         if not candidates:
             print('--期間内の候補なし')
-        for row in candidates[:3]:
+        for row in candidates:
             result = OUTCOMES[row['work_verification']]
+            print(f"--{timestamp(row['started_at'])} · {text(AGENTS.get(row['agent'], row['agent']))} · {result}")
             if 'verification_result_unconfirmed' in row['review_reasons']:
-                result += '・検証結果未確認'
-            skills = ', '.join(s['name'] for s in row['skills'])
-            print(f"--{timestamp(row['started_at'])} {text(AGENTS.get(row['agent'], row['agent']))} · {text(skills)} · {result}")
-        if ANALYZER.is_file():
-            print(f"レビュー候補の根拠を確認| bash='{ANALYZER}' param1=--days param2={DAYS} param3=--limit param4=3 terminal=true")
-    else:
-        print('利用解析を取得できません。利用件数は未確認です。')
-    if REPORTER.is_file():
-        print('---')
-        for page, label in [('usage', '利用履歴を開く'), ('evals', '比較評価の結果を開く'), ('skills', 'スキルの配置・採否を開く')]:
-            print(f"{label}| bash='{REPORTER}' param1=--open param2=--page param3={page} param4=--days param5={DAYS} terminal=false")
+                print('----結果を確定できない検証も含みます')
+            for skill in row['skills']:
+                print(f"----{text(skill['name'])}| length=48 symbolize=false")
+            if ANALYZER.is_file():
+                # IDs are generated by the analyzer, never transcript text.
+                candidate_id = row.get('id', '')
+                if len(candidate_id) == 20 and all(c in '0123456789abcdef' for c in candidate_id):
+                    print(f"----この作業の根拠を開く| bash='{ANALYZER}' param1=--days param2={DAYS} param3=--review-template param4={candidate_id} terminal=true")
+        report_action('利用履歴を開く', 'usage')
     print('---')
-    print('収集と記録の不足')
-    print(f"--収集: {STATES.get(collection['state'], text(collection['state']))}")
-    print(f"--最終収集: {timestamp(collection.get('last_success'))}")
-    for row in collection.get('runtimes', []):
-        print(f"--{text(AGENTS.get(row['runtime'], row['runtime']))}: {STATES.get(row['state'], text(row['state']))}")
-    print('保存ログ全体の解析不足')
-    for row in collection.get('runtimes', []):
+    coverage_label = '記録の信頼性 · 不足あり' if incomplete else '記録の信頼性'
+    print(f'{coverage_label}| sfimage=info.circle')
+    print('--利用件数は確認できた記録の集計です')
+    print('--記録の不足はスキルの未使用を意味しません')
+    if summary:
+        print('-----')
+        print(f'--直近{DAYS}日の観測')
+        print(f"--版情報のない読み込み: {quality.get('read_activations_without_version', 0):,}件")
+        print(f"--結果を確定できない検証: {quality.get('unconfirmed_verification_results', 0):,}件")
+        conflicts = analysis.get('input_error_counts', {}).get('conflicting_native_identity', 0)
+        if native and conflicts:
+            print(f'--矛盾する観測（集計から除外）: {conflicts:,}件')
+    print('-----')
+    scope = ('保存ログ全体の解析範囲' if native else
+             '読取対象の旧ログの解析範囲' if analysis.get('source') == 'legacy' else '解析範囲は未確認')
+    print(f'--{scope}')
+    for row in runtimes:
         if row.get('issues') or row.get('limitations'):
             print(f"--{text(AGENTS.get(row['runtime'], row['runtime']))}")
-        for code, count in row.get('issues', {}).items():
-            print(f"----{text(ISSUES.get(code, code))}: {count:,}件")
-        for code, count in row.get('limitations', {}).items():
-            print(f"----解析上の制限 · {text(ISSUES.get(code, code))}: {count:,}件")
-    if summary:
-        quality = analysis['data_quality']
-        print(f"--入力の要確認: {quality['invalid_rows_or_files']:,}件")
-        print(f"--解析上の制限（読取エラーとは別）: {quality.get('analysis_limit_rows', 0):,}件")
-        print(f"--skill版未記録の読み取り: {quality['read_activations_without_version']:,}件")
-        print(f"--検証結果未確認: {quality['unconfirmed_verification_results']:,}件")
-    if DOCTOR.is_file():
-        print(f"収集の詳細を確認| bash='{DOCTOR}' terminal=true")
+        for code, count in {**row.get('issues', {}), **row.get('limitations', {})}.items():
+            print(f"----{count:,}件  {text(ISSUES.get(code, code))}| length=52 symbolize=false")
+    if not native:
+        for code, count in analysis.get('input_error_counts', {}).items():
+            print(f"--{count:,}件  {text(ISSUES.get(code, code))}| length=52 symbolize=false")
+    if ANALYZER.is_file():
+        print(f"--診断の全項目を開く| bash='{ANALYZER}' param1=--days param2={DAYS} param3=--limit param4=3 terminal=true")
+    if REPORTER.is_file():
+        print('その他のレポート| sfimage=doc.text')
+        report_action('スキルの配置・採否', 'skills', 1)
+        report_action('比較評価の結果', 'evals', 1)
     print('更新| refresh=true sfimage=arrow.clockwise')
 
 

@@ -96,5 +96,31 @@ SwiftBarの「!」は収集停止、読取失敗・欠落、取り込み遅延�
 ログの最終観測時刻とcollectorの稼働時刻は別の値である。
 何も更新されていない正常な状態を、skill未使用の証拠にはしない。
 
+### SwiftBarでの表示
+
+常駐表示は `Skills` と現在の収集異常の印だけにする。件数はメニューの先頭で
+「N作業 · 直近30日」と期間・単位を付け、nativeでは読み込みを確認できた作業であることを示す。
+旧hookを参照している場合は別の説明を出す。取得失敗は未確認とし、利用0件と区別する。
+
+先頭には利用の要約と収集状態、続いて利用内訳・レビュー候補・利用履歴への操作を置く。
+正常時のagent別収集状況と、異常時の未読・読取失敗・消失ファイルは収集状態のsubmenuで確認する。
+利用内訳にはagent別の件数、利用の多いskill、作業内の検証記録を置く。
+検証記録はskillの評価やタスク完了率には変換しない。
+
+レビュー候補の見出しは日時・agent・検証状態に絞る。skill名は次の階層へ置き、
+候補ごとの `--review-template ID` でその作業の根拠を開く。
+長いskill名はSwiftBar標準の `length` で幅を抑え、tooltipに全文を残す。
+配置・採否と比較評価のページは「その他のレポート」から開く。
+
+「記録の信頼性」には、直近30日の版情報欠落・検証結果未確認・矛盾する観測と、
+保存ログ全体の未対応記録・解析上の制限を別の欄に置く。
+異なる範囲を合算した入力エラー総数は、このメニューには出さず分析CLIに残す。
+旧ログの場合は「読取対象の旧ログ」と表示し、全期間のnative解析と混同しない。
+
+構成の参考は [CodexBar](https://github.com/steipete/CodexBar) の利用・状態・履歴の分離と、
+[Claude Status Touch Bar](https://github.com/korrio/claude-status-touch-bar#menu-bar-widget-swiftbar) の期間付き要約とdashboardへの導線。
+描画は [SwiftBar標準の出力形式](https://github.com/swiftbar/SwiftBar#script-output) のsubmenu、SF Symbols、文字サイズ、文字数制限を使う。
+重複するAbout・端末実行・plugin更新時刻の標準項目はmetadataで隠し、SwiftBarの管理メニューとplugin無効化は残す。
+
 今後の対象runtimeは、実際の保存形式と合成fixtureを確認して追加する。
 Gemini CLIとOpenCodeは未対応。
