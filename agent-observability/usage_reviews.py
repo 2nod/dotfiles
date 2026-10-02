@@ -1,13 +1,17 @@
 """Retain contextual results and case designs without changing observed outcomes."""
 from collections import Counter
 from datetime import datetime, timezone
+import fcntl
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 
 from eval_contracts import contract_version
 from usage_cases import save_private_json
+from usage_events import parse_time
+from usage_native import NativeParser, RUNTIMES
 
 
 def has_text(value):
@@ -22,7 +26,9 @@ def observation_version(work):
     return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
 
 
-def check_evidence(refs):
+def check_evidence(refs, work):
+    observed = {(str(Path(r['path']).resolve()), r['line'], r['sha256']) for r in work.get('evidence', [])}
+    sources = {path for path, _, _ in observed}
     by_path = {}
     for ref in refs:
         if (not isinstance(ref, dict) or not isinstance(ref.get('path'), str)
@@ -31,19 +37,50 @@ def check_evidence(refs):
             raise ValueError('evidence requires path, positive line and sha256')
         if not Path(ref['path']).is_absolute():
             raise ValueError('evidence path must be absolute')
-        previous = by_path.setdefault(ref['path'], {}).setdefault(ref['line'], ref['sha256'])
+        path = str(Path(ref['path']).resolve())
+        if path not in sources:
+            raise ValueError('context evidence outside the observed work')
+        previous = by_path.setdefault(path, {}).setdefault(ref['line'], ref['sha256'])
         if previous != ref['sha256']:
             raise ValueError('conflicting evidence references')
     for path, wanted in by_path.items():
+        context_lines = {n for n, sha in wanted.items() if (path, n, sha) not in observed}
+        parser = None
+        if context_lines:
+            if work.get('agent') not in RUNTIMES:
+                raise ValueError('context evidence outside the observed work')
+            actor = Path(path).stem if 'subagents' in Path(path).parts else 'root'
+            parser = NativeParser(work['agent'], actor=actor)
         with Path(path).open() as stream:
             for number, line in enumerate(stream, 1):
+                row = None
+                if parser:
+                    try:
+                        row = json.loads(line)
+                    except ValueError:
+                        pass
+                    else:
+                        parser.feed(row, {'path': path, 'line': number})
                 if number in wanted:
                     if hashlib.sha256(line.rstrip('\r\n').encode()).hexdigest() != wanted.pop(number):
                         raise ValueError('context evidence changed')
+                    if number in context_lines and not context_belongs_to_work(parser, row, work):
+                        raise ValueError('context evidence outside the observed work')
                 if not wanted:
                     break
         if wanted:
             raise ValueError('context evidence missing')
+
+
+def context_belongs_to_work(parser, row, work):
+    if not isinstance(row, dict) or not isinstance(row.get('payload', {}), dict):
+        return False
+    context = parser.context(row, row.get('payload', {}).get('turn_id'))
+    timestamp = parse_time(context['ts'])
+    start, end = parse_time(work.get('started_at')), parse_time(work.get('ended_at'))
+    return (all(context.get(key) == work.get(key) for key in ('agent', 'session_id', 'agent_id', 'turn_id'))
+            and not context.get('branch_unverified') and timestamp is not None
+            and start is not None and end is not None and start <= timestamp <= end)
 
 
 def validate_review(review, work):
@@ -62,7 +99,7 @@ def validate_review(review, work):
     refs = review['conversation_evidence']
     if not isinstance(refs, list) or any(not isinstance(r, dict) for r in refs) or not {'request', 'result'} <= {r.get('role') for r in refs}:
         raise ValueError('request and result evidence are required')
-    check_evidence(refs)
+    check_evidence(refs, work)
     result, design = review['result'], review['design']
     if result.get('outcome') not in ('completed', 'recovered', 'blocked', 'excluded', 'insufficient_evidence') or not has_text(result.get('summary')):
         raise ValueError('record the contextual result')
@@ -91,9 +128,21 @@ def save_review(root, review, observations):
     if work is None or not re.fullmatch('[a-f0-9]{20}', identifier):
         raise ValueError('work not found in the selected window')
     validate_review(review, work)
-    record = {**review, 'observation': {k: v for k, v in work.items() if k != 'case_review'},
-              'reviewed_at': datetime.now(timezone.utc).isoformat()}
-    return save_private_json(root / 'case-reviews' / (identifier + '.json'), record)
+    record = {k: v for k, v in review.items() if k != 'expected_review_version'}
+    record.update({'observation': {k: v for k, v in work.items() if k != 'case_review'},
+                   'reviewed_at': datetime.now(timezone.utc).isoformat()})
+    path = root / 'case-reviews' / (identifier + '.json')
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    # Lock a stable sibling inode: atomic replacement changes the review's inode.
+    with os.fdopen(os.open(path.with_suffix('.lock'), os.O_CREAT | os.O_RDWR, 0o600), 'r+') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            current_version = hashlib.sha256(path.read_bytes()).hexdigest()
+        except FileNotFoundError:
+            current_version = None
+        if review.get('expected_review_version') != current_version:
+            raise ValueError('review changed; reopen the current review and reconcile the draft')
+        return save_private_json(path, record)
 
 
 def attach_reviews(root, observations):
