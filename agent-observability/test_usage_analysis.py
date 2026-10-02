@@ -239,10 +239,31 @@ class UsageAnalysisTest(unittest.TestCase):
         run = subprocess.run([*command, '--case-proposal', group['id']], capture_output=True, text=True, check=True)
         proposal = json.loads(run.stdout)
         self.assertEqual(proposal['status'], 'needs_context_review')
-        self.assertTrue(all(value is None for value in proposal['design'].values()))
+        self.assertTrue(all(value is None for value in proposal['observations'][0]['design'].values()))
         self.assertEqual(proposal['observations'][0]['observation']['id'], group['examples'][0])
         self.assertTrue(proposal['observations'][0]['observation']['evidence'])
         self.assertNotIn('PRIVATE_PROMPT', json.dumps(snapshot) + run.stdout)
+        review = proposal['observations'][0]
+        evidence = review['observation']['evidence']
+        review.update(reviewer={'kind': 'ai', 'name': 'sample'},
+                      conversation_evidence=[{**evidence[0], 'role': 'request'}, {**evidence[-1], 'role': 'result'}],
+                      result={'outcome': 'recovered', 'summary': 'Repaired and checked.'},
+                      design={'action': 'no_case', 'reason': 'Already covered by the regression.',
+                              'next_action': 'Keep the current check.'})
+        review['assessment'].update(context='real_work', reason='Inspected source and final result.')
+        review_path = self.root / 'review.json'
+        review_path.write_text(json.dumps(review))
+        subprocess.run([*command, '--save-review', str(review_path)], capture_output=True, text=True, check=True)
+        refresh = subprocess.run([*command, '--prepare-cases'], capture_output=True, text=True, check=True)
+        refreshed = json.loads(refresh.stdout)
+        self.assertEqual(refreshed['case_review_summary'], {'reviewed': 1, 'pending': 1})
+        self.assertEqual(refreshed['evaluation_candidates'][0]['reviewed_work_count'], 1)
+        opened = subprocess.run([*command, '--case-proposal', group['id']], capture_output=True, text=True, check=True)
+        reopened = json.loads(opened.stdout)
+        self.assertEqual(reopened['status'], 'reviewed')
+        self.assertEqual(reopened['reviewed_work'][0]['result']['outcome'], 'recovered')
+        self.assertEqual(reopened['observations'][0]['design']['action'], 'no_case')
+        self.assertEqual(reopened['observations'][0]['observation']['work_verification'], 'reported_failed')
         (cases / 'broken.json').write_text('{}')
         run = subprocess.run(command, capture_output=True, text=True, check=True)
         broken = json.loads(run.stdout)

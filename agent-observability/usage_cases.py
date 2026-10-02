@@ -55,12 +55,15 @@ def case_candidates(observations, catalog, cases, selected_skill=None):
     for (skill, signal), works in sorted(groups.items()):
         works.sort(key=lambda work: (datetime.fromisoformat(work['started_at']), work['id']), reverse=True)
         related = [case for case in cases if case['skill'] == skill]
+        reviewed = [work for work in works if work.get('case_review', {}).get('state') == 'reviewed']
         designed = {c['scenario'] for c in related if c['design_status'] == 'ready'}
         group = {
             'id': hashlib.sha256(json.dumps([skill, signal]).encode()).hexdigest()[:20],
             'skill': skill, 'signal': signal, 'label': SIGNALS[signal],
-            'status': 'needs_context_review', 'case_match': 'unassessed',
+            'status': 'reviewed' if len(reviewed) == len(works) else 'needs_context_review', 'case_match': 'unassessed',
             'work_count': len(works), 'latest_at': works[0]['started_at'],
+            'reviewed_work_count': len(reviewed),
+            'reviewed_examples': [work['id'] for work in reviewed[:3]],
             'examples': [work['id'] for work in works[:3]],
             'agents': dict(Counter(work['agent'] for work in works)),
             'models': sorted({m for work in works for m in work['observed_models']}),
@@ -81,9 +84,14 @@ def save_candidates(root, analysis):
     """Refresh derived local metadata atomically; never overwrite authored reviews/cases."""
     payload = {key: analysis[key] for key in
                ('generated_at', 'window_start', 'source', 'selected_skill', 'evaluation_candidates', 'case_catalog_errors')}
-    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    payload['case_review_summary'] = analysis.get('case_review_summary', {})
     path = root / 'eval-candidates.json'
-    with tempfile.NamedTemporaryFile(mode='w', dir=root, prefix='.eval-candidates-', delete=False) as stream:
+    return save_private_json(path, payload)
+
+
+def save_private_json(path, payload):
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, prefix='.eval-candidates-', delete=False) as stream:
         temporary = Path(stream.name)
         try:
             json.dump(payload, stream, ensure_ascii=False, indent=2)

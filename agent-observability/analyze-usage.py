@@ -17,6 +17,7 @@ from eval_contracts import load_catalog
 from usage_events import build_turns, parse_time, turn_outcome
 from usage_input import read_usage
 from usage_cases import case_candidates, load_cases, save_candidates
+from usage_reviews import attach_reviews, observation_version, save_review
 
 
 VERSION = re.compile(r"sha256:[0-9a-f]{64}\Z")
@@ -133,6 +134,8 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto",
     latest = parse_time(events[-1]["ts"]) if events else None
     skill_turns = Counter(name for candidate in candidates for name in
                           {row["name"] for row in candidate["skills"]})
+    review_summary = attach_reviews(root, [work for work in candidates if work['ended_at']
+        and work['work_verification'] != 'legacy' and any(s['name'] in catalog for s in work['skills'])])
     cases, case_errors = load_cases(cases_dir or Path(__file__).resolve().parents[1] / '.agents/evals')
     proposals = case_candidates(candidates, catalog, cases, skill)
     if case_errors:
@@ -165,6 +168,7 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto",
         "review_candidates": candidates,
         "evaluation_candidates": proposals,
         "case_catalog_errors": case_errors,
+        "case_review_summary": review_summary,
         "limitations": [
             "Events identify reported activity, not whether a skill was appropriate or caused an outcome.",
             "Read the original conversation and user feedback before assessing usefulness; prompts are not collected here.",
@@ -178,8 +182,10 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto",
 
 
 def review_template(candidate):
+    if candidate.get('case_review', {}).get('state') == 'reviewed':
+        return json.loads(Path(candidate['case_review']['path']).read_text())
     return {
-        "schema_version": 1, "observation": candidate,
+        "schema_version": 1, "observation": candidate, "observation_version": observation_version(candidate),
         "reviewer": {"kind": "", "name": ""},
         "conversation_evidence": [],
         "assessment": {
@@ -190,6 +196,9 @@ def review_template(candidate):
             "hypothesis": "", "skill_section": "", "expected_behavior": "",
             "synthetic_case": "", "next_action": "",
         },
+        "result": {"outcome": None, "summary": None},
+        "design": {"action": None, "reason": None, "problem": None, "expected_behavior": None,
+                   "case": None, "next_action": None},
     }
 
 
@@ -206,16 +215,24 @@ def main():
     parser.add_argument("--cases", type=Path, help="Local evaluation case directory")
     parser.add_argument("--prepare-cases", action="store_true", help="Refresh the local, unassessed evaluation-candidate snapshot")
     parser.add_argument("--case-proposal", metavar="ID", help="Print evidence and design fields for an evaluation candidate")
+    parser.add_argument("--save-review", type=Path, help="Validate and save a completed work review, result and case design")
     args = parser.parse_args()
     if args.days < 1 or args.limit < 1:
         parser.error("--days and --limit must be positive")
     root = args.root.expanduser().resolve()
     if not (root / "events").is_dir() and not (root / "usage.sqlite3").exists():
         parser.error("no saved usage data: " + str(root))
-    if args.review_template and args.case_proposal:
-        parser.error("choose either --review-template or --case-proposal")
+    if sum(bool(value) for value in (args.review_template, args.case_proposal, args.save_review)) > 1:
+        parser.error("choose one of --review-template, --case-proposal or --save-review")
     result = analyze(root, days=args.days, skill=args.skill, source=args.source, cases_dir=args.cases)
     input_failed = result["source"] == "native" and result["collection"]["state"] in {"unreadable", "not_started"}
+    if args.save_review:
+        try:
+            path = save_review(root, json.loads(args.save_review.expanduser().read_text()), result['review_candidates'])
+        except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+            parser.error(str(error))
+        print(json.dumps({'state': 'saved', 'path': str(path)}, ensure_ascii=False))
+        return 0
     if args.prepare_cases and not input_failed:
         try:
             path = save_candidates(root, result)
@@ -227,10 +244,10 @@ def main():
         if candidate is None:
             parser.error('evaluation candidate not found in this window and skill selection')
         result = {
-            'schema_version': 1, 'status': 'needs_context_review', 'candidate': candidate,
+            'schema_version': 1, 'status': candidate['status'], 'candidate': candidate,
             'source': result['source'], 'window_start': result['window_start'], 'generated_at': result['generated_at'],
             'observations': [review_template(work) for work in result['review_candidates'] if work['id'] in candidate['examples']],
-            'design': {'problem': None, 'scenario': None, 'expected_behavior': None, 'synthetic_fixture': None, 'verifier': None},
+            'reviewed_work': [work['case_review'] for work in result['review_candidates'] if work['id'] in candidate['reviewed_examples']],
             'admission_checks': ['Review original context: real work, evaluation setup, or expected red test?',
                                  'Check related cases for the same behavior; matching skill names do not establish coverage.',
                                  'Use a synthetic fixture without private code, prompts, credentials, network or clock dependencies.',

@@ -1,5 +1,7 @@
 [
   {"id": "sample-a", "context": "evaluation_fixture_preparation", "skills_read": ["sample-guide"], "test_exit": 1},
   {"id": "sample-b", "context": "real_work", "checks": [{"purpose": "prove the original fixture fails", "expected_exit": 1, "actual_exit": 1}, {"purpose": "verify the fixed fixture", "expected_exit": 0, "actual_exit": 0}]},
-  {"id": "sample-c", "context": "real_work", "skills_read": ["sample-guide", "sample-helper"], "test_exit": 1, "expected_behavior": null, "skill_versions": null}
+  {"id": "sample-c", "context": "real_work", "skills_read": ["sample-guide", "sample-helper"], "test_exit": 1, "expected_behavior": null, "skill_versions": null},
+  {"id": "sample-d", "context": "real_work", "request": "Repair a live monitor warning caused by historical gaps.", "checks": [{"phase": "before_fix", "exit": 1}, {"phase": "after_fix", "exit": 0}, {"phase": "ci", "exit": 0}], "result": "Live warning repaired; historical gaps retained.", "existing_cases": [{"id": "sample-live-health", "behavior": "Historical gaps remain visible without overriding live collection state."}]},
+  {"id": "sample-e", "context": "real_work", "request": "Align documentation with the implemented contract.", "observed_verification": "unknown", "checks": [{"phase": "document_validation", "exit": 0}, {"phase": "full_ci", "exit": 1, "reason": "existing dependency vulnerability"}], "result": "Documentation checks passed; full CI blocked. No independent prose quality review."}
 ]

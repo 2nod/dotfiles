@@ -158,11 +158,39 @@ agent-observability-analyze-usage --days 30 --case-proposal CANDIDATE_ID
 通常のSwiftBar更新でも直近30日の候補を更新する。SwiftBarを起動していない場合はCLIで更新する。
 元の会話本文は複製せず、作成済みのレビュー票やrepositoryのケースは変更しない。
 
-`--case-proposal` は各候補の最新3作業の根拠と、未記入の問題・期待挙動・合成fixture・verifier欄を出す。
+`--case-proposal` は各候補の最新3作業の根拠と、保存済みのレビュー結果・設計を出す。
+未確認の作業には未記入の結果・設計欄を付ける。
 候補IDはskillと観測パターンから作るため同じ組なら安定するが、参照する作業は期間内の最新分に入れ替わる。
 提案を保存する場合はrepository外へ置く。元の依頼・成果物を読んで評価準備、意図したredテスト、併用skillの影響を確認し、
 重複する既存ケースがなければ合成fixtureへ縮約する。未修正で失敗し、最小修正と別の妥当な解でも成功するverifierを確認してからdry-runする。
 候補の生成だけでは実行可能なケース、品質の採点、skillの採否は確定しない。有料比較も起動しない。
+
+### 結果と設計を保存して次回の候補へ戻す
+
+レビューは作業ごとに保存する。同じ作業の結果を複数skillの候補から参照できるが、併用skillの効果を個別に採点したことにはならない。
+元の依頼、途中の失敗、修正後の検証、終了時点の成果と未完了事項を照合し、観測した終了コードとは別に作業結果を記入する。
+途中で失敗して後で復旧した作業は `recovered`、外部条件で進めない作業は `blocked`、根拠不足は `insufficient_evidence` とする。
+
+```sh
+agent-observability-analyze-usage --review-template WORK_ID > /tmp/work-review.json
+# 元ログを確認し、reviewer・assessment・conversation_evidence・result・designを記入
+agent-observability-analyze-usage --save-review /tmp/work-review.json
+agent-observability-analyze-usage --prepare-cases
+agent-observability-analyze-usage --case-proposal CANDIDATE_ID
+```
+
+`conversation_evidence` は `role` が `request` / `result` の参照を含め、各参照に元ログの絶対 `path`・`line`・`sha256` を付ける。
+保存時に内容のhashを照合する。原文や秘密情報を調査票へ転記せず、判断は短い要約にする。
+設計の `action` は `reuse_case`（既存ケースを再利用）、`add_case`（新設）、`no_case`（追加不要）、`needs_evidence`（証拠不足）から選び、理由と具体的な次の作業を記す。
+ケースを使う場合は問題・期待挙動に加え、絶対パスの `case.path`、`eval_contracts.contract_version` で取得した `case.contract_version`、verifierの確認結果と限界を記した `case.verification_evidence` が必要になる。
+ケースの追加・再利用では未修正失敗、最小修正と別解の成功、dry-runまで確認する。証拠不足を「ケース追加済み」にはしない。
+
+`--save-review` は作業と根拠の版、記入内容、関連ケースの現在の版を照合して `case-reviews/<WORK_ID>.json` へ0600で保存する。
+明示的な再保存は当該作業のレビューを更新する。候補の定期更新ではレビューを書き換えない。
+次回解析時も照合し、作業の観測、引用した文脈、関連ケースが変わった場合は元のレビューを残して再確認に戻す。
+同じログ内容の複製先が増えても版は変えない。新しい作業は、同じ候補グループに入っても未確認のまま残る。
+SwiftBarには結果・設計を記録した作業、未確認、再確認の件数を表示し、候補から記入済みの結果と設計を開ける。
+この状態はAIまたは人によるレビュー記録の有無を示す。内容の意味品質、実行結果の真偽、skillの因果的な効果を自動採点した状態ではない。
 
 ## 表示
 
