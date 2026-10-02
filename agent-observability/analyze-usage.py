@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from eval_contracts import load_catalog
 from usage_events import build_turns, parse_time, turn_outcome
 from usage_input import read_usage
+from usage_cases import case_candidates, load_cases, save_candidates
 
 
 VERSION = re.compile(r"sha256:[0-9a-f]{64}\Z")
@@ -37,7 +38,7 @@ def observed_version(events, skill):
     return (versions[0] if len(versions) == 1 and not missing_reads else None), versions, missing_reads
 
 
-def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto"):
+def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto", cases_dir=None):
     now = now or datetime.now(timezone.utc)
     catalog = catalog if catalog is not None else load_catalog()
     data = read_usage(root, days, now, source)
@@ -132,6 +133,11 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto")
     latest = parse_time(events[-1]["ts"]) if events else None
     skill_turns = Counter(name for candidate in candidates for name in
                           {row["name"] for row in candidate["skills"]})
+    cases, case_errors = load_cases(cases_dir or Path(__file__).resolve().parents[1] / '.agents/evals')
+    proposals = case_candidates(candidates, catalog, cases, skill)
+    if case_errors:
+        for proposal in proposals:
+            proposal['missing_scenarios'] = None
     return {
         "schema_version": 1,
         "generated_at": now.isoformat(), "window_start": (now - timedelta(days=days)).isoformat(),
@@ -157,6 +163,8 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto")
         },
         "cohorts": sorted(cohorts.values(), key=lambda row: (-row["turns"], row["skill"], row["agent"], str(row["model"]))),
         "review_candidates": candidates,
+        "evaluation_candidates": proposals,
+        "case_catalog_errors": case_errors,
         "limitations": [
             "Events identify reported activity, not whether a skill was appropriate or caused an outcome.",
             "Read the original conversation and user feedback before assessing usefulness; prompts are not collected here.",
@@ -192,18 +200,43 @@ def main():
     parser.add_argument("--days", type=int, default=30)
     parser.add_argument("--skill")
     parser.add_argument("--source", choices=("auto", "native", "legacy"), default="auto")
-    parser.add_argument("--limit", type=int, default=10, help="Maximum conversation candidates; cohort counts remain complete")
+    parser.add_argument("--limit", type=int, default=10, help="Maximum work and evaluation candidates displayed; counts and saved snapshot remain complete")
     parser.add_argument("--all-errors", action="store_true", help="Include every input error reference (default: first 50)")
     parser.add_argument("--review-template", metavar="ID", help="Print an unscored review record for a candidate ID")
+    parser.add_argument("--cases", type=Path, help="Local evaluation case directory")
+    parser.add_argument("--prepare-cases", action="store_true", help="Refresh the local, unassessed evaluation-candidate snapshot")
+    parser.add_argument("--case-proposal", metavar="ID", help="Print evidence and design fields for an evaluation candidate")
     args = parser.parse_args()
     if args.days < 1 or args.limit < 1:
         parser.error("--days and --limit must be positive")
     root = args.root.expanduser().resolve()
     if not (root / "events").is_dir() and not (root / "usage.sqlite3").exists():
         parser.error("no saved usage data: " + str(root))
-    result = analyze(root, days=args.days, skill=args.skill, source=args.source)
+    if args.review_template and args.case_proposal:
+        parser.error("choose either --review-template or --case-proposal")
+    result = analyze(root, days=args.days, skill=args.skill, source=args.source, cases_dir=args.cases)
     input_failed = result["source"] == "native" and result["collection"]["state"] in {"unreadable", "not_started"}
-    if args.review_template:
+    if args.prepare_cases and not input_failed:
+        try:
+            path = save_candidates(root, result)
+            result['case_preparation'] = {'state': 'updated', 'path': str(path)}
+        except OSError as error:
+            result['case_preparation'] = {'state': 'failed', 'reason': type(error).__name__}
+    if args.case_proposal:
+        candidate = next((c for c in result['evaluation_candidates'] if c['id'] == args.case_proposal), None)
+        if candidate is None:
+            parser.error('evaluation candidate not found in this window and skill selection')
+        result = {
+            'schema_version': 1, 'status': 'needs_context_review', 'candidate': candidate,
+            'source': result['source'], 'window_start': result['window_start'], 'generated_at': result['generated_at'],
+            'observations': [review_template(work) for work in result['review_candidates'] if work['id'] in candidate['examples']],
+            'design': {'problem': None, 'scenario': None, 'expected_behavior': None, 'synthetic_fixture': None, 'verifier': None},
+            'admission_checks': ['Review original context: real work, evaluation setup, or expected red test?',
+                                 'Check related cases for the same behavior; matching skill names do not establish coverage.',
+                                 'Use a synthetic fixture without private code, prompts, credentials, network or clock dependencies.',
+                                 'Verify original fails, minimal fix and another valid solution pass; then run eval --dry-run.'],
+        }
+    elif args.review_template:
         candidate = next((c for c in result["review_candidates"] if c["id"] == args.review_template), None)
         if candidate is None:
             parser.error("candidate not found in this window and skill selection")
@@ -211,6 +244,8 @@ def main():
     else:
         result["candidates_truncated"] = len(result["review_candidates"]) > args.limit
         result["review_candidates"] = result["review_candidates"][:args.limit]
+        result['evaluation_candidate_count'] = len(result['evaluation_candidates'])
+        result['evaluation_candidates'] = result['evaluation_candidates'][:args.limit]
         result["input_errors_truncated"] = not args.all_errors and len(result["input_errors"]) > 50
         if not args.all_errors:
             result["input_errors"] = result["input_errors"][:50]

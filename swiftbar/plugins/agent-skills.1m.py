@@ -108,7 +108,24 @@ def render(analysis):
             if count:
                 print(f"--{label}: {count:,}作業")
         candidates = analysis.get('review_candidates', [])[:3]
-        print(f"レビュー候補 · {len(candidates)}件表示| sfimage=text.magnifyingglass")
+        print('レビューと評価ケース| sfimage=text.magnifyingglass')
+        proposals = analysis.get('evaluation_candidates', [])[:4]
+        print(f"--実ログからの評価ケース候補 · {analysis.get('evaluation_candidate_count', len(proposals))}組")
+        print('--原因・既存ケースとの重複は未確認')
+        if analysis.get('case_preparation', {}).get('state') == 'failed':
+            print('--候補の保存に失敗（現在の候補は下に表示）')
+        if analysis.get('case_catalog_errors'):
+            print('--既存ケースを一部読み取れません')
+        for proposal in proposals:
+            proposal_id = proposal['id']
+            if ANALYZER.is_file() and len(proposal_id) == 20 and all(c in '0123456789abcdef' for c in proposal_id):
+                print(f"--{text(proposal['skill'])} · {text(proposal['label'])}| length=48 symbolize=false bash='{ANALYZER}' param1=--days param2={DAYS} param3=--case-proposal param4={proposal_id} terminal=true")
+        if not proposals:
+            print('--候補なし（終了記録のある共有スキル利用が対象）')
+        if ANALYZER.is_file():
+            print(f"--すべての候補を開く| bash='{ANALYZER}' param1=--days param2={DAYS} param3=--limit param4=1000 terminal=true")
+        print('-----')
+        print(f'--元の作業を確認 · {len(candidates)}件表示')
         print(f'--直近{DAYS}日 · 検証失敗・結果未確認を優先')
         if not candidates:
             print('--期間内の候補なし')
@@ -161,7 +178,7 @@ def render(analysis):
 
 def main():
     try:
-        result = subprocess.run([str(ANALYZER), '--days', str(DAYS), '--limit', '3'],
+        result = subprocess.run([str(ANALYZER), '--days', str(DAYS), '--limit', '4', '--prepare-cases'],
                                 capture_output=True, text=True, timeout=15)
         if result.returncode:
             raise ValueError('analysis failed')

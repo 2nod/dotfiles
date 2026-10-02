@@ -1,0 +1,5 @@
+[
+  {"id": "sample-a", "context": "evaluation_fixture_preparation", "skills_read": ["sample-guide"], "test_exit": 1},
+  {"id": "sample-b", "context": "real_work", "checks": [{"purpose": "prove the original fixture fails", "expected_exit": 1, "actual_exit": 1}, {"purpose": "verify the fixed fixture", "expected_exit": 0, "actual_exit": 0}]},
+  {"id": "sample-c", "context": "real_work", "skills_read": ["sample-guide", "sample-helper"], "test_exit": 1, "expected_behavior": null, "skill_versions": null}
+]
