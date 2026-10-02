@@ -56,6 +56,7 @@ def case_candidates(observations, catalog, cases, selected_skill=None):
         works.sort(key=lambda work: (datetime.fromisoformat(work['started_at']), work['id']), reverse=True)
         related = [case for case in cases if case['skill'] == skill]
         reviewed = [work for work in works if work.get('case_review', {}).get('state') == 'reviewed']
+        pending = [work for work in works if work.get('case_review', {}).get('state') != 'reviewed']
         designed = {c['scenario'] for c in related if c['design_status'] == 'ready'}
         group = {
             'id': hashlib.sha256(json.dumps([skill, signal]).encode()).hexdigest()[:20],
@@ -64,7 +65,7 @@ def case_candidates(observations, catalog, cases, selected_skill=None):
             'work_count': len(works), 'latest_at': works[0]['started_at'],
             'reviewed_work_count': len(reviewed),
             'reviewed_examples': [work['id'] for work in reviewed[:3]],
-            'examples': [work['id'] for work in works[:3]],
+            'examples': [work['id'] for work in pending[:3]],
             'agents': dict(Counter(work['agent'] for work in works)),
             'models': sorted({m for work in works for m in work['observed_models']}),
             'co_used_work_count': sum(len(work['skills']) > 1 for work in works),
@@ -77,7 +78,8 @@ def case_candidates(observations, catalog, cases, selected_skill=None):
     for bucket in buckets.values():
         bucket.sort(key=lambda group: (datetime.fromisoformat(group['latest_at']), group['id']), reverse=True)
     # Include ordinary examples; a persistent historical failure must not fill the entire shortlist.
-    return [group for row in zip_longest(*buckets.values()) for group in row if group is not None]
+    groups = [group for row in zip_longest(*buckets.values()) for group in row if group is not None]
+    return sorted(groups, key=lambda group: group['status'] == 'reviewed')
 
 
 def save_candidates(root, analysis):

@@ -68,6 +68,8 @@ class UsageReviewsTest(unittest.TestCase):
             source = root / 'source'
             source.write_text('evidence\n')
             observed = work('c' * 20)
+            observed['evidence'] = [{'path': str(source), 'line': 1,
+                                     'sha256': hashlib.sha256(b'evidence').hexdigest()}]
             case = {'id': 'sample', 'skill': 'guide', 'skill_path': 'skill/SKILL.md', 'fixture': 'fixture',
                     'evaluation': {'status': 'ready'}, 'rubric': [{'id': 'purpose', 'criterion': 'Check behavior'}],
                     'verifiers': [['python3', '-c', 'print(1)']]}

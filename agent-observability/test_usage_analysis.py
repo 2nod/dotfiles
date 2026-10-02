@@ -257,18 +257,60 @@ class UsageAnalysisTest(unittest.TestCase):
         refresh = subprocess.run([*command, '--prepare-cases'], capture_output=True, text=True, check=True)
         refreshed = json.loads(refresh.stdout)
         self.assertEqual(refreshed['case_review_summary'], {'reviewed': 1, 'pending': 1})
-        self.assertEqual(refreshed['evaluation_candidates'][0]['reviewed_work_count'], 1)
+        self.assertEqual(refreshed['evaluation_candidates'][0]['reviewed_work_count'], 0)
+        self.assertNotEqual(refreshed['evaluation_candidates'][0]['id'], group['id'])
         opened = subprocess.run([*command, '--case-proposal', group['id']], capture_output=True, text=True, check=True)
         reopened = json.loads(opened.stdout)
         self.assertEqual(reopened['status'], 'reviewed')
         self.assertEqual(reopened['reviewed_work'][0]['result']['outcome'], 'recovered')
-        self.assertEqual(reopened['observations'][0]['design']['action'], 'no_case')
-        self.assertEqual(reopened['observations'][0]['observation']['work_verification'], 'reported_failed')
+        self.assertEqual(reopened['observations'], [])
+        self.assertEqual(reopened['reviewed_work'][0]['design']['action'], 'no_case')
+        current = subprocess.run([*command, '--review-template', review['observation']['id']],
+                                 capture_output=True, text=True, check=True)
+        saved = json.loads(current.stdout)
+        self.assertEqual(saved['observation']['work_verification'], 'reported_failed')
+        self.assertEqual(len(saved['expected_review_version']), 64)
         (cases / 'broken.json').write_text('{}')
         run = subprocess.run(command, capture_output=True, text=True, check=True)
         broken = json.loads(run.stdout)
         self.assertTrue(broken['case_catalog_errors'])
         self.assertIsNone(broken['evaluation_candidates'][0]['missing_scenarios'])
+
+    def test_cli_review_queue_advances_until_every_work_has_been_reviewed(self):
+        events = [event for n in range(5) for event in self.turn(turn_id=str(n))]
+        for n, event in enumerate(events):
+            event['ts'] = (datetime.now(timezone.utc) - timedelta(minutes=1) + timedelta(seconds=n)).isoformat()
+            if event['event'] == 'skill_activated':
+                event['skill'] = 'ponytail'
+        self.write(events)
+        command = [sys.executable, str(SCRIPT), '--root', str(self.root), '--limit', '1']
+
+        def invoke(*args):
+            result = subprocess.run([*command, *args], capture_output=True, text=True, check=True)
+            return json.loads(result.stdout)
+
+        group_id = invoke()['evaluation_candidates'][0]['id']
+        reviewed = set()
+        for _ in range(5):
+            proposal = invoke('--case-proposal', group_id)
+            review = proposal['observations'][0]
+            identifier = review['observation']['id']
+            self.assertNotIn(identifier, reviewed)
+            refs = review['observation']['evidence']
+            review.update(reviewer={'kind': 'human', 'name': 'sample'},
+                          conversation_evidence=[{**refs[0], 'role': 'request'}, {**refs[-1], 'role': 'result'}],
+                          assessment={'context': 'real_work', 'reason': 'Read the original context.'},
+                          result={'outcome': 'completed', 'summary': 'Acceptance check passed.'},
+                          design={'action': 'no_case', 'reason': 'Already covered.', 'next_action': 'Retain coverage.'})
+            draft = self.root / 'draft.json'
+            draft.write_text(json.dumps(review))
+            invoke('--save-review', str(draft))
+            reviewed.add(identifier)
+        final = invoke('--case-proposal', group_id)
+        self.assertEqual(final['status'], 'reviewed')
+        self.assertEqual(final['observations'], [])
+        self.assertEqual(final['candidate']['reviewed_work_count'], 5)
+        self.assertEqual(len(final['reviewed_work']), 3)
 
 
 if __name__ == "__main__":

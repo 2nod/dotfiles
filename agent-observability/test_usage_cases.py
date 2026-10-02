@@ -16,6 +16,33 @@ def work(identifier, *, skills=('guide',), outcome='reported_failed', reasons=('
 
 
 class UsageCasesTest(unittest.TestCase):
+    def test_completed_examples_do_not_hide_pending_or_changed_work(self):
+        observations = [work(str(n)) for n in range(6)]
+        for n, observed in enumerate(observations):
+            observed['started_at'] = f'2030-01-0{n + 1}T00:00:00+00:00'
+        for observed in observations[3:]:
+            observed['case_review'] = {'state': 'reviewed'}
+        observations[1]['case_review'] = {'state': 'needs_review'}
+        group = case_candidates(observations, {'guide': {}}, [])[0]
+        self.assertEqual(group['examples'], ['2', '1', '0'])
+        self.assertEqual(group['reviewed_examples'], ['5', '4', '3'])
+        observations[2]['case_review'] = {'state': 'reviewed'}
+        group = case_candidates(observations, {'guide': {}}, [])[0]
+        self.assertEqual(group['examples'], ['1', '0'])
+        for observed in observations:
+            observed['case_review'] = {'state': 'reviewed'}
+        group = case_candidates(observations, {'guide': {}}, [])[0]
+        self.assertEqual(group['status'], 'reviewed')
+        self.assertEqual(group['examples'], [])
+
+    def test_reviewed_groups_do_not_hide_pending_groups_in_a_shortlist(self):
+        done = work('done', skills=('done',))
+        done['case_review'] = {'state': 'reviewed'}
+        pending = work('pending', skills=('pending',), outcome='unverified', reasons=())
+        groups = case_candidates([done, pending], {'done': {}, 'pending': {}}, [])
+        self.assertEqual(groups[0]['examples'], ['pending'])
+        self.assertEqual(groups[1]['status'], 'reviewed')
+
     def test_grouping_keeps_counterexamples_and_does_not_claim_semantic_coverage(self):
         observations = [work('failure', skills=('guide', 'helper', 'unknown')),
                         work('failure-two'), work('open', ended=False),

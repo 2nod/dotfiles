@@ -182,10 +182,9 @@ def analyze(root, *, days=30, now=None, catalog=None, skill=None, source="auto",
 
 
 def review_template(candidate):
-    if candidate.get('case_review', {}).get('state') == 'reviewed':
-        return json.loads(Path(candidate['case_review']['path']).read_text())
-    return {
+    template = {
         "schema_version": 1, "observation": candidate, "observation_version": observation_version(candidate),
+        "expected_review_version": None,
         "reviewer": {"kind": "", "name": ""},
         "conversation_evidence": [],
         "assessment": {
@@ -200,6 +199,18 @@ def review_template(candidate):
         "design": {"action": None, "reason": None, "problem": None, "expected_behavior": None,
                    "case": None, "next_action": None},
     }
+    path = candidate.get('case_review', {}).get('path')
+    if path:
+        raw = Path(path).read_bytes()
+        try:
+            previous = json.loads(raw)
+        except (ValueError, UnicodeError):
+            previous = None
+        if isinstance(previous, dict):
+            template.update(previous)
+        template.update(observation=candidate, observation_version=observation_version(candidate),
+                        expected_review_version=hashlib.sha256(raw).hexdigest())
+    return template
 
 
 def main():
