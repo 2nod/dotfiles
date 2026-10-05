@@ -28,10 +28,6 @@
       url = "github:BatteredBunny/brew-api";
       flake = false;
     };
-    nix-claude-code = {
-      url = "github:ryoppippi/nix-claude-code";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     llm-agents.url = "github:numtide/llm-agents.nix";
     agent-skills = {
       url = "github:Kyure-A/agent-skills-nix";
@@ -49,7 +45,6 @@
       nix-darwin,
       nixpkgs,
       brew-nix,
-      nix-claude-code,
       home-manager,
       llm-agents,
       agent-skills,
@@ -155,7 +150,6 @@
           modules = [
             {
               nixpkgs.overlays = [
-                nix-claude-code.overlays.default
                 # Expose llm-agents flake packages as pkgs.llm-agents.*.
                 # overlays.shared-nixpkgs would rebuild them against our
                 # nixos-25.11, which lacks fetchNpmDeps fetcherVersion
