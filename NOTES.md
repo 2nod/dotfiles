@@ -29,7 +29,7 @@
 - 背景: `/nix/store` 配置の `.app` に ACL が付くと GC 時に `Operation not permitted` が発生しやすい
 ### バイナリキャッシュ
 - `nixos-25.11` stable を使用（unstable はキャッシュミスが多い）
-- `llm-agents.nix`（codex / cursor-agent / opencode）は `cache.numtide.com` からキャッシュ取得
+- `llm-agents.nix`（claude-code / codex / cursor-agent / opencode / pi）は `cache.numtide.com` からキャッシュ取得
 - キャッシュ設定は `/etc/nix/nix.custom.conf` にシステムレベルで記述（Determinate Nix の管理外）
   ```
   extra-trusted-substituters = https://cache.numtide.com

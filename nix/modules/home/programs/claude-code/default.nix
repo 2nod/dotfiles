@@ -70,7 +70,7 @@ in
   };
 
   home = {
-    packages = [ pkgs.claude-code ];
+    packages = [ pkgs.llm-agents.claude-code ];
 
     # Also exported to fish via fish/conf.d/02-hm-session-vars.fish
     sessionVariables = {
