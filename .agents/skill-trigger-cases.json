@@ -65,6 +65,16 @@
     "expected": ["engineering/diagnosing-bugs"]
   },
   {
+    "id": "asd-ste100-explanatory-prose",
+    "prompt": "この仕組みについて、前提と手順が明確な説明文を書いて",
+    "expected": ["writing/asd-ste100"]
+  },
+  {
+    "id": "asd-ste100-explicit-rewrite",
+    "prompt": "ASD-STE100の原則でこの説明文を推敲して",
+    "expected": ["writing/asd-ste100"]
+  },
+  {
     "id": "japanese-tech-writing",
     "prompt": "日本語の技術記事として推敲して。冗長さと論証の甘さを直したい",
     "expected": ["writing/japanese-tech-writing"]
