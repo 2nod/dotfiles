@@ -101,7 +101,7 @@
   },
   {
     "id": "domain-modeling-workflow",
-    "prompt": "We need to define domain terminology, update CONTEXT.md, and maybe record an ADR for this bounded context.",
+    "prompt": "We need to define domain terminology, update GLOSSARY.md, and maybe record an ADR for this bounded context.",
     "expected": ["engineering/domain-modeling"]
   },
   {
