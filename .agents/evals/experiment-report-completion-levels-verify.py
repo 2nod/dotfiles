@@ -44,8 +44,7 @@ class ReportParser(HTMLParser):
                 self.visible[key] += ' ' + text
 
 
-def verify(workspace):
-    fixture = pathlib.Path(__file__).parent / 'fixtures/experiment-report-completion-levels'
+def verify(workspace, fixture):
     source_path = workspace / 'experiment-source.json'
     assert hashlib.sha256(source_path.read_bytes()).digest() == hashlib.sha256((fixture / 'experiment-source.json').read_bytes()).digest(), 'source evidence changed'
     source = json.loads(source_path.read_text())
@@ -68,7 +67,7 @@ def verify(workspace):
 
 if __name__ == '__main__':
     try:
-        verify(pathlib.Path(sys.argv[1]))
+        verify(pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]))
     except (AssertionError, KeyError, ValueError, OSError) as error:
         print('FAIL:', error)
         sys.exit(1)

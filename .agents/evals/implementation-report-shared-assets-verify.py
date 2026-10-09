@@ -31,8 +31,7 @@ class Styles(HTMLParser):
             self.inert_depth = max(0, self.inert_depth - 1)
 
 
-def verify(workspace):
-    fixture = Path(__file__).parent / "fixtures/implementation-report-shared-assets"
+def verify(workspace, fixture):
     for original in fixture.rglob("*"):
         if original.is_file():
             candidate = workspace / original.relative_to(fixture)
@@ -59,7 +58,7 @@ def verify(workspace):
 
 
 if __name__ == "__main__":
-    error = verify(Path(sys.argv[1]))
+    error = verify(Path(sys.argv[1]), Path(sys.argv[2]))
     if error:
         print(error, file=sys.stderr)
     raise SystemExit(1 if error else 0)

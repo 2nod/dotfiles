@@ -35,7 +35,8 @@
     [
       "python3",
       "{case_dir}/experiment-report-page-identity-verify.py",
-      "{workspace}"
+      "{workspace}",
+      "{case_dir}/fixtures/experiment-report-page-identity"
     ]
   ]
 }

@@ -45,8 +45,7 @@ class Figures(HTMLParser):
             self.rows[self.current]['text'] += text
 
 
-def verify(workspace):
-    fixture = Path(__file__).parent / 'fixtures/experiment-report-page-identity'
+def verify(workspace, fixture):
     source = json.loads((fixture / 'experiment-source.json').read_text())
     for name in ('experiment-source.json', *(p['source_file'] for p in source['pages'])):
         assert (workspace / name).read_bytes() == (fixture / name).read_bytes(), 'evidence changed'
@@ -70,7 +69,7 @@ def verify(workspace):
 
 if __name__ == '__main__':
     try:
-        verify(Path(sys.argv[1]))
+        verify(Path(sys.argv[1]), Path(sys.argv[2]))
     except (AssertionError, KeyError, ValueError, OSError) as error:
         print('FAIL:', error)
         sys.exit(1)

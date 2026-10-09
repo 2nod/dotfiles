@@ -103,10 +103,23 @@ class ReportEvidenceVerifiers(unittest.TestCase):
 
     def assert_verdict(self, case, workspace, passed):
         definition = json.loads((CASES / f"{case}.json").read_text())
-        command = [part.replace("{case_dir}", str(CASES)).replace("{workspace}", str(workspace))
-                   for part in definition["verifiers"][0]]
+        # The runner distributes only verifier inputs named in the command.
+        verifier_root = self.root / "verifiers" / case
+        command = []
+        for part in definition["verifiers"][0]:
+            if part.startswith("{case_dir}/"):
+                relative = part[len("{case_dir}/"):]
+                source, target = CASES / relative, verifier_root / relative
+                if source.is_dir():
+                    shutil.copytree(source, target, dirs_exist_ok=True)
+                else:
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(source, target)
+                command.append(str(target))
+            else:
+                command.append(part.replace("{workspace}", str(workspace)))
         command[0] = sys.executable
-        result = subprocess.run(command, capture_output=True, text=True)
+        result = subprocess.run(command, cwd=workspace, capture_output=True, text=True)
         self.assertEqual(result.returncode == 0, passed, result.stdout + result.stderr)
 
     def test_unmodified_fixtures_fail_and_corrected_reports_pass(self):

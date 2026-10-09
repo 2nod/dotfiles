@@ -28,6 +28,6 @@
     }
   ],
   "verifiers": [
-    ["python3", "{case_dir}/implementation-report-shared-assets-verify.py", "{workspace}"]
+    ["python3", "{case_dir}/implementation-report-shared-assets-verify.py", "{workspace}", "{case_dir}/fixtures/implementation-report-shared-assets"]
   ]
 }

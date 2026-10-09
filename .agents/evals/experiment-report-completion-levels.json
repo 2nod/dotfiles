@@ -16,7 +16,8 @@
     [
       "python3",
       "{case_dir}/experiment-report-completion-levels-verify.py",
-      "{workspace}"
+      "{workspace}",
+      "{case_dir}/fixtures/experiment-report-completion-levels"
     ]
   ],
   "evaluation": {
