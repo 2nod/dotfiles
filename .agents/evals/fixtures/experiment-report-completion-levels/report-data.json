@@ -1,8 +1,0 @@
-{
-  "reference_status": "approved",
-  "runs": [
-    { "id": "run-a", "harness_success": true, "workflow_status": "submitted" },
-    { "id": "run-b", "harness_success": true, "workflow_status": "submitted" },
-    { "id": "run-c", "harness_success": true, "workflow_status": "submitted" }
-  ]
-}

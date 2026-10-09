@@ -1,9 +1,0 @@
-{
-  "cliSuccessCases": 3,
-  "definitionLoadedCases": 2,
-  "cases": [
-    { "id": "case-a", "status": "confirmed", "evidence": "skill_tool" },
-    { "id": "case-b", "status": "unconfirmed", "evidence": "none" },
-    { "id": "case-c", "status": "confirmed", "evidence": "skill_tool" }
-  ]
-}
