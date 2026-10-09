@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>ID正規化</title>
+<style>body{background:#fff;color:#183b57;font:16px/1.8 sans-serif}</style></head>
+<body><main class="mb-page"><h1>IDを大文字へ統一する</h1>
+<p>src/ids.pyで、前後空白の除去に大文字化を追加した。</p>
+<h2>実コード</h2><pre>Before: return str(value).strip()
+After: return str(value).strip().upper()</pre>
+<h2>検証</h2><p>unit testとブラウザ確認は未実施。</p></main></body></html>

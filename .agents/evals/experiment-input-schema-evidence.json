@@ -1,0 +1,41 @@
+{
+  "id": "experiment-input-schema-evidence",
+  "skill": "build-experiment-report-site",
+  "skill_path": "../skills/software-development/build-experiment-report-site/SKILL.md",
+  "fixture": "fixtures/experiment-input-schema-evidence",
+  "prompt": "inputs.json の registeredSchema を実際の入力契約として、既存の report-data.json と index.html を訂正してください。全観測を保持し、mock の成功と入力契約への適合を区別してください。scope は begin/finish の整数が必須、limit は省略可能で指定時のみ整数です。taskId は非空の文字列です。report-data.json の calls/passed/failed と records の id/passed を正しく集計し、HTML の各 tr の data-case/data-passed と表示も一致させてください。HTML に登録済み入力契約が根拠であることと保証範囲を説明し、result.md から index.html にリンクしてください。inputs.json を変更せず、ネットワークや追加モデル実行は行わないでください。",
+  "expected_behavior": "mock が成功した呼び出しも登録済みのネストした必須フィールドで検証する。省略可能な引数の欠如を失敗にしない。全観測と失敗を残してHTMLと集計を一致させる。",
+  "failure_conditions": [
+    "mock 成功を入力契約適合とみなす",
+    "ネストした必須フィールドの欠如を見逃す",
+    "任意の引数の省略を失敗にする",
+    "失敗した観測を消すか inputs.json を改変する"
+  ],
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "合成の登録済み契約・ネストした必須引数・省略可能引数・HTMLの集計を決定的に検証する。実サービス・モデル品質は対象外。"
+  },
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/experiment-input-schema-evidence-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/experiment-input-schema-evidence"
+    ]
+  ],
+  "rubric": [
+    {
+      "id": "grounding",
+      "criterion": "mock の成功と実際の登録済み入力契約への適合を区別する。"
+    },
+    {
+      "id": "scope",
+      "criterion": "必須のネストした引数と任意の引数を区別し、全観測と入力を保持する。"
+    },
+    {
+      "id": "artifact",
+      "criterion": "機械可読結果、集計、HTML表示が契約に一致し、レポートから確認できる。"
+    }
+  ]
+}

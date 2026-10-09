@@ -1,0 +1,27 @@
+{
+  "id": "experiment-client-skill-load-evidence",
+  "skill": "build-experiment-report-site",
+  "skill_path": "../skills/software-development/build-experiment-report-site/SKILL.md",
+  "fixture": "fixtures/experiment-client-skill-load-evidence",
+  "prompt": "匿名化したCLI検証のevents.jsonを根拠に、既存のreport-data.jsonとindex.htmlを作り直してください。検証対象は専門skillの定義がクライアントに読み込まれたことです。CLIの終了、依頼文、モデルの自己申告を読み込みの証拠と混同しないでください。全ケースを保持し、実行ログの証拠と確認できないことを説明してください。report-data.jsonのフィールドを維持し、各ケースのstatusはconfirmed/unconfirmed、evidenceはskill_tool/command_expansion/noneのいずれかにしてください。HTMLの表ではケースごとにtrのdata-case、data-status、data-evidenceに同じ値を設定し、ケースID、status、evidenceを読者にも表示してください。result.mdからindex.htmlにリンクしてください。入力events.jsonは変更せず、ネットワークや新たなモデル実行で観測を足さないでください。",
+  "expected_behavior": "Skillツール実行と明示コマンドの定義展開の両方を読み込み証拠として数える。依頼文と自己申告だけのケースは未確認のまま残し、CLI成功件数と分ける。",
+  "failure_conditions": [
+    "Skillツールイベントがない明示コマンドの定義展開を未確認とする",
+    "モデルの自己申告だけで定義読み込みを確認済みにする",
+    "CLI終了コード0の件数をskill読み込み成功件数として使う",
+    "未確認ケースを省略するか入力を書き換える"
+  ],
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "捕捉済みの合成CLIログからの読み込み証拠分類とHTMLへの反映を決定的に検証する。実サービスと出力の言語品質は対象外。"
+  },
+  "rubric": [
+    { "id": "grounding", "criterion": "終了コード、依頼文、モデルの自己申告と、定義読み込みの観測証拠を区別する。" },
+    { "id": "scope", "criterion": "全ケースと入力ログを保持し、実サービスへの接続や追加実験をしない。" },
+    { "id": "artifact", "criterion": "表と集計がログに一致し、証拠と未確認事項をHTMLから確認できる。" }
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/experiment-client-skill-load-evidence-verify.py", "{workspace}", "{case_dir}/fixtures/experiment-client-skill-load-evidence"]
+  ]
+}

@@ -1,0 +1,5 @@
+/* Synthetic fixture: supplied display contract, not production CSS. */
+:root { --paper: #faf9f6; --ink: #111110; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.8 sans-serif; }
+.mb-page { max-width: 960px; margin: auto; padding: 24px; }
+pre { overflow: auto; border: 1px solid var(--ink); padding: 16px; }

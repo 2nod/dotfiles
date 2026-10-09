@@ -1,0 +1,33 @@
+{
+  "id": "implementation-report-shared-assets",
+  "skill": "build-implementation-report-site",
+  "skill_path": "../skills/software-development/build-implementation-report-site/SKILL.md",
+  "skill_dependencies": {
+    "html": "../installed-skills/writing/html"
+  },
+  "fixture": "fixtures/implementation-report-shared-assets",
+  "scenario": "boundary",
+  "prompt": "このworkspaceは匿名化した合成fixtureです。change-facts.jsonとlegacy-report.htmlから、変更を知らないレビュワー向けのHTML実装レポートをreport/index.htmlに作成してください。本文の構成とレイアウトは自由です。表示基盤は、このfixtureで提供したshared-assets/document.cssを維持し、レポート単独で開けるよう必要なアセットをreport配下へ同梱してください。入力ファイルは変更せず、result.mdに[レポート](report/index.html)のリンクを残してください。公開、外部通信、commit、pushはしないでください。未実施の検証は未実施と記載してください。",
+  "expected_behavior": "構成を整理しても既存の共有CSSを保持し、出力HTMLから有効なローカルstylesheetとして読み込む。入力や成果物外の配置に依存しない。",
+  "evaluation": {
+    "status": "ready",
+    "scope": "共有CSSの保持・同梱・読込みという決定的な回帰契約だけを検証する。認知負荷や総合品質、依存skillを読んだかはこのverifierで判定しない。"
+  },
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "ID正規化の変更と未検証範囲を説明し、レイアウトを整理しても提供された共有CSSを保持する。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "入力にないテスト成功や描画確認を作らず、BeforeとAfterを提供された断片へ対応付ける。"
+    },
+    {
+      "id": "scope",
+      "criterion": "入力を保持し、指定されたreport配下へ自己完結するHTMLとアセットを保存し、result.mdから参照する。"
+    }
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/implementation-report-shared-assets-verify.py", "{workspace}"]
+  ]
+}

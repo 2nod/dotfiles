@@ -1,0 +1,9 @@
+{
+  "source": "anonymous synthetic snapshots; no commit SHA supplied",
+  "file": "src/ids.py",
+  "before": "def normalize(value):\n    return str(value).strip()\n",
+  "after": "def normalize(value):\n    return str(value).strip().upper()\n",
+  "effect": "前後空白の除去に加え、英字IDを大文字へ統一する",
+  "verification": "unit testとブラウザ確認は未実施",
+  "display_contract": "shared-assets/document.css is the supplied shared stylesheet"
+}

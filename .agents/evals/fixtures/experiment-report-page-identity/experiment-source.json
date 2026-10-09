@@ -1,0 +1,21 @@
+{
+  "run_id": "run-layout-c",
+  "pages": [
+    {
+      "case_id": "triangle",
+      "manuscript_number": 12,
+      "page_index": 11,
+      "printed_folio": 4,
+      "source_file": "artifacts/leaf-004.svg",
+      "public_note": "Sheet 12 keeps the triangle."
+    },
+    {
+      "case_id": "circle",
+      "manuscript_number": 13,
+      "page_index": 12,
+      "printed_folio": 5,
+      "source_file": "artifacts/leaf-005.svg",
+      "public_note": "Sheet 13 keeps the circle."
+    }
+  ]
+}
