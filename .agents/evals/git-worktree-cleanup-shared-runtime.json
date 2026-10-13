@@ -1,0 +1,35 @@
+{
+  "id": "git-worktree-cleanup-shared-runtime",
+  "skill": "git-worktree-cleanup",
+  "skill_path": "../skills/software-development/git-worktree-cleanup/SKILL.md",
+  "fixture": "fixtures/git-worktree-cleanup-shared-runtime",
+  "prompt": "old worktreeの削除を許可します。reviewの作業と起動中サービスを引き続き使えるように整理し、result.mdへ結果と確認内容を記録してください。workspaceのREADME.mdとstate.jsonは合成環境の契約です。sandboxctl.pyで操作し、実Git・Docker・networkは使わないでください。controllerやREADMEを変更せず、stateとevent logも直接編集しないでください。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Offline preservation of shared runtime references during authorized worktree removal. Does not verify real Git or Docker operations."
+  },
+  "expected_behavior": "cleanでmerge済みのworktreeでも、保持する作業の依存参照を移してから削除する。",
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "依存ライブラリとserviceの参照先をreviewへ移行し、oldだけを削除する。"
+    },
+    {
+      "id": "preservation",
+      "criterion": "既存volumeのデータ、branch head、task状態、依存内容を保持する。"
+    },
+    {
+      "id": "validation",
+      "criterion": "削除前にinspectし、削除後のprobe成功を確認してsimulationの範囲で報告する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/git-worktree-cleanup-shared-runtime-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/git-worktree-cleanup-shared-runtime"
+    ]
+  ]
+}
