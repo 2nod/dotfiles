@@ -1,0 +1,33 @@
+{
+  "worktrees": {
+    "old": {
+      "clean": true,
+      "head": "base"
+    },
+    "review": {
+      "clean": true,
+      "head": "feature"
+    }
+  },
+  "dependency": {
+    "owner": "old",
+    "checksum": "deps-v1"
+  },
+  "service": {
+    "source": "old",
+    "volume": "shared-data",
+    "running": true
+  },
+  "volumes": {
+    "shared-data": "persisted-content"
+  },
+  "tasks": {
+    "old": {
+      "archived": false
+    }
+  },
+  "branches": {
+    "old": "base",
+    "review": "feature"
+  }
+}

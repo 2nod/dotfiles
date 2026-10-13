@@ -1,0 +1,19 @@
+{
+  "id": "diagnosis-fixture-catalog-isolation",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-fixture-catalog-isolation",
+  "prompt": "Opening a fresh local copy fails with unsupported saved session field although its own session has the current schema. Diagnose with the supplied public test and fix the fixture factory. Prior local copies must remain unchanged, actual source provenance and payload must remain accurate, and separate runs must not share a comparison catalog. Do not add old-schema compatibility or weaken the product catalog validator. Use this synthetic local workspace only; no network or real user data.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic isolation of local fixture comparison groups while preserving actual source provenance and strict validation. Does not verify a real browser or database migration."
+  },
+  "rubric": [
+    {"id": "isolation", "criterion": "Fresh runs have independent catalog groups while actual source ID, deep-copied payload, old records and strict saved-session validation remain intact."},
+    {"id": "feedback", "criterion": "Observe the public regression failure before editing and success after fixing the fixture factory."}
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-fixture-catalog-isolation-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosis-fixture-catalog-isolation"]
+  ]
+}

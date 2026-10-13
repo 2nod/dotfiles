@@ -287,7 +287,7 @@ class PurposeEvalTest(unittest.TestCase):
             for p in (CASES.parent / prefix).glob("**/SKILL.md")
         }
         self.assertEqual(names, set(load_catalog()))
-        cases = [json.loads(p.read_text()) for p in CASES.glob("*.json")]
+        cases = [evaluator.load_case(p) for p in CASES.glob("*.json")]
         # Classification is declared by the contract, not by a filename prefix.
         for case in cases:
             self.assertIn(case["evaluation"]["status"], ("legacy", "ready"))
