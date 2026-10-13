@@ -47,6 +47,20 @@ let
         } "$out/codex-package.json"
       '';
 
+  pstackSource = pkgs.fetchFromGitHub {
+    owner = "michael-denyer";
+    repo = "pstack-claude";
+    rev = "60ae9e25610744bccd45bd405c211413a471aaf8";
+    hash = "sha256-VBi1L9u4HoRWhiVw1B1ZZ56MqBEchLdTpwojVRT3sWo=";
+  };
+
+  # Keep the native skills and references intact, without session-wide routing.
+  pstackMarketplace = pkgs.runCommand "pstack-codex-marketplace-0.9.79" { } ''
+    cp -R ${pstackSource}/. "$out"
+    chmod u+w "$out/plugins/pstack/hooks/codex-hooks.json"
+    printf '%s\n' '{"hooks": {}}' > "$out/plugins/pstack/hooks/codex-hooks.json"
+  '';
+
   appHooks = {
     hooks = {
       SessionStart = [
@@ -111,6 +125,12 @@ let
       mcp_servers.runpod.enabled = false;
     };
 
+    plugins."pstack@pstack-claude".enabled = true;
+    marketplaces.pstack-claude = {
+      source_type = "local";
+      source = "${pstackMarketplace}";
+    };
+
     marketplaces.runpod = {
       source_type = "git";
       source = "https://github.com/runpod/runpod-plugins-official.git";
@@ -171,6 +191,15 @@ in
       mkdir -p "${codexHomeDir}"
       cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexHomeDir}/config.toml"
       chmod 600 "${codexHomeDir}/config.toml"
+    '';
+
+    activation.installCodexPstack = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''
+      if [ ! -e "${codexHomeDir}/pstack-models.md" ]; then
+        cp ${../../../../codex/pstack-models.md} "${codexHomeDir}/pstack-models.md"
+        chmod 600 "${codexHomeDir}/pstack-models.md"
+      fi
+
+      CODEX_HOME="${codexHomeDir}" ${codexPackage}/bin/codex plugin add pstack@pstack-claude
     '';
 
     file = {

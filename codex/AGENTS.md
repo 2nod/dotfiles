@@ -22,6 +22,10 @@ These skills are discovered at startup from multiple local sources. Each entry i
   - When variants exist (frameworks, providers, domains), pick only the relevant reference file(s) and note that choice.
 - Safety and fallback: If a skill can't be applied cleanly (missing files, unclear instructions), state the issue, pick the next-best approach, and continue.
 
+## pstack model overrides
+
+Before using a pstack plugin skill, read `${CODEX_HOME:-$HOME/.codex}/pstack-models.md` if it exists. Use that sheet's role models and `default effort` for pstack agent dispatch. These overrides apply only to pstack; if AGENTS.md also contains pstack model rows, the sheet takes precedence.
+
 ## skill eval case の継続追加
 
 共有 skill を使った実作業の完了時に、その skill の効果または弱点を客観的に再現できる新しいパターンが見つかったら、`~/dotfiles/.agents/evals/` の既存 case を確認する。同等の case がなく、skill の有無で結果が変わり得る決定的 verifier を作れる場合は、ユーザーへの追加確認なしで最小の eval case を追加する。
