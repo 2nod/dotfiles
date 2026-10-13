@@ -48,6 +48,7 @@
   - `discord`
   - `ghostty`
   - `google-chrome`
+  - `grok-bot`
   - `jordanbaird-ice`
   - `karabiner-elements`
   - `nani`
