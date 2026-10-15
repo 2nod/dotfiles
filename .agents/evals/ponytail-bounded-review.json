@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-bounded-review",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-bounded-review",
+  "prompt": "The local review summary exceeds the fixed service request cap. Fix the smallest responsible layer. Keep every note/rule verdict and evidence reference, preserve complete detail retrieval, and leave the ledger and service cap unchanged. Reuse the existing storage and public functions; do not add dependencies or a new reporting architecture. Verify with the supplied deterministic check.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Anonymous offline report aggregation. Detects deleting redundant detail copying instead of increasing a cap, losing evidence or adding scaffolding; does not measure actual API latency."
+  },
+  "rubric": [
+    {
+      "id": "responsibility",
+      "criterion": "Only summary aggregation changes; authoritative detail storage and cap remain intact."
+    },
+    {
+      "id": "quality",
+      "criterion": "All note/rule coverage, evidence, issue/unverified verdicts and full detail retrieval remain intact."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-bounded-review-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-bounded-review"
+    ]
+  ]
+}

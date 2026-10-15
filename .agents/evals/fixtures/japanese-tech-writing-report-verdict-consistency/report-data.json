@@ -1,0 +1,18 @@
+{
+  "summary": {
+    "operationCount": 2,
+    "supported": 2,
+    "pending": 0,
+    "acceptanceComplete": true
+  },
+  "details": [
+    {
+      "id": "case-a",
+      "verdict": "supported"
+    },
+    {
+      "id": "case-b",
+      "verdict": "pending"
+    }
+  ]
+}
