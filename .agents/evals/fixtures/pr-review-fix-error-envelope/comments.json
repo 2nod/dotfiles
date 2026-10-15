@@ -1,0 +1,7 @@
+[
+  {
+    "id": "r1",
+    "file": "adapter.py",
+    "body": "Unclassified failures should not trigger automatic retries. Preserve the existing conflict and busy behavior, including errors returned by the service."
+  }
+]
