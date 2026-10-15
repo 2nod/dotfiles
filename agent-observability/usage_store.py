@@ -256,6 +256,100 @@ def ingest_file(db, path, runtime, source, budget, *, stamp=None, before_commit=
         return cursor - start
 
 
+def source_version(row):
+    return [row[key] for key in ("active", "generation", "parser", "device", "inode", "size", "mtime")]
+
+
+def source_is_current(row):
+    if row["error"] or not row["active"] or row["active"] != row["generation"]:
+        return False
+    try:
+        stat = Path(row["path"]).stat()
+    except OSError:
+        return False
+    return [stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns] == source_version(row)[3:]
+
+
+def verified_relocation(row, files, relocations):
+    saved = relocations.get(row["path"], {})
+    target = files.get(saved.get("target"))
+    return (target is not None and target["runtime"] == row["runtime"]
+            and saved.get("original_version") == source_version(row)
+            and saved.get("target_version") == source_version(target)
+            and source_is_current(target))
+
+
+def archive_missing_sources(root, expected, *, reason):
+    """Acknowledge an explicitly reviewed snapshot without deleting its evidence."""
+    if not isinstance(reason, str) or not reason.strip():
+        raise ValueError("a reason for the historical loss is required")
+    with writer(root) as db:
+        if db is None:
+            raise RuntimeError("collector is running; retry after it finishes")
+        saved = db.execute("SELECT value FROM meta WHERE key='source_history'").fetchone()
+        history = json.loads(saved[0]) if saved else {}
+        for path, version in expected.items():
+            saved_row = db.execute("SELECT * FROM files WHERE path=?", (path,)).fetchone()
+            if saved_row is None or source_version(saved_row) != version:
+                raise ValueError("source changed since review")
+            try:
+                Path(path).stat()
+            except FileNotFoundError:
+                pass
+            else:
+                raise ValueError("source is available; collect it instead")
+            count = db.execute("SELECT count(*) FROM observations WHERE path=? AND generation=?",
+                               (path, saved_row["active"])).fetchone()[0]
+            history[path] = {"version": version, "checked": saved_row["checked"],
+                             "observations": count, "reason": reason, "archived_at": now_iso()}
+        with db:
+            db.execute("INSERT OR REPLACE INTO meta VALUES ('source_history',?)", (json.dumps(history),))
+    return len(expected)
+
+
+def reconcile_sources(db, present, deadline):
+    """Retain missing sources, but recognize complete observed evidence at a live copy."""
+    files = {row["path"]: dict(row) for row in db.execute(
+        "SELECT path,runtime,error,active,generation,parser,device,inode,size,mtime FROM files")}
+    saved = db.execute("SELECT value FROM meta WHERE key='source_relocations'").fetchone()
+    relocations = json.loads(saved[0]) if saved else {}
+    candidates = {}
+    for path, row in files.items():
+        if path in present and source_is_current(row):
+            candidates.setdefault((row["runtime"], Path(path).name), []).append(row)
+
+    def observations(row):
+        return {r["id"]: (r["data"], sorted((ref["line"], ref["sha256"])
+                                          for ref in json.loads(r["refs"])))
+                for r in db.execute("SELECT id,data,refs FROM observations WHERE path=? AND generation=?",
+                                    (row["path"], row["active"]))}
+
+    for path, row in files.items():
+        if time.monotonic() >= deadline:
+            break
+        if path in present or Path(path).exists() or verified_relocation(row, files, relocations):
+            continue
+        relocations.pop(path, None)
+        options = candidates.get((row["runtime"], Path(path).name), [])
+        if not options:
+            continue
+        original = observations(row)
+        if not original:
+            continue
+        for target in options:
+            replacement = observations(target)
+            if all(replacement.get(eid) == value for eid, value in original.items()) and source_is_current(target):
+                relocations[path] = {"target": target["path"], "original_version": source_version(row),
+                                     "target_version": source_version(target)}
+                break
+    with db:
+        db.execute("INSERT OR REPLACE INTO meta VALUES ('source_relocations',?)", (json.dumps(relocations),))
+        saved = db.execute("SELECT value FROM meta WHERE key='source_history'").fetchone()
+        if saved:
+            history = {path: value for path, value in json.loads(saved[0]).items() if path not in present}
+            db.execute("INSERT OR REPLACE INTO meta VALUES ('source_history',?)", (json.dumps(history),))
+
+
 def collect(root, roots, *, max_bytes=256 * 1024 * 1024, max_seconds=45, before_commit=None):
     started = time.monotonic()
     with writer(root) as db:
@@ -292,6 +386,7 @@ def collect(root, roots, *, max_bytes=256 * 1024 * 1024, max_seconds=45, before_
                 with db:
                     db.execute("INSERT OR IGNORE INTO files (path,runtime,source) VALUES (?,?,?)", (path,runtime,source))
                     db.execute("UPDATE files SET error=?,checked=? WHERE path=?", (code, stamp, path))
+        reconcile_sources(db, files, started + max_seconds)
         with db:
             db.execute("INSERT OR REPLACE INTO meta VALUES ('last_success',?)", (now_iso(),))
             db.execute("INSERT OR REPLACE INTO meta VALUES ('last_errors',?)", (json.dumps(errors),))
@@ -306,10 +401,13 @@ def health(root, *, roots=None, now=None, probe=True):
     try:
         with closing(connect(Path(root).resolve(), readonly=True)) as db:
             meta = dict(db.execute("SELECT key,value FROM meta"))
-            files = [dict(row) for row in db.execute("SELECT path,runtime,size,cursor,active,generation,pending,error,parser FROM files")]
+            files = [dict(row) for row in db.execute("SELECT path,runtime,size,mtime,device,inode,cursor,active,generation,pending,error,parser,checked FROM files")]
             issues = [dict(row) for row in db.execute("""SELECT f.runtime,i.code,count(*) AS count FROM issues i
                 JOIN files f ON f.path=i.path AND i.generation=f.generation GROUP BY f.runtime,i.code""")]
         roots = roots if roots is not None else json.loads(meta.get("roots", "{}"))
+        relocations = json.loads(meta.get("source_relocations", "{}"))
+        history = json.loads(meta.get("source_history", "{}"))
+        by_path = {row["path"]: row for row in files}
         discovered, sources = discover(roots) if probe else ({}, json.loads(meta.get("sources", "[]")))
         last = meta.get("last_success")
         age = (now - datetime.fromisoformat(last)).total_seconds() if last else None
@@ -323,14 +421,25 @@ def health(root, *, roots=None, now=None, probe=True):
             runtime_issues = {i["code"]: i["count"] for i in issues if i["runtime"] == runtime}
             limitations = {code: count for code, count in runtime_issues.items() if code in ANALYSIS_LIMITATIONS}
             runtime_issues = {code: count for code, count in runtime_issues.items() if code not in ANALYSIS_LIMITATIONS}
-            lag, waiting, missing, pending, errors, replay = 0, 0, 0, 0, 0, 0
+            lag, waiting, missing, pending, errors, replay, relocated, archived = 0, 0, 0, 0, 0, 0, 0, 0
             known = {r["path"] for r in rows}
             new = [p for p, pair in discovered.items() if pair[0] == runtime and p not in known]
             for row in rows:
                 try:
-                    size = Path(row["path"]).stat().st_size if probe else row["size"]
-                except OSError:
+                    stat = Path(row["path"]).stat()
+                    size = stat.st_size if probe else row["size"]
+                except FileNotFoundError:
+                    if verified_relocation(row, by_path, relocations):
+                        relocated += 1
+                        continue
+                    reviewed = history.get(row["path"], {})
+                    if reviewed.get("version") == source_version(row) and reviewed.get("checked") == row["checked"]:
+                        archived += 1
+                        continue
                     missing += 1
+                    continue
+                except OSError:
+                    errors += 1
                     continue
                 lag += max(0, size - row["cursor"])
                 if row["pending"] and size == row["size"]:
@@ -350,7 +459,8 @@ def health(root, *, roots=None, now=None, probe=True):
                      "lagging" if new or replay or lag > waiting else
                      "awaiting_line" if pending else "up_to_date")
             runtimes.append({"runtime": runtime, "state": state, "files": len(rows), "new_files": len(new),
-                             "unread_bytes": lag, "missing_files": missing, "file_errors": errors,
+                             "unread_bytes": lag, "missing_files": missing, "relocated_files": relocated,
+                             "archived_missing_files": archived, "file_errors": errors,
                              "pending_lines": pending, "replaying_files": replay, "issues": runtime_issues,
                              "limitations": limitations})
         return {"state": "stopped" if stopped else "running", "last_start": meta.get("last_start"),
