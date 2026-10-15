@@ -71,6 +71,7 @@ in
       "discord"
       "ghostty"
       "google-chrome"
+      "grok-bot"
       # menu bar manager。stats / swiftbar でアイコンが増える分をここで畳む。
       "jordanbaird-ice"
       "karabiner-elements"
