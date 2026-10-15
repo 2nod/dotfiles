@@ -132,6 +132,18 @@ class SwiftBarTest(unittest.TestCase):
         self.assertNotIn('保存ログ全体', output)
         self.assertNotIn('読み込みを確認できた作業', output)
 
+    def test_relocated_sources_are_visible_without_hiding_unresolved_missing_files(self):
+        analysis = self.analysis()
+        runtime = analysis['collection']['runtimes'][0]
+        runtime.update(relocated_files=2, missing_files=0)
+        output = self.render(analysis)
+        self.assertTrue(output.startswith('Skills|'))
+        self.assertIn('別の保存先で根拠を確認: 2 ファイル', output)
+        runtime.update(state='partial', missing_files=1)
+        output = self.render(analysis)
+        self.assertTrue(output.startswith('Skills !|'))
+        self.assertIn('保存元の欠落: 1 ファイル', output)
+
     def test_empty_confirmed_analysis_is_distinct_from_unavailable_analysis(self):
         analysis = self.analysis()
         analysis['work_summary'] = {'turns_with_skills': 0, 'outcomes': {}, 'by_agent': {}, 'top_skills': []}
@@ -150,3 +162,26 @@ class SwiftBarTest(unittest.TestCase):
                 self.assertIn('利用件数は未確認', output.getvalue())
                 self.assertNotIn('0作業', output.getvalue())
                 self.assertNotIn('旧ログの解析範囲', output.getvalue())
+
+    def test_reviewed_historical_loss_is_a_coverage_gap_not_a_live_warning(self):
+        analysis = self.analysis()
+        runtime = analysis['collection']['runtimes'][0]
+        runtime.update(archived_missing_files=3)
+        output = self.render(analysis)
+        self.assertTrue(output.startswith('Skills|'))
+        quality = self.submenu(output, '記録の信頼性 · 不足あり')
+        self.assertIn('過去ログの保存元なし: 3 ファイル（観測は保持）', quality)
+        runtime.update(state='partial', file_errors=1)
+        self.assertTrue(self.render(analysis).startswith('Skills !|'))
+
+    def test_slow_successful_analysis_still_displays_usage(self):
+        def slow_analysis(command, **options):
+            if options['timeout'] < 36:
+                raise subprocess.TimeoutExpired(command, options['timeout'])
+            return subprocess.CompletedProcess(command, 0, json.dumps(self.analysis()))
+
+        output = StringIO()
+        with patch.object(plugin.subprocess, 'run', side_effect=slow_analysis), redirect_stdout(output):
+            plugin.main()
+        self.assertIn('3作業 · 直近30日', output.getvalue())
+        self.assertNotIn('利用件数は未確認', output.getvalue())
