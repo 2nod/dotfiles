@@ -1,0 +1,15 @@
+{
+  "id": "diagnosis-withheld-reference-images",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-withheld-reference-images",
+  "prompt": "The observation workflow hides reference_text until source observations are recorded, yet reviewers can see reference content beforehand. Diagnose and fix the shared review session. Apply the observation boundary to both initial packets and inspection requests. Rejected observations must not unlock references. Preserve original access and every reference pixel and metadata field after a complete record. Run the supplied public regression before and after editing. Use only this synthetic workspace; no network or real records.",
+  "scenario": "boundary",
+  "evaluation": {"status": "ready", "scope": "Deterministic image-channel isolation before an observation checkpoint and preservation after it. Does not measure perceptual accuracy, model behavior or runtime speed."},
+  "rubric": [
+    {"id": "isolation", "criterion": "Withhold reference images through every public entry point until complete source observations are accepted."},
+    {"id": "preservation", "criterion": "Keep original images accessible and return unchanged reference pixels, metadata and labels after acceptance."},
+    {"id": "feedback", "criterion": "Observe the real public-packet regression failure and success after fixing the shared session boundary."}
+  ],
+  "verifiers": [["python3", "{case_dir}/diagnosis-withheld-reference-images-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosis-withheld-reference-images"]]
+}

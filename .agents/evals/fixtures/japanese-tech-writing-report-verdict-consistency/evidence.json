@@ -1,0 +1,15 @@
+{
+  "operationCount": 2,
+  "details": [
+    {
+      "id": "case-a",
+      "verdict": "supported"
+    },
+    {
+      "id": "case-b",
+      "verdict": "pending"
+    }
+  ],
+  "acceptanceComplete": false,
+  "reason": "case-bは適用条件を判定する周辺情報が不足している。操作の完了と判断の妥当性を分ける。"
+}
