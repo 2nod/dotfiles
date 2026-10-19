@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-shared-renewal-preserves-draft",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-shared-renewal-preserves-draft",
+  "prompt": "Fix the editor session-renewal data loss in this anonymous synthetic workspace. A successful renewal must refresh identity and then the visible account while preserving unsaved editor text, without an automatic reload or replaying saves. Existing viewer and direct shared-helper callers must retain their reload behavior. Identity/account failures must propagate without destroying the draft. Inspect the connected callers and make the smallest complete change. Keep scenario.cjs and viewer.cjs unchanged, run node scenario.cjs, and write report.md with the cause and verification. No network, credentials, commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Dependency-free behavior check of shared renewal and caller-specific draft preservation; does not simulate browser cookies, timers, or real authentication."
+  },
+  "rubric": [
+    {
+      "id": "caller-scope",
+      "criterion": "Preserve editor input and re-fetch its account while keeping existing shared-helper and viewer reload behavior."
+    },
+    {
+      "id": "failure-safety",
+      "criterion": "Propagate identity/account failures without reload or implicit save replay; avoid introducing an unrelated framework."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-shared-renewal-preserves-draft-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-shared-renewal-preserves-draft"
+    ]
+  ]
+}
