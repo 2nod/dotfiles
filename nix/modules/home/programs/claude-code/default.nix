@@ -17,8 +17,29 @@ let
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
     permissions = {
       defaultMode = "auto";
+      # Read-only and formatting commands only. `git branch` is limited to listing
+      # forms because a bare prefix rule would also match `git branch -D`.
       allow = [
         "Bash(jq -r:*)"
+        "Bash(yarn prettier:*)"
+        "Bash(yarn eslint:*)"
+        "Bash(git status:*)"
+        "Bash(git diff:*)"
+        "Bash(git log:*)"
+        "Bash(git show:*)"
+        "Bash(git rev-parse:*)"
+        "Bash(git ls-files:*)"
+        "Bash(git check-ignore:*)"
+        "Bash(git worktree list:*)"
+        "Bash(git stash list:*)"
+        "Bash(git branch --show-current)"
+        "Bash(git branch --list:*)"
+        "Bash(gh pr view:*)"
+        "Bash(gh pr list:*)"
+        "Bash(gh pr diff:*)"
+        "Bash(gh pr checks:*)"
+        "Bash(gh run view:*)"
+        "Bash(gh run list:*)"
       ];
     };
     effortLevel = "high";
