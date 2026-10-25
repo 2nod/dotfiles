@@ -1,7 +1,0 @@
-{
-  "events": {
-    "BeforeMessage": [
-      "python3 handler.py"
-    ]
-  }
-}
