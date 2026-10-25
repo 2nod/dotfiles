@@ -27,8 +27,11 @@
       inherit
         config
         dotfilesDir
+        pkgs
+        lib
         ;
     })
+    ./opencode.nix
     (import ./starship.nix {
       inherit
         config
@@ -82,6 +85,7 @@
       inherit
         pkgs
         lib
+        config
         ;
     })
     ./cursor-ide.nix

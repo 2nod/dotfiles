@@ -166,12 +166,16 @@ in
     '';
 
     activation.installCodexPstack = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''
-      if [ ! -e "${codexHomeDir}/pstack-models.md" ]; then
-        cp ${../../../../codex/pstack-models.md} "${codexHomeDir}/pstack-models.md"
-        chmod 600 "${codexHomeDir}/pstack-models.md"
-      fi
-
-      CODEX_HOME="${codexHomeDir}" ${codexPackage}/bin/codex plugin add pstack@pstack-claude
+      for pstackHome in "${codexHomeDir}" \
+        "${config.home.homeDirectory}/Library/Application Support/orca/codex-accounts/"*/home; do
+        [ -d "$pstackHome" ] || continue
+        if [ ! -e "$pstackHome/pstack-models.md" ]; then
+          cp ${../../../../codex/pstack-models.md} "$pstackHome/pstack-models.md"
+          chmod 600 "$pstackHome/pstack-models.md"
+        fi
+        CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin marketplace add ${pstackMarketplace}
+        CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin add pstack@pstack-claude
+      done
     '';
 
     file = {
