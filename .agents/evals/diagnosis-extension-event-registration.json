@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-extension-event-registration",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-extension-event-registration",
+  "prompt": "The extension handler passes test_direct.py, but an ordinary message receives no dispatch context. Diagnose and fix the event registration without modifying platform_runtime.py or handler.py. The platform contract is documented in platform_runtime.py. Observe python3 check_registration.py before and after the fix. Preserve the handler output and register it exactly once; invocation must work from unrelated working directories and extension paths containing spaces. Work only in this synthetic workspace without network or credentials.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Synthetic loader registration and real subprocess dispatch. Does not test any external product or model."
+  },
+  "rubric": [
+    {
+      "id": "seam",
+      "criterion": "Observe failure at automatic loader dispatch; a direct handler test alone does not prove registration."
+    },
+    {
+      "id": "registration",
+      "criterion": "Move the event to the supported registration location and use the extension root for its command; preserve platform and handler."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-extension-event-registration-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-extension-event-registration"
+    ]
+  ]
+}
