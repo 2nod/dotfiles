@@ -1,0 +1,25 @@
+{
+  "id": "ponytail-es5-domain-error",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-es5-domain-error",
+  "prompt": "A version mismatch returns INTERNAL instead of the existing conflict response in this ES5-style build. Trace the connected code and make the smallest root-cause fix. Preserve adapter.cjs and the existing public error behavior. Run test.cjs and write a short report.md describing the cause and verification. Use only this anonymous synthetic workspace, without network, credentials, commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Checks native Error inheritance at the execution boundary with dependency-free ES5-style constructor output; does not evaluate a real TypeScript compiler or browser."
+  },
+  "rubric": [
+    {
+      "id": "root-cause",
+      "criterion": "Restore the domain error identity in its constructor rather than changing the response adapter or matching error strings."
+    },
+    {
+      "id": "public-contract",
+      "criterion": "Preserve native Error behavior, the existing conflict response, and handling of unknown errors."
+    }
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/ponytail-es5-domain-error-verify.py", "{workspace}", "{case_dir}/fixtures/ponytail-es5-domain-error"]
+  ]
+}

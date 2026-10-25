@@ -13,7 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=default_root())
     parser.add_argument("--sources", type=Path)
-    parser.add_argument("--no-probe", action="store_true", help="Check stored health and heartbeat only")
+    parser.add_argument("--no-probe", action="store_true", help="Skip source-directory discovery; still verify known files")
     args = parser.parse_args()
     try:
         result = health(args.root.expanduser(), roots=source_roots(args.sources), probe=not args.no_probe)

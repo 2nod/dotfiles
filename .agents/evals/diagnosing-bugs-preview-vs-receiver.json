@@ -1,0 +1,20 @@
+{
+  "id": "diagnosing-bugs-preview-vs-receiver",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosing-bugs-preview-vs-receiver",
+  "prompt": "Fix the delivery audit in this synthetic workspace. A notification preview may omit image content even when the server sent an image and the receiver read unpredictable image-only codes correctly. Separate call completion, server image attachment, and verified visual receipt. Use server_content as evidence of attachment, and nonempty expected_rows matching received_rows exactly as evidence of verified receipt. Otherwise an attached image has unverified receipt, not proven delivery failure. A completed call returning only a saved file path has no_image. Preserve the inputs and the existing result keys. Run the checks before and after the smallest fix. Do not add an image adapter, network access, or dependencies.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic audit logic for independent sender and receiver evidence. No live browser, model, time, network or credentials."
+  },
+  "rubric": [
+    { "id": "observer", "criterion": "Do not mistake an incomplete notification preview for a failed image transfer when independent receiver evidence verifies receipt." },
+    { "id": "recognition", "criterion": "Treat an incorrect or missing readback as unverified receipt; do not equate recognition errors with proven transfer failure." },
+    { "id": "attachment", "criterion": "Keep successful invocation separate from image attachment; a file path alone is no_image, and empty code lists cannot verify receipt." }
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosing-bugs-preview-vs-receiver-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosing-bugs-preview-vs-receiver"]
+  ]
+}

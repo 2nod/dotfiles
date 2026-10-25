@@ -13,7 +13,7 @@ from unittest.mock import patch
 from usage_events import aggregate, build_turns, turn_outcome
 from usage_input import read_usage
 from usage_native import NativeParser, result_status, tool_metadata
-from usage_store import collect, connect, health, ingest_file, source_roots, writer
+from usage_store import archive_missing_sources, collect, connect, health, ingest_file, source_roots, source_version, writer
 
 NOW = datetime(2030, 1, 2, tzinfo=timezone.utc)
 TS = "2030-01-01T10:00:00Z"
@@ -154,6 +154,109 @@ class CollectionTest(unittest.TestCase):
                 db.execute("UPDATE files SET parser=0")
         self.run_collect()
         self.assertEqual([e["native_event_id"] for e in before], [e["native_event_id"] for e in self.read()["events"]])
+
+    def test_reviewed_historical_loss_keeps_evidence_and_new_failures_still_warn(self):
+        path = self.write("old.jsonl", codex_start() + [command("read", "cat /skills/review/SKILL.md"), codex_end()]).resolve()
+        self.run_collect()
+        before = self.read()["events"]
+        with closing(connect(self.root, readonly=True)) as db:
+            row = dict(db.execute("SELECT * FROM files WHERE path=?", (str(path),)).fetchone())
+        path.unlink()
+        self.run_collect()
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "partial")
+        archive_missing_sources(self.root, {str(path): source_version(row)}, reason="Reviewed missing original; keep recorded observations")
+        for probe in (True, False):
+            current = health(self.root, probe=probe)["runtimes"][0]
+            self.assertEqual(current["state"], "up_to_date")
+            self.assertEqual(current["missing_files"], 0)
+            self.assertEqual(current["archived_missing_files"], 1)
+        after = self.read()["events"]
+        self.assertEqual([e["native_event_id"] for e in before], [e["native_event_id"] for e in after])
+        self.assertTrue(all(not e["_source"]["available"] for e in after))
+        fresh = self.write("new.jsonl", codex_start("new-session"))
+        self.run_collect()
+        fresh.unlink()
+        self.run_collect()
+        self.assertEqual(health(self.root)["runtimes"][0]["missing_files"], 1)
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "partial")
+        self.write("old.jsonl", codex_start())
+        self.run_collect()
+        self.assertEqual(health(self.root)["runtimes"][0]["archived_missing_files"], 0)
+        path.unlink()
+        self.assertEqual(health(self.root)["runtimes"][0]["missing_files"], 2)
+
+    def test_historical_acknowledgement_rejects_changed_or_existing_sources(self):
+        path = self.write("old.jsonl", codex_start()).resolve()
+        self.run_collect()
+        with closing(connect(self.root, readonly=True)) as db:
+            version = source_version(dict(db.execute("SELECT * FROM files WHERE path=?", (str(path),)).fetchone()))
+        with self.assertRaises(ValueError):
+            archive_missing_sources(self.root, {str(path): version}, reason="reviewed")
+        path.unlink()
+        with self.assertRaises(ValueError):
+            archive_missing_sources(self.root, {str(path): version[:-1] + [0]}, reason="stale review")
+        with self.assertRaises(ValueError):
+            archive_missing_sources(self.root, {str(path): version}, reason="")
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "partial")
+
+    def test_moved_source_uses_verified_copy_without_losing_old_evidence(self):
+        source = self.write("session.jsonl", codex_start() + [command("read", "cat /skills/review/SKILL.md"), codex_end()]).resolve()
+        self.run_collect()
+        before = self.read()["events"]
+        target = self.logs / "moved/session.jsonl"
+        target.parent.mkdir()
+        shutil.copyfile(source, target)
+        source.unlink()
+        with writer(self.root) as db:
+            with db:
+                db.execute("UPDATE files SET error='FileNotFoundError' WHERE path=?", (str(source),))
+        self.run_collect()
+        for probe in (True, False):
+            current = health(self.root, probe=probe)["runtimes"][0]
+            self.assertEqual(current["state"], "up_to_date")
+            self.assertEqual(current["relocated_files"], 1)
+            self.assertEqual(current["missing_files"], 0)
+            self.assertEqual(current["file_errors"], 0)
+        after = self.read()["events"]
+        self.assertEqual([e["native_event_id"] for e in before], [e["native_event_id"] for e in after])
+        self.assertTrue(all(len(e["_evidence"]) == 2 for e in after))
+        self.assertTrue(all(any(not ref["available"] for ref in e["_evidence"]) for e in after))
+        target.write_bytes(target.read_bytes() + b"\n")
+        for probe in (True, False):
+            current = health(self.root, probe=probe)["runtimes"][0]
+            self.assertEqual(current["relocated_files"], 0)
+            self.assertEqual(current["missing_files"], 1)
+        self.run_collect()
+        self.assertEqual(health(self.root)["runtimes"][0]["relocated_files"], 1)
+        target.unlink()
+        self.assertEqual(health(self.root)["runtimes"][0]["missing_files"], 2)
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "partial")
+
+    def test_same_name_or_shared_event_does_not_prove_source_recovery(self):
+        source = self.write("session.jsonl", codex_start() + [command("read", "cat /skills/review/SKILL.md"), codex_end()])
+        self.run_collect()
+        target = self.logs / "moved/session.jsonl"
+        target.parent.mkdir()
+        target.write_text(source.read_text().splitlines(keepends=True)[0])
+        source.unlink()
+        self.run_collect()
+        current = health(self.root)["runtimes"][0]
+        self.assertEqual(current["missing_files"], 1)
+        self.assertEqual(current["relocated_files"], 0)
+        self.assertEqual(current["state"], "partial")
+
+    def test_changed_reference_line_does_not_prove_source_recovery(self):
+        source = self.write("session.jsonl", codex_start() + [command("read", "cat /skills/review/SKILL.md"), codex_end()])
+        self.run_collect()
+        target = self.logs / "moved/session.jsonl"
+        target.parent.mkdir()
+        target.write_text(source.read_text().replace('PRIVATE_TOOL_OUTPUT', 'CHANGED_TOOL_OUTPUT'))
+        source.unlink()
+        self.run_collect()
+        current = health(self.root)["runtimes"][0]
+        self.assertEqual(current["missing_files"], 1)
+        self.assertEqual(current["relocated_files"], 0)
+        self.assertEqual(current["state"], "partial")
 
     def test_claude_late_results_and_model_change(self):
         rows = [claude("user", "PRIVATE_PROMPT", "u1"),

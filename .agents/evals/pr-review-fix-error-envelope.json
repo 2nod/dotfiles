@@ -1,0 +1,30 @@
+{
+  "id": "pr-review-fix-error-envelope",
+  "skill": "pr-review-fix-workflow",
+  "skill_path": "../skills/software-development/pr-review-fix-workflow/SKILL.md",
+  "fixture": "fixtures/pr-review-fix-error-envelope",
+  "prompt": "Address comments.json in adapter.py. Preserve the public service wire format and existing conflict, busy, and connection-failure behavior. Read the connected implementation, run the supplied tests, and write a short reply draft in reply.md. Use only this anonymous synthetic workspace; do not use network, credentials, git commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Verifies a review fix against the actual upstream error envelope, not only bare local exceptions. No live APIs or browser behavior are evaluated."
+  },
+  "rubric": [
+    {
+      "id": "contract",
+      "criterion": "Normalize the upstream structured reason without changing the service producer; preserve known kinds and retryability."
+    },
+    {
+      "id": "evidence",
+      "criterion": "Run tests and describe only implemented and verified behavior in the reply draft."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/pr-review-fix-error-envelope-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/pr-review-fix-error-envelope"
+    ]
+  ]
+}

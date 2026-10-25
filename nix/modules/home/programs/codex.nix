@@ -61,22 +61,6 @@ let
     printf '%s\n' '{"hooks": {}}' > "$out/plugins/pstack/hooks/codex-hooks.json"
   '';
 
-  appHooks = {
-    hooks = {
-      SessionStart = [
-        {
-          hooks = [
-            {
-              type = "command";
-              command = "bash '${codexHomeDir}/herdr-agent-state.sh' session";
-              timeout = 10;
-            }
-          ];
-        }
-      ];
-    };
-  };
-
   settings = {
     model = "gpt-6-astra";
     approval_policy = "on-request";
@@ -205,10 +189,6 @@ in
     file = {
       "${codexHomeDir}/AGENTS.md".source =
         config.lib.file.mkOutOfStoreSymlink "${codexDotfilesDir}/AGENTS.md";
-      "${codexHomeDir}/hooks.json" = {
-        source = jsonFormat.generate "codex-hooks" appHooks;
-        force = true;
-      };
     };
   };
 }

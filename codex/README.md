@@ -11,5 +11,3 @@ Home Manager は [pstack 0.9.79](https://github.com/michael-denyer/pstack-claude
 モデル設定の正本は `${CODEX_HOME:-$HOME/.codex}/pstack-models.md`。Codex の `AGENTS.md` は、pstack 利用時にこの sheet を読み込むよう指定する。sheet を編集するか `setup-pstack` を使って変更する。`setup-pstack` が `AGENTS.md` にモデル行を保存する場合、Home Manager のリンク先であるこのリポジトリの `codex/AGENTS.md` に変更が生じる。
 
 Orca などで別の `CODEX_HOME` を使う場合は、その home に plugin を登録し、sheet と読み込み指示を用意する。Home Manager が配布するのは `~/.codex` のみ。
-
-隔離環境で公開34機能を試行し、主機能確認28、模擬確認3、一部確認2、変更対象なし1となった。24原則資料は静的に確認した。互換性と動作の確認結果であり、通常レビューに対する効果比較は未実施。実GitHub運用、厳密に異なるモデル系統を使うレビュー、上流hookの実イベントは未検証のため、利用するworkflowごとの確認が必要。

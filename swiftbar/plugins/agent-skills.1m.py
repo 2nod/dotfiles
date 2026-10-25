@@ -64,7 +64,7 @@ def render(analysis):
     incomplete = any(quality.get(key, 0) for key in (
         'invalid_rows_or_files', 'analysis_limit_rows', 'read_activations_without_version',
         'unconfirmed_verification_results',
-    )) or any(row.get('issues') or row.get('limitations') for row in runtimes)
+    )) or any(row.get('issues') or row.get('limitations') or row.get('archived_missing_files') for row in runtimes)
     native = analysis.get('source') == 'native'
     icon = 'exclamationmark.triangle' if attention else 'brain.head.profile'
     print(f"Skills{' !' if attention else ''}| sfimage={icon} dropdown=false tooltip=スキル利用の確認 · 直近{DAYS}日")
@@ -84,7 +84,9 @@ def render(analysis):
     for row in runtimes:
         print(f"--{text(AGENTS.get(row['runtime'], row['runtime']))}: {STATES.get(row['state'], text(row['state']))}")
         for key, label, unit in [('unread_bytes', '未読', 'bytes'), ('file_errors', '読取失敗', 'ファイル'),
-                                 ('missing_files', '保存元の欠落', 'ファイル'), ('replaying_files', '再解析中', 'ファイル')]:
+                                 ('missing_files', '保存元の欠落', 'ファイル'),
+                                 ('relocated_files', '別の保存先で根拠を確認', 'ファイル'),
+                                 ('replaying_files', '再解析中', 'ファイル')]:
             if row.get(key):
                 print(f"----{label}: {row[key]:,} {unit}")
     if DOCTOR.is_file():
@@ -167,8 +169,10 @@ def render(analysis):
              '読取対象の旧ログの解析範囲' if analysis.get('source') == 'legacy' else '解析範囲は未確認')
     print(f'--{scope}')
     for row in runtimes:
-        if row.get('issues') or row.get('limitations'):
+        if row.get('issues') or row.get('limitations') or row.get('archived_missing_files'):
             print(f"--{text(AGENTS.get(row['runtime'], row['runtime']))}")
+        if row.get('archived_missing_files'):
+            print(f"----過去ログの保存元なし: {row['archived_missing_files']:,} ファイル（観測は保持）")
         for code, count in {**row.get('issues', {}), **row.get('limitations', {})}.items():
             print(f"----{count:,}件  {text(ISSUES.get(code, code))}| length=52 symbolize=false")
     if not native:
@@ -185,8 +189,9 @@ def render(analysis):
 
 def main():
     try:
+        # Large histories need more than 15s; leave room before the next 1m refresh.
         result = subprocess.run([str(ANALYZER), '--days', str(DAYS), '--limit', '4', '--prepare-cases'],
-                                capture_output=True, text=True, timeout=15)
+                                capture_output=True, text=True, timeout=55)
         if result.returncode:
             raise ValueError('analysis failed')
         analysis = json.loads(result.stdout)

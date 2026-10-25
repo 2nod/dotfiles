@@ -1,0 +1,6 @@
+[tools]
+node = "18"
+
+[settings]
+# リポジトリの .node-version / .nvmrc を読み、そのバージョンの node を使う。
+idiomatic_version_file_enable_tools = ["node"]

@@ -1,0 +1,35 @@
+{
+  "id": "japanese-tech-writing-report-verdict-consistency",
+  "skill": "japanese-tech-writing",
+  "skill_path": "../installed-skills/writing/japanese-tech-writing/SKILL.md",
+  "fixture": "fixtures/japanese-tech-writing-report-verdict-consistency",
+  "prompt": "匿名化した検証レビューの一貫性を確認し、問題を修正してください。evidence.jsonが最新の確認結果です。report.mdの概要と詳細、report-data.jsonの集計と個別判定を整合させてください。evidence.jsonは変更しないでください。既存のJSONキー、Markdownの見出し・表・集計ラベルは維持してください。新しい観測や実行結果は追加せず、追加の回答は得られません。外部通信は禁止です。",
+  "expected_behavior": "操作済み件数を保ち、条件未確認の判定を保留のまま概要・詳細・集計へ反映する。受入完了を操作完了と混同しない。",
+  "scenario": "typical",
+  "evaluation": {
+    "status": "ready",
+    "scope": "合成された局所資料の整合修正。実サービスや有料評価は不要。"
+  },
+  "rubric": [
+    {
+      "id": "consistency",
+      "criterion": "概要の支持・保留数と詳細の判定が最新証拠に一致する。"
+    },
+    {
+      "id": "uncertainty",
+      "criterion": "未確認の条件を支持へ書き換えず、受入未完了を保持する。"
+    },
+    {
+      "id": "scope",
+      "criterion": "操作件数と入力証拠を保持し、資料だけを修正する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/japanese-tech-writing-report-verdict-consistency-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/japanese-tech-writing-report-verdict-consistency"
+    ]
+  ]
+}

@@ -15,4 +15,4 @@ description: ASD-STE100の明確さの原則で、概念・仕組み・手順の
 
 日本語では上の原則を応用し、英語用の語彙表や語数制限を機械的に当てはめない。このskillは規格への正式準拠を保証しない。
 
-`explain`、`html`、`japanese-tech-writing`など、依頼に合う既存の執筆skillと併用できる。このskillは説明文の表現だけを扱い、文書構成や出力形式は依頼と既存skillに従う。
+`html`、`japanese-tech-writing`など、依頼に合う既存の執筆skillと併用できる。このskillは説明文の表現だけを扱い、文書構成や出力形式は依頼と既存skillに従う。

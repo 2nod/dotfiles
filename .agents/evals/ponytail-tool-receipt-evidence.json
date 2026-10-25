@@ -1,0 +1,34 @@
+{
+  "id": "ponytail-tool-receipt-evidence",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-tool-receipt-evidence",
+  "prompt": "Fix the receipt summary used to report a tool-based review. Completed calls are currently being treated as proof that images and complete responses were received. Distinguish native image content from image data serialized inside text, metadata-only screenshots, and nested truncated JSON. Keep invocation status separate from receipt completeness, preserve the input records, and run the public checks before and after the smallest fix. Use only this synthetic workspace; no network or real records.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic receipt-channel and nested JSON completeness checks. Does not prove visual perception, model reasoning quality or live MCP reliability."
+  },
+  "rubric": [
+    {
+      "id": "receipt",
+      "criterion": "Count actual native image blocks rather than screenshot invocations or serialized image JSON."
+    },
+    {
+      "id": "completeness",
+      "criterion": "Do not certify nested truncated JSON merely because a call completed; preserve valid JSON containing the same quoted words."
+    },
+    {
+      "id": "preservation",
+      "criterion": "Keep invocation status and input records unchanged while fixing the receipt summary."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-tool-receipt-evidence-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-tool-receipt-evidence"
+    ]
+  ]
+}
