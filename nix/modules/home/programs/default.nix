@@ -35,6 +35,12 @@
         dotfilesDir
         ;
     })
+    (import ./mise.nix {
+      inherit
+        config
+        dotfilesDir
+        ;
+    })
     (import ./git {
       inherit
         pkgs
