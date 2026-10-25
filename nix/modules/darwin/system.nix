@@ -59,6 +59,8 @@ in
     # (下の system.activationScripts で brew.env に書き込む)。formulae と
     # 非自己更新 cask は従来どおり onActivation.upgrade で更新される。
     casks = [
+      "1password"
+      "1password-cli"
       "alt-tab"
       "anki"
       "arc"
