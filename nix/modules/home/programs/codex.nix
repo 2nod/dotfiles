@@ -47,6 +47,8 @@ let
         } "$out/codex-package.json"
       '';
 
+  pstackMarketplace = import ./pstack.nix { inherit pkgs; };
+
   settings = {
     model = "gpt-6-astra";
     approval_policy = "on-request";
@@ -93,6 +95,12 @@ let
     plugins."runpod@runpod" = {
       enabled = true;
       mcp_servers.runpod.enabled = false;
+    };
+
+    plugins."pstack@pstack-claude".enabled = true;
+    marketplaces.pstack-claude = {
+      source_type = "local";
+      source = "${pstackMarketplace}";
     };
 
     marketplaces.runpod = {
@@ -155,6 +163,19 @@ in
       mkdir -p "${codexHomeDir}"
       cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexHomeDir}/config.toml"
       chmod 600 "${codexHomeDir}/config.toml"
+    '';
+
+    activation.installCodexPstack = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''
+      for pstackHome in "${codexHomeDir}" \
+        "${config.home.homeDirectory}/Library/Application Support/orca/codex-accounts/"*/home; do
+        [ -d "$pstackHome" ] || continue
+        if [ ! -e "$pstackHome/pstack-models.md" ]; then
+          cp ${../../../../codex/pstack-models.md} "$pstackHome/pstack-models.md"
+          chmod 600 "$pstackHome/pstack-models.md"
+        fi
+        CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin marketplace add ${pstackMarketplace}
+        CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin add pstack@pstack-claude
+      done
     '';
 
     file = {
