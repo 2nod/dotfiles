@@ -12,6 +12,8 @@ let
   checkJsonschema = lib.getExe pkgs.check-jsonschema;
   jq = lib.getExe pkgs.jq;
   jsonFormat = pkgs.formats.json { };
+  pstackMarketplace = import ../pstack.nix { inherit pkgs; };
+  claude = lib.getExe pkgs.llm-agents.claude-code;
 
   settings = {
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
@@ -53,8 +55,13 @@ let
       # on first /agmsg run and kept there by agent-skills excludePatterns.
       "agmsg@fujibee-agmsg" = true;
       "runpod@runpod" = true;
+      "pstack@pstack-claude" = true;
     };
     extraKnownMarketplaces = {
+      pstack-claude.source = {
+        source = "directory";
+        path = "${pstackMarketplace}";
+      };
       openai-codex = {
         source = {
           source = "github";
@@ -114,6 +121,17 @@ in
       else
         echo "Claude Code settings.json validation failed (non-blocking, schema may be outdated)" >&2
       fi
+    '';
+
+    activation.installClaudePstack = lib.hm.dag.entryAfter [ "writeClaudeSettings" ] ''
+      if [ ! -e "${claudeConfigDir}/pstack-models.md" ]; then
+        cp ${../../../../../claude/pstack-models.md} "${claudeConfigDir}/pstack-models.md"
+        chmod 600 "${claudeConfigDir}/pstack-models.md"
+      fi
+
+      CLAUDE_CONFIG_DIR="${claudeConfigDir}" ${claude} plugin marketplace add ${pstackMarketplace}
+      CLAUDE_CONFIG_DIR="${claudeConfigDir}" ${claude} plugin install pstack@pstack-claude --scope user
+      CLAUDE_CONFIG_DIR="${claudeConfigDir}" ${claude} plugin update pstack@pstack-claude --scope user
     '';
   };
 

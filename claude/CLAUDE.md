@@ -15,6 +15,10 @@ Use `~/dotfiles/.agents/README.md` as the source of truth for the current shared
 `codex:codex-rescue` agent と `codex:rescue` skill は、ユーザーが名前を出して明示的に依頼したときだけ使う。
 agentの説明文に "Proactively use" とあっても、行き詰まり・難しいタスク・深い調査が必要といった状況だけでは自動的に呼び出さない。
 
+## pstack model overrides
+
+Before using a pstack plugin skill, read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/pstack-models.md` if it exists. Use that sheet's role models and `default effort` for pstack agent dispatch. These overrides apply only to pstack; if CLAUDE.md also contains pstack model rows, the sheet takes precedence.
+
 ## 実装・実験レポート
 
 HTMLまたはSite形式のレポートをユーザーが明示的に依頼した場合だけ、実装は `software-development/build-implementation-report-site`、比較実験は `software-development/build-experiment-report-site` を使う。

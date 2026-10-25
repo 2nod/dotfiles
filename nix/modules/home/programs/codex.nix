@@ -47,19 +47,7 @@ let
         } "$out/codex-package.json"
       '';
 
-  pstackSource = pkgs.fetchFromGitHub {
-    owner = "michael-denyer";
-    repo = "pstack-claude";
-    rev = "60ae9e25610744bccd45bd405c211413a471aaf8";
-    hash = "sha256-VBi1L9u4HoRWhiVw1B1ZZ56MqBEchLdTpwojVRT3sWo=";
-  };
-
-  # Keep the native skills and references intact, without session-wide routing.
-  pstackMarketplace = pkgs.runCommand "pstack-codex-marketplace-0.9.79" { } ''
-    cp -R ${pstackSource}/. "$out"
-    chmod u+w "$out/plugins/pstack/hooks/codex-hooks.json"
-    printf '%s\n' '{"hooks": {}}' > "$out/plugins/pstack/hooks/codex-hooks.json"
-  '';
+  pstackMarketplace = import ./pstack.nix { inherit pkgs; };
 
   settings = {
     model = "gpt-6-astra";
