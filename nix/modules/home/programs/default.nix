@@ -42,6 +42,7 @@
       inherit
         config
         dotfilesDir
+        lib
         ;
     })
     (import ./git {
