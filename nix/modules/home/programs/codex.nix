@@ -89,6 +89,19 @@ let
 
     notice.fast_default_opt_out = false;
 
+    mcp_servers.chrome-devtools = {
+      command = "${pkgs.nodejs}/bin/npx";
+      args = [
+        "-y"
+        "chrome-devtools-mcp@latest"
+        "--autoConnect"
+        "--categoryExperimentalWebmcp"
+        "--no-usage-statistics"
+      ];
+      # npm's child processes must not pick a project's older Node from PATH.
+      env.PATH = "${lib.makeBinPath [ pkgs.nodejs ]}:/usr/bin:/bin:/usr/sbin:/sbin";
+    };
+
     plugins."github@openai-curated" = {
       enabled = true;
     };

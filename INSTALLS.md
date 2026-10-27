@@ -146,6 +146,7 @@
   - VS Code本体は既存のHomebrew caskを使用。他の手動インストール済み拡張は保持
 - `programs.cursor` / `cursor-ide.nix`
 - `programs.codex`
+  - Chrome DevTools MCP（既存 Chrome への `--autoConnect`、WebMCP ツールを有効化、Nix の Node.js で実行）。接続時は Chrome 側の remote debugging 許可が必要。
 - `programs.cmux`
 - `claude-code/`
 - `ghostty.nix`
