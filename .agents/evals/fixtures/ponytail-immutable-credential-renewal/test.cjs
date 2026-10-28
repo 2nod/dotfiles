@@ -1,0 +1,15 @@
+const assert = require('node:assert/strict')
+const { makeProvider } = require('./provider.cjs')
+const { renew } = require('./renew.cjs')
+async function main() {
+  const success = makeProvider()
+  await renew(success)
+  assert.deepEqual(success.snapshot(), { id: 'credential-one', clientId: 'existing-client', token: 'renewed-token' })
+  assert.deepEqual(success.calls, ['update'])
+  const failure = makeProvider({ failUpdate: true })
+  await assert.rejects(renew(failure), /upstream unavailable/)
+  assert.deepEqual(failure.snapshot(), { id: 'credential-one', clientId: 'existing-client', token: 'old-token' })
+  assert.deepEqual(failure.calls, ['update'])
+  console.log('Immutable binding and failed-renewal preservation passed')
+}
+main().catch(error => { console.error(error); process.exitCode = 1 })

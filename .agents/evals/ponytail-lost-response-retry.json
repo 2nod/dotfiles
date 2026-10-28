@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-lost-response-retry",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-lost-response-retry",
+  "prompt": "Fix duplicate delivery after a lost response in this anonymous synthetic workspace. The transport can accept a message and then fail to deliver its response. Retry must check accepted history, preserve the draft when history is unavailable, allow retry after a failure before acceptance, and allow a later deliberate message with identical text. Use the smallest complete change, without changing transport.cjs or test.cjs. Run node test.cjs before and after the fix, and write report.md with the cause, verification, and limits of history-based reconciliation. No network, credentials, clocks, dependencies, git commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Dependency-free accepted-delivery reconciliation; no network, credentials, time, model calls, or browser."
+  },
+  "rubric": [
+    {
+      "id": "acceptance",
+      "criterion": "Distinguish a lost response from a delivery that was not accepted; do not blindly resend."
+    },
+    {
+      "id": "intent",
+      "criterion": "Do not suppress deliberate later messages with identical text or discard drafts when acceptance cannot be checked."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-lost-response-retry-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-lost-response-retry"
+    ]
+  ]
+}

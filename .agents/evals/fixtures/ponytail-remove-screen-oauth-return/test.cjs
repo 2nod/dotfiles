@@ -1,0 +1,13 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const app = require('./app.cjs');
+const auth = require('./auth.cjs');
+assert.equal(fs.existsSync('prototype.cjs'), false, 'Remove the unused prototype implementation');
+assert.deepEqual(app.menu, [{ title: 'Editor', path: '/workspace' }]);
+assert.equal(app.open('/workspace'), 'Editor Assistant');
+assert.equal(app.open('/workspace/prototype'), '404');
+const destination = new URL(auth.finishLogin(), 'https://example.invalid');
+assert.equal(destination.pathname, '/workspace', 'OAuth must return to a remaining screen');
+assert.equal(destination.searchParams.get('connected'), '1');
+assert.equal(app.open(destination.pathname), 'Editor Assistant');
+console.log('Prototype removed; editor and OAuth return work');

@@ -1,6 +1,6 @@
 # Source
 
 - Repository: https://github.com/stablyai/orca
-- Source path: https://github.com/stablyai/orca/tree/f8a5d3e2841c08fb2fe12e46991f66d3424473b7/skills/orchestration
-- Pinned commit: `f8a5d3e2841c08fb2fe12e46991f66d3424473b7`
-- Pinned raw file: https://raw.githubusercontent.com/stablyai/orca/f8a5d3e2841c08fb2fe12e46991f66d3424473b7/skills/orchestration/SKILL.md
+- Source path: https://github.com/stablyai/orca/tree/1ff73e808d9e38a16f5e372b015ad312fe801c11/skills/orchestration
+- Pinned commit: `1ff73e808d9e38a16f5e372b015ad312fe801c11`
+- Pinned raw file: https://raw.githubusercontent.com/stablyai/orca/1ff73e808d9e38a16f5e372b015ad312fe801c11/skills/orchestration/SKILL.md

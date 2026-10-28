@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-remove-screen-oauth-return",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-remove-screen-oauth-return",
+  "prompt": "Remove the prototype chat screen from this anonymous synthetic app. Keep the editor assistant and login flow working. Use the smallest complete change, keep editor.cjs and test.cjs unchanged, and run node test.cjs. No network, credentials, git commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Dependency-free feature removal across navigation, routing, the obsolete implementation, and an OAuth completion return path. Synthetic files only; no network, credentials, time, or external services."
+  },
+  "rubric": [
+    {
+      "id": "complete-removal",
+      "criterion": "Remove the prototype implementation and both navigation and routing references without changing the editor."
+    },
+    {
+      "id": "oauth-return",
+      "criterion": "Trace the login completion caller and redirect to a remaining screen while preserving the completion marker."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-remove-screen-oauth-return-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-remove-screen-oauth-return"
+    ]
+  ]
+}
