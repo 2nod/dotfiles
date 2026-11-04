@@ -1,0 +1,19 @@
+{
+  "id": "diagnosis-account-return-without-focus",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-account-return-without-focus",
+  "prompt": "Account linking succeeds, but this synthetic panel stays disconnected when the embedded host closes the authorization tab without sending a focus event. Diagnose and fix the smallest complete flow. Preserve ordinary focus refresh and ignore notifications from other origins or with unrelated data. Send only a public completion signal, never authorization data. Keep test.cjs unchanged and run node test.cjs before and after the fix. Do not add polling, reloads, dependencies, network access, credentials, commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Explicit completion notification between two synthetic modules when native focus events are absent. Dependency-free and independent of network, credentials, clocks and browser runtime."
+  },
+  "rubric": [
+    { "id": "feedback", "criterion": "Reproduce the stale panel without manufacturing the missing focus event, then rerun the same failing public check after fixing the real completion path." },
+    { "id": "boundary", "criterion": "Connect sender and receiver with a nonsecret completion notification and validate the expected origin and event before rechecking state." }
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/diagnosis-account-return-without-focus-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosis-account-return-without-focus"]
+  ]
+}
