@@ -674,7 +674,7 @@ def render_collection(usage):
     labels = {"running": "収集稼働中", "stopped": "収集停止の疑い", "not_started": "収集未開始",
               "unreadable": "収集DBを読めません", "legacy_archive": "旧hookの保存記録",
               "up_to_date": "取り込み済み", "partial": "ファイルの読取エラー・欠落あり",
-              "lagging": "取り込み中", "awaiting_line": "書き込み完了待ち",
+              "collecting": "取り込み待ち", "lagging": "取り込み遅延（3分以上）", "awaiting_line": "書き込み完了待ち",
               "missing": "保存元未発見", "unconfigured": "未設定"}
     collection = usage["collection"]
     status = html.escape(labels.get(collection["state"], collection["state"]))

@@ -430,7 +430,7 @@ class CollectionTest(unittest.TestCase):
         self.assertEqual(current["runtimes"][0]["state"], "up_to_date")
         self.assertEqual(current["runtimes"][1]["state"], "unconfigured")
         self.write("new.jsonl", codex_start("new"))
-        self.assertEqual(health(self.root)["runtimes"][0]["state"], "lagging")
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "collecting")
         self.assertEqual(health(self.root, now=datetime.now(timezone.utc) + timedelta(minutes=4))["state"], "stopped")
         shutil.rmtree(self.logs)
         self.assertEqual(health(self.root)["runtimes"][0]["state"], "missing")
@@ -456,7 +456,63 @@ class CollectionTest(unittest.TestCase):
         self.run_collect()
         self.assertEqual(health(self.root)["runtimes"][0]["state"], "awaiting_line")
         self.write("two.jsonl", [command("new", "pytest")], mode="a")
-        self.assertEqual(health(self.root)["runtimes"][0]["state"], "lagging")
+        self.assertEqual(health(self.root)["runtimes"][0]["state"], "collecting")
+
+    def test_fresh_append_after_idle_is_collection_wait_not_persistent_lag(self):
+        self.write("a.jsonl", codex_start())
+        with patch("usage_store.now_iso", return_value=NOW.isoformat()):
+            self.run_collect()
+        later = NOW + timedelta(hours=1)
+        with patch("usage_store.now_iso", return_value=later.isoformat()):
+            self.run_collect()
+        self.write("a.jsonl", [command("new", "pytest")], mode="a")
+        current = health(self.root, now=later)["runtimes"][0]
+        self.assertEqual(current["state"], "collecting")
+        self.assertGreater(current["unread_bytes"], 0)
+        self.assertEqual(current["backlog_seconds"], 0)
+
+    def test_backlog_warns_after_three_minutes_despite_successful_passes_and_recovers(self):
+        self.write("a.jsonl", codex_start() + [command(str(i), "pytest") for i in range(10)])
+        for seconds in (0, 60, 179, 180):
+            stamp = NOW + timedelta(seconds=seconds)
+            with patch("usage_store.now_iso", return_value=stamp.isoformat()):
+                self.assertEqual(self.run_collect(max_bytes=1)["state"], "completed")
+            current = health(self.root, now=stamp)
+            self.assertEqual(current["state"], "running")
+            runtime = current["runtimes"][0]
+            self.assertEqual(runtime["state"], "lagging" if seconds >= 180 else "collecting")
+            self.assertEqual(runtime["backlog_seconds"], seconds)
+        with patch("usage_store.now_iso", return_value=stamp.isoformat()):
+            self.run_collect()
+        self.assertEqual(health(self.root, now=stamp)["runtimes"][0]["state"], "up_to_date")
+        self.write("a.jsonl", [command("fresh", "pytest")], mode="a")
+        self.assertEqual(health(self.root, now=stamp)["runtimes"][0]["state"], "collecting")
+
+    def test_unvisited_file_backlog_is_timed_but_partial_line_wait_is_not(self):
+        path = self.write("a.jsonl", codex_start())
+        for seconds in (0, 180):
+            stamp = NOW + timedelta(seconds=seconds)
+            with patch("usage_store.now_iso", return_value=stamp.isoformat()):
+                self.run_collect(max_seconds=0)
+        self.assertEqual(health(self.root, now=stamp)["runtimes"][0]["state"], "lagging")
+        self.assertEqual(read_usage(self.root, now=stamp)["collection"]["runtimes"][0]["state"], "lagging")
+        with path.open("ab") as stream:
+            stream.write(b'{"type":')
+        with patch("usage_store.now_iso", return_value=stamp.isoformat()):
+            self.run_collect()
+        self.assertEqual(health(self.root, now=stamp)["runtimes"][0]["state"], "awaiting_line")
+
+    def test_budget_starved_append_is_not_mistaken_for_caught_up_file(self):
+        self.write("a.jsonl", codex_start())
+        with patch("usage_store.now_iso", return_value=NOW.isoformat()):
+            self.run_collect()
+        self.write("a.jsonl", [command("new", "pytest")], mode="a")
+        for seconds in (0, 180):
+            stamp = NOW + timedelta(seconds=seconds)
+            with patch("usage_store.now_iso", return_value=stamp.isoformat()):
+                self.run_collect(max_seconds=0)
+        self.assertEqual(health(self.root, now=stamp)["runtimes"][0]["state"], "lagging")
+        self.assertEqual(read_usage(self.root, now=stamp)["collection"]["runtimes"][0]["state"], "lagging")
 
     def test_conflicting_identity_is_visible_and_not_counted(self):
         self.write("a.jsonl", codex_start() + [command("same", "cat /skills/review/SKILL.md", 0)])

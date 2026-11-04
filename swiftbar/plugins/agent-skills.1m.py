@@ -21,7 +21,7 @@ STATES = {
     'running': '稼働中', 'stopped': '停止の疑い', 'not_started': '未開始',
     'unreadable': '読み取り不可', 'unavailable': '解析を取得できません',
     'legacy_archive': '旧ログを参照', 'up_to_date': '取り込み済み',
-    'partial': 'ファイルの読取エラー・欠落あり', 'lagging': '取り込み中',
+    'partial': 'ファイルの読取エラー・欠落あり', 'collecting': '取り込み待ち', 'lagging': '取り込み遅延（3分以上）',
     'awaiting_line': '書き込み完了待ち', 'missing': '保存元未発見', 'unconfigured': '未設定',
 }
 OUTCOMES = {
@@ -57,7 +57,7 @@ def render(analysis):
     collection = analysis['collection']
     runtimes = collection.get('runtimes', [])
     attention = collection['state'] not in {'running', 'legacy_archive'} or any(
-        row['state'] not in {'up_to_date', 'awaiting_line', 'unconfigured'} for row in runtimes
+        row['state'] not in {'up_to_date', 'collecting', 'awaiting_line', 'unconfigured'} for row in runtimes
     )
     summary = analysis.get('work_summary')
     quality = analysis.get('data_quality', {})
