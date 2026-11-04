@@ -121,6 +121,14 @@ class SwiftBarTest(unittest.TestCase):
                 self.assertIn('未読: 512 bytes', status)
                 self.assertIn('収集の詳細を開く', status)
 
+    def test_normal_collection_wait_does_not_raise_warning(self):
+        analysis = self.analysis(runtime='collecting')
+        analysis['collection']['runtimes'][0].update(unread_bytes=512, backlog_seconds=60)
+        output = self.render(analysis)
+        self.assertTrue(output.startswith('Skills|'))
+        self.assertIn('取り込み待ち', output)
+        self.assertIn('未読: 512 bytes', output)
+
     def test_legacy_is_not_presented_as_confirmed_native_usage(self):
         analysis = self.analysis(state='legacy_archive')
         analysis['source'] = 'legacy'

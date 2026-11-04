@@ -17,6 +17,8 @@ let
 
   settings = {
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+    # Keep source transcripts available for observability evidence references.
+    cleanupPeriodDays = 3650;
     permissions = {
       defaultMode = "auto";
       # Read-only and formatting commands only. `git branch` is limited to listing

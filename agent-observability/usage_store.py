@@ -15,6 +15,7 @@ from usage_native import ANALYSIS_LIMITATIONS, NativeParser, PARSER_VERSIONS, RU
 
 DB_NAME = "usage.sqlite3"
 MAX_LINE = 16 * 1024 * 1024
+BACKLOG_WARNING_SECONDS = 180
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS files (
@@ -363,11 +364,13 @@ def collect(root, roots, *, max_bytes=256 * 1024 * 1024, max_seconds=45, before_
         with db:
             db.execute("INSERT OR REPLACE INTO meta VALUES ('sources',?)", (json.dumps(sources),))
         previous = {r["path"]: dict(r) for r in db.execute("SELECT * FROM files")}
+        discovered_sizes = {}
         # Fresh appends first; then unvisited/oldest checked backfill. Each file is bounded.
         def priority(path):
             row = previous.get(path, {})
             try:
-                append = row.get("active", 0) > 0 and Path(path).stat().st_size > row.get("cursor", 0)
+                discovered_sizes[path] = Path(path).stat().st_size
+                append = row.get("active", 0) > 0 and discovered_sizes[path] > row.get("cursor", 0)
             except OSError:
                 append = False
             return (not append, row.get("checked") or "", path)
@@ -387,7 +390,25 @@ def collect(root, roots, *, max_bytes=256 * 1024 * 1024, max_seconds=45, before_
                     db.execute("INSERT OR IGNORE INTO files (path,runtime,source) VALUES (?,?,?)", (path,runtime,source))
                     db.execute("UPDATE files SET error=?,checked=? WHERE path=?", (code, stamp, path))
         reconcile_sources(db, files, started + max_seconds)
+        saved = db.execute("SELECT value FROM meta WHERE key='backlogs'").fetchone()
+        prior_backlogs = json.loads(saved[0]) if saved else {}
+        current = {row["path"]: dict(row) for row in db.execute(
+            "SELECT path,generation,active,parser,size,cursor,pending FROM files")}
+        backlogs = {}
+        for path, (runtime, _) in files.items():
+            row = current.get(path)
+            size = discovered_sizes.get(path, row["size"] if row else 0)
+            if (row and row["parser"] == PARSER_VERSIONS[runtime]
+                    and row["active"] == row["generation"]
+                    and ((row["pending"] and size <= row["size"])
+                         or row["cursor"] >= max(size, row["size"]))):
+                continue
+            generation = row["generation"] if row else 0
+            prior = prior_backlogs.get(path, {})
+            backlogs[path] = {"generation": generation, "runtime": runtime,
+                              "since": prior["since"] if prior.get("generation") == generation else stamp}
         with db:
+            db.execute("INSERT OR REPLACE INTO meta VALUES ('backlogs',?)", (json.dumps(backlogs),))
             db.execute("INSERT OR REPLACE INTO meta VALUES ('last_success',?)", (now_iso(),))
             db.execute("INSERT OR REPLACE INTO meta VALUES ('last_errors',?)", (json.dumps(errors),))
         return {"state": "partial" if errors else "completed", "files_checked": processed,
@@ -407,8 +428,12 @@ def health(root, *, roots=None, now=None, probe=True):
         roots = roots if roots is not None else json.loads(meta.get("roots", "{}"))
         relocations = json.loads(meta.get("source_relocations", "{}"))
         history = json.loads(meta.get("source_history", "{}"))
+        backlogs = json.loads(meta.get("backlogs", "{}"))
         by_path = {row["path"]: row for row in files}
         discovered, sources = discover(roots) if probe else ({}, json.loads(meta.get("sources", "[]")))
+        if not probe:
+            discovered = {path: (saved["runtime"], None) for path, saved in backlogs.items()
+                          if path not in by_path and saved.get("runtime") in RUNTIMES}
         last = meta.get("last_success")
         age = (now - datetime.fromisoformat(last)).total_seconds() if last else None
         started = meta.get("last_start")
@@ -422,12 +447,13 @@ def health(root, *, roots=None, now=None, probe=True):
             limitations = {code: count for code, count in runtime_issues.items() if code in ANALYSIS_LIMITATIONS}
             runtime_issues = {code: count for code, count in runtime_issues.items() if code not in ANALYSIS_LIMITATIONS}
             lag, waiting, missing, pending, errors, replay, relocated, archived = 0, 0, 0, 0, 0, 0, 0, 0
+            backlog_paths = set()
             known = {r["path"] for r in rows}
             new = [p for p, pair in discovered.items() if pair[0] == runtime and p not in known]
             for row in rows:
                 try:
                     stat = Path(row["path"]).stat()
-                    size = stat.st_size if probe else row["size"]
+                    size = stat.st_size
                 except FileNotFoundError:
                     if verified_relocation(row, by_path, relocations):
                         relocated += 1
@@ -447,19 +473,28 @@ def health(root, *, roots=None, now=None, probe=True):
                 pending += bool(row["pending"])
                 errors += bool(row["error"])
                 replay += row["active"] != row["generation"] or row["parser"] != PARSER_VERSIONS[runtime]
+                if ((size > row["cursor"] and not (row["pending"] and size == row["size"]))
+                        or row["active"] != row["generation"] or row["parser"] != PARSER_VERSIONS[runtime]):
+                    backlog_paths.add(row["path"])
             for path in new:
                 try:
                     lag += Path(path).stat().st_size
                 except OSError:
                     missing += 1
+            backlog_paths.update(new)
+            backlog_seconds = max([0] + [int((now - datetime.fromisoformat(backlogs[path]["since"])).total_seconds())
+                for path in backlog_paths if path in backlogs
+                and backlogs[path]["generation"] == by_path.get(path, {}).get("generation", 0)])
             state = ("unconfigured" if not roots.get(runtime) else
                      "missing" if not any(s["state"] == "available" for s in source_rows) else
                      "stopped" if stopped else
                      "partial" if errors or missing else
-                     "lagging" if new or replay or lag > waiting else
+                     "lagging" if backlog_paths and backlog_seconds >= BACKLOG_WARNING_SECONDS else
+                     "collecting" if new or replay or lag > waiting else
                      "awaiting_line" if pending else "up_to_date")
             runtimes.append({"runtime": runtime, "state": state, "files": len(rows), "new_files": len(new),
                              "unread_bytes": lag, "missing_files": missing, "relocated_files": relocated,
+                             "backlog_seconds": backlog_seconds,
                              "archived_missing_files": archived, "file_errors": errors,
                              "pending_lines": pending, "replaying_files": replay, "issues": runtime_issues,
                              "limitations": limitations})
