@@ -35,3 +35,4 @@ Claude Code は実行前にコマンドを検査し、実行内容を確定で�
 - ファイルパスや引数はコマンドに直接書く。シェル変数（`$L` 等）・`xargs`・コマンド置換で組み立てない。
 - 独立した手順（format・lint・build・typecheck・test）は `;` や `&&` でつながず、別々の Bash 呼び出しにする。
 - 作業ディレクトリは絶対パスや `yarn workspace <name>` で指定し、`cd <path> &&` を前置しない。
+- ローカルのツールは npx ではなく、そのリポジトリのパッケージマネージャーで呼ぶ（yarn なら `yarn <bin>` か `yarn workspace <name> <bin>`、pnpm なら `pnpm exec <bin>`）。
