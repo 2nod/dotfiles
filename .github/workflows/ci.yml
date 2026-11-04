@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Automated flake.lock PRs are opened with the default GITHUB_TOKEN, which
+  # does not trigger CI, so allow running it by hand on that branch.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}

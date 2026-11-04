@@ -3,8 +3,9 @@ name: update-flake-lock
 on:
   workflow_dispatch:
   schedule:
-    # Every Monday 00:00 UTC.
-    - cron: "0 0 * * 1"
+    # Every Sunday 12:00 UTC (Sunday 21:00 JST), so the PR is ready for the
+    # Monday morning review.
+    - cron: "0 12 * * 0"
 
 permissions:
   contents: write
