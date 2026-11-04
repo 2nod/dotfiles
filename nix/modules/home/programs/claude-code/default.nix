@@ -18,7 +18,28 @@ let
   settings = {
     "$schema" = "https://json.schemastore.org/claude-code-settings.json";
     permissions = {
-      defaultMode = "auto";
+      defaultMode = "bypassPermissions";
+      # Deny rules still apply in bypassPermissions. `*` matches any characters,
+      # so `git -* push` also catches global options such as `git -C <dir> push`.
+      deny = [
+        "Bash(git push)"
+        "Bash(git push *)"
+        "Bash(git -* push)"
+        "Bash(git -* push *)"
+        "Bash(*/git push)"
+        "Bash(*/git push *)"
+        "Bash(*/git -* push)"
+        "Bash(*/git -* push *)"
+        "Bash(git push --force*)"
+        "Bash(git push -f*)"
+        "Bash(git push * --force*)"
+        "Bash(git push * -f)"
+        "Bash(git push * -f *)"
+        "Bash(git push --force-with-lease*)"
+        "Bash(git push * --force-with-lease*)"
+        "Bash(git *--no-verify*)"
+        "Bash(*/git *--no-verify*)"
+      ];
       # Read-only and formatting commands only. `git branch` is limited to listing
       # forms because a bare prefix rule would also match `git branch -D`.
       allow = [
