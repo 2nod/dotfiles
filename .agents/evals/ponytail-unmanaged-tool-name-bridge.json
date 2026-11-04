@@ -1,0 +1,18 @@
+{
+  "id": "ponytail-unmanaged-tool-name-bridge",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-unmanaged-tool-name-bridge",
+  "prompt": "The upstream QA tool works through a permissive SDK, but an agent-facing consumer rejects its non-ASCII tool name. The upstream is managed by someone else and must remain unchanged. Fix bridge.py so the consumer sees reference_qa while invocations still reach the original upstream name. Preserve arguments, result content, structured output and error flags. Reject unknown exposed names without invoking upstream. Change only bridge.py, run python3 test_bridge.py, and use no network, credentials or extra dependencies.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Dependency-free name translation across an unmanaged provider boundary; does not test hosted protocol transports or model behavior."
+  },
+  "rubric": [
+    { "id": "consumer", "criterion": "Expose the fixed ASCII name without changing the original provider name." },
+    { "id": "dispatch", "criterion": "Map the exposed alias back to the selected upstream name for invocation and reject unknown aliases." },
+    { "id": "preservation", "criterion": "Preserve arguments, structured output, native content and error flags, and leave the unmanaged provider unchanged." }
+  ],
+  "verifiers": [["python3", "{case_dir}/ponytail-unmanaged-tool-name-bridge-verify.py", "{workspace}", "{case_dir}/fixtures/ponytail-unmanaged-tool-name-bridge"]]
+}

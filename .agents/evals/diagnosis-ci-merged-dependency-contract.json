@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-ci-merged-dependency-contract",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-ci-merged-dependency-contract",
+  "prompt": "CI fails in event decoding after the target branch updated a dependency, while the feature branch local checks pass. Diagnose and fix events.py with the smallest change that preserves fields and fallback behavior under both dependency versions. ci.json records the local and merged dependency APIs. The CI command is python3 check_events.py --ci. Run the failing condition before editing and both contracts afterward. Treat schema_api.py as an external contract; do not alter it, ci.json, or supplied checks. Use only this anonymous local fixture, without network or dependencies.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic dependency API mismatch between local branch and CI merged target. No real SDK, credentials, clock, network, or project data."
+  },
+  "rubric": [
+    {
+      "id": "merged-target",
+      "criterion": "Reproduce the merged-target CI failure rather than accepting the passing local dependency check."
+    },
+    {
+      "id": "compatibility",
+      "criterion": "Preserve event IDs, nested input and extra fields under both APIs without weakening invalid-input fallback."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-ci-merged-dependency-contract-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-ci-merged-dependency-contract"
+    ]
+  ]
+}
