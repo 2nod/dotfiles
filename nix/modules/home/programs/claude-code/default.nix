@@ -41,6 +41,18 @@ let
         "Bash(git push * --force-with-lease*)"
         "Bash(git *--no-verify*)"
         "Bash(*/git *--no-verify*)"
+        # Destructive or secret-revealing commands, kept in sync with
+        # codex/rules/safety.rules.
+        "Bash(rm -rf *)"
+        "Bash(rm -fr *)"
+        "Bash(*/rm -rf *)"
+        "Bash(terraform apply*)"
+        "Bash(terraform destroy*)"
+        "Bash(*prisma migrate reset*)"
+        "Bash(dropdb *)"
+        "Bash(gcloud auth print-*)"
+        "Bash(gh auth token*)"
+        "Bash(printenv*)"
       ];
       # Read-only and formatting commands only. `git branch` is limited to listing
       # forms because a bare prefix rule would also match `git branch -D`.

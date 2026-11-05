@@ -49,6 +49,15 @@ let
 
   pstackMarketplace = import ./pstack.nix { inherit pkgs; };
 
+  # Command rules shared by every Codex home. Codex loads every rules/*.rules
+  # file and applies the strictest match, so this file also overrides broad
+  # allow entries that TUI approvals append to rules/default.rules.
+  safetyRules = pkgs.writeText "dotfiles-safety.rules" (
+    builtins.replaceStrings [ "@user@" "@home@" ] [ config.home.username config.home.homeDirectory ] (
+      builtins.readFile ../../../../codex/rules/safety.rules
+    )
+  );
+
   settings = {
     model = "gpt-6-astra";
     approval_policy = "on-request";
@@ -176,6 +185,18 @@ in
       mkdir -p "${codexHomeDir}"
       cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexHomeDir}/config.toml"
       chmod 600 "${codexHomeDir}/config.toml"
+    '';
+
+    # orca's per-account Codex homes are created outside home-manager, so copy
+    # the rules there too. ~/.codex gets the same copy for consistency.
+    activation.installCodexSafetyRules = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''
+      for codexHome in "${codexHomeDir}" \
+        "${config.home.homeDirectory}/Library/Application Support/orca/codex-accounts/"*/home; do
+        [ -d "$codexHome" ] || continue
+        mkdir -p "$codexHome/rules"
+        cp --no-preserve=mode,ownership ${safetyRules} "$codexHome/rules/dotfiles-safety.rules"
+        chmod 644 "$codexHome/rules/dotfiles-safety.rules"
+      done
     '';
 
     activation.installCodexPstack = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''

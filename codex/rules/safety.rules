@@ -1,0 +1,215 @@
+# Codex command rules managed by dotfiles. They mirror the Claude Code deny/ask
+# rules (claude-code/default.nix and the org-managed ask list).
+#
+# Codex applies the strictest decision across every loaded .rules file
+# (forbidden > prompt > allow). The prompt rules below therefore also override
+# broad "allow" entries that accumulate in rules/default.rules from TUI
+# approvals. Rules match argv prefixes only: `git -C dir push`, flags after the
+# third token, and complex `bash -lc` scripts are not covered.
+
+# --- forbidden: Claude deny parity -------------------------------------------
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "forbidden",
+    justification = "push と PR 作成は Yuhei が承認してから行う。commit までで止めて報告する。",
+    match = ["git push", "git push origin HEAD", "git push --force-with-lease", "git push -f origin main"],
+    not_match = ["git pull", "git status"],
+)
+
+prefix_rule(
+    pattern = ["git", "commit", ["--no-verify", "-n"]],
+    decision = "forbidden",
+    justification = "hook を飛ばさない。hook が落ちたら原因を直す。",
+    match = ["git commit --no-verify -m wip", "git commit -n -m wip"],
+    not_match = ["git commit -m fix"],
+)
+
+prefix_rule(
+    pattern = ["git", ["merge", "rebase", "am", "cherry-pick", "revert"], "--no-verify"],
+    decision = "forbidden",
+    justification = "hook を飛ばさない。hook が落ちたら原因を直す。",
+    match = ["git merge --no-verify main", "git rebase --no-verify main"],
+    not_match = ["git merge main"],
+)
+
+# --- forbidden: destructive or secret-revealing ------------------------------
+
+prefix_rule(
+    pattern = ["rm", ["-rf", "-fr", "-Rf", "-fR", "-rF", "-FR"]],
+    decision = "forbidden",
+    justification = "rm -rf は使わない。消す対象を列挙して個別に rm するか、Yuhei に確認する。",
+    match = ["rm -rf node_modules", "rm -fr /tmp/x"],
+    not_match = ["rm -f .git/index.lock", "rm file.txt"],
+)
+
+prefix_rule(
+    pattern = ["terraform", ["apply", "destroy", "import"]],
+    decision = "forbidden",
+    justification = "インフラ変更は Yuhei が実行する。plan の結果を報告する。",
+    match = ["terraform apply", "terraform destroy -auto-approve"],
+    not_match = ["terraform plan"],
+)
+
+prefix_rule(
+    pattern = ["prisma", "migrate", "reset"],
+    decision = "forbidden",
+    justification = "既存 DB を消さない。使い捨ての検証 DB が必要なら Yuhei に確認する。",
+    match = ["prisma migrate reset --force"],
+)
+
+prefix_rule(
+    pattern = [["npx", "yarn", "pnpm", "bunx"], "prisma", "migrate", "reset"],
+    decision = "forbidden",
+    justification = "既存 DB を消さない。使い捨ての検証 DB が必要なら Yuhei に確認する。",
+    match = ["yarn prisma migrate reset", "npx prisma migrate reset --force"],
+    not_match = ["yarn prisma migrate status"],
+)
+
+prefix_rule(
+    pattern = [["dropdb", "mysqladmin"]],
+    decision = "forbidden",
+    justification = "DB を drop しない。",
+    match = ["dropdb app", "mysqladmin -u root drop app"],
+)
+
+prefix_rule(
+    pattern = ["gcloud", "auth", ["print-identity-token", "print-access-token", "application-default"]],
+    decision = "forbidden",
+    justification = "認証トークンを表示・取得しない。dev2/prod への呼び出しは Yuhei が行う。",
+    match = ["gcloud auth print-identity-token", "gcloud auth print-access-token"],
+    not_match = ["gcloud auth list"],
+)
+
+prefix_rule(
+    pattern = ["gh", "auth", "token"],
+    decision = "forbidden",
+    justification = "認証トークンを表示しない。",
+    match = ["gh auth token"],
+    not_match = ["gh auth status"],
+)
+
+prefix_rule(
+    pattern = ["printenv"],
+    decision = "forbidden",
+    justification = "環境変数の値を表示しない。名前だけ必要なら確認方法を Yuhei に相談する。",
+    match = ["printenv", "printenv DATABASE_URL"],
+)
+
+# --- prompt: org-managed Claude ask parity -----------------------------------
+
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "prompt",
+    justification = "sudo はコマンドごとに確認する。",
+    match = ["sudo darwin-rebuild switch"],
+)
+
+prefix_rule(
+    pattern = [["npx", "bunx"]],
+    decision = "prompt",
+    justification = "未取得のパッケージを落とす可能性があるため確認する。リポジトリの package manager 経由を優先する。",
+    match = ["npx prettier --check .", "bunx foo"],
+)
+
+prefix_rule(
+    pattern = [["npm", "pnpm"], ["install", "i", "ci", "add", "update", "dlx"]],
+    decision = "prompt",
+    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    match = ["npm install", "npm i left-pad", "pnpm add zod"],
+    not_match = ["npm run test"],
+)
+
+prefix_rule(
+    pattern = ["yarn", ["install", "add", "up", "dlx"]],
+    decision = "prompt",
+    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    match = ["yarn install", "yarn add zod", "yarn dlx foo"],
+    not_match = ["yarn test", "yarn eslint ."],
+)
+
+prefix_rule(
+    pattern = [["pip", "pip3", "brew", "apt", "apt-get", "cargo", "go"], "install"],
+    decision = "prompt",
+    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    match = ["pip install requests", "brew install jq", "go install example.com/x@latest"],
+    not_match = ["go test ./..."],
+)
+
+prefix_rule(
+    pattern = ["uv", ["add", "pip", "tool"]],
+    decision = "prompt",
+    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    match = ["uv add httpx", "uv pip install x"],
+    not_match = ["uv run pytest"],
+)
+
+# --- prompt: remote environments and local services --------------------------
+
+prefix_rule(
+    pattern = [["gcloud", "kubectl", "terraform", "bq", "gsutil"]],
+    decision = "prompt",
+    justification = "クラウド操作はコマンドごとに確認する。dev2/prod の変更・データ参照は Yuhei の承認なしに行わない。",
+    match = ["gcloud storage cp a gs://b", "gcloud logging read x", "kubectl get pods", "terraform plan"],
+)
+
+prefix_rule(
+    pattern = ["curl"],
+    decision = "prompt",
+    justification = "ネットワーク呼び出しは宛先ごとに確認する。localhost の検証は承認後に可。dev2/prod は Yuhei の承認なしに叩かない。",
+    match = ["curl -sS http://localhost:3000/health", "curl -L https://example.com"],
+)
+
+prefix_rule(
+    pattern = ["docker", ["run", "exec", "rm", "rmi", "stop", "kill", "volume", "system", "build", "network", "start", "restart"]],
+    decision = "prompt",
+    justification = "ローカル docker の変更系はコマンドごとに確認する。",
+    match = ["docker run --rm alpine true", "docker exec work-db-1 mysql", "docker volume rm x"],
+    not_match = ["docker ps"],
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", ["up", "down", "run", "exec", "rm", "stop", "start", "restart", "build", "pull", "kill"]],
+    decision = "prompt",
+    justification = "ローカル docker compose の変更系はコマンドごとに確認する。",
+    match = ["docker compose up -d db", "docker compose exec -T db mysql", "docker compose down -v"],
+    not_match = ["docker compose ps"],
+)
+
+# --- allow: Claude allow parity for read-only commands that need network -----
+# git status/diff/log etc. already run without approval inside the sandbox, so
+# they need no rule. These read GitHub or the Docker socket, which the sandbox
+# blocks, so they run outside it.
+
+prefix_rule(
+    pattern = ["gh", "pr", ["view", "list", "diff", "checks"]],
+    decision = "allow",
+    match = ["gh pr view 12", "gh pr checks 12"],
+    not_match = ["gh pr merge 12", "gh pr create"],
+)
+
+prefix_rule(
+    pattern = ["gh", "run", ["view", "list"]],
+    decision = "allow",
+    match = ["gh run list", "gh run view 123 --log-failed"],
+    not_match = ["gh run rerun 123"],
+)
+
+prefix_rule(
+    pattern = ["docker", ["ps", "logs", "images", "inspect"]],
+    decision = "allow",
+    match = ["docker ps -a", "docker logs work-db-1"],
+    not_match = ["docker exec x sh"],
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", ["ps", "logs", "config", "ls", "images"]],
+    decision = "allow",
+    match = ["docker compose ps", "docker compose logs -f api"],
+    not_match = ["docker compose up"],
+)
+
+# Let the rules above also match absolute paths to these executables.
+# codex.nix substitutes @user@ and @home@ when deploying this file.
+host_executable(name = "git", paths = ["/usr/bin/git", "/run/current-system/sw/bin/git", "/etc/profiles/per-user/@user@/bin/git", "@home@/.nix-profile/bin/git", "/opt/homebrew/bin/git"])
+host_executable(name = "rm", paths = ["/bin/rm", "/usr/bin/rm"])
