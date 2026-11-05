@@ -49,6 +49,15 @@ let
 
   pstackMarketplace = import ./pstack.nix { inherit pkgs; };
 
+  # Command rules shared by every Codex home. Codex loads every rules/*.rules
+  # file and applies the strictest match, so this file also overrides broad
+  # allow entries that TUI approvals append to rules/default.rules.
+  safetyRules = pkgs.writeText "dotfiles-safety.rules" (
+    builtins.replaceStrings [ "@user@" "@home@" ] [ config.home.username config.home.homeDirectory ] (
+      builtins.readFile ../../../../codex/rules/safety.rules
+    )
+  );
+
   settings = {
     model = "gpt-6-astra";
     approval_policy = "on-request";
@@ -80,11 +89,28 @@ let
       "${agmsgSkillDir}/run"
     ];
 
+    # Sandboxed commands may reach local dev servers, but nothing else.
+    # network_access alone opens the whole network, so it is paired with the
+    # managed network proxy: once the proxy runs, seatbelt only lets commands
+    # talk to the proxy port, and the proxy only forwards to the domains below.
+    # allow_local_binding stays false, so NO_PROXY is cleared and loopback
+    # traffic also goes through the proxy's allowlist.
+    sandbox_workspace_write.network_access = true;
+
     features = {
       goals = true;
       js_repl = true;
       multi_agent = true;
       terminal_resize_reflow = true;
+      network_proxy = {
+        enabled = true;
+        allow_local_binding = false;
+        domains = {
+          "localhost" = "allow";
+          "127.0.0.1" = "allow";
+          "::1" = "allow";
+        };
+      };
     };
 
     notice.fast_default_opt_out = false;
@@ -176,6 +202,18 @@ in
       mkdir -p "${codexHomeDir}"
       cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexHomeDir}/config.toml"
       chmod 600 "${codexHomeDir}/config.toml"
+    '';
+
+    # orca's per-account Codex homes are created outside home-manager, so copy
+    # the rules there too. ~/.codex gets the same copy for consistency.
+    activation.installCodexSafetyRules = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''
+      for codexHome in "${codexHomeDir}" \
+        "${config.home.homeDirectory}/Library/Application Support/orca/codex-accounts/"*/home; do
+        [ -d "$codexHome" ] || continue
+        mkdir -p "$codexHome/rules"
+        cp --no-preserve=mode,ownership ${safetyRules} "$codexHome/rules/dotfiles-safety.rules"
+        chmod 644 "$codexHome/rules/dotfiles-safety.rules"
+      done
     '';
 
     activation.installCodexPstack = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''

@@ -1,0 +1,401 @@
+# Codex command rules managed by dotfiles. They mirror the Claude Code deny/ask
+# rules (claude-code/default.nix and the org-managed ask list).
+#
+# Codex applies the strictest decision across every loaded .rules file
+# (forbidden > prompt > allow). The prompt rules below therefore also override
+# broad "allow" entries that accumulate in rules/default.rules from TUI
+# approvals. Rules match argv prefixes only: `git -C dir push`, flags after the
+# third token, and complex `bash -lc` scripts are not covered.
+
+# --- forbidden: Claude deny parity -------------------------------------------
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "forbidden",
+    justification = "push と PR 作成は Yuhei が承認してから行う。commit までで止めて報告する。",
+    match = ["git push", "git push origin HEAD", "git push --force-with-lease", "git push -f origin main"],
+    not_match = ["git pull", "git status"],
+)
+
+prefix_rule(
+    pattern = ["git", "commit", ["--no-verify", "-n"]],
+    decision = "forbidden",
+    justification = "hook を飛ばさない。hook が落ちたら原因を直す。",
+    match = ["git commit --no-verify -m wip", "git commit -n -m wip"],
+    not_match = ["git commit -m fix"],
+)
+
+prefix_rule(
+    pattern = ["git", ["merge", "rebase", "am", "cherry-pick", "revert"], "--no-verify"],
+    decision = "forbidden",
+    justification = "hook を飛ばさない。hook が落ちたら原因を直す。",
+    match = ["git merge --no-verify main", "git rebase --no-verify main"],
+    not_match = ["git merge main"],
+)
+
+# --- forbidden: destructive or secret-revealing ------------------------------
+
+prefix_rule(
+    pattern = ["rm", ["-rf", "-fr", "-Rf", "-fR", "-rF", "-FR"]],
+    decision = "forbidden",
+    justification = "rm -rf は使わない。消す対象を列挙して個別に rm するか、Yuhei に確認する。",
+    match = ["rm -rf node_modules", "rm -fr /tmp/x"],
+    not_match = ["rm -f .git/index.lock", "rm file.txt"],
+)
+
+prefix_rule(
+    pattern = ["terraform", ["apply", "destroy", "import"]],
+    decision = "forbidden",
+    justification = "インフラ変更は Yuhei が実行する。plan の結果を報告する。",
+    match = ["terraform apply", "terraform destroy -auto-approve"],
+    not_match = ["terraform plan"],
+)
+
+prefix_rule(
+    pattern = ["prisma", "migrate", "reset"],
+    decision = "forbidden",
+    justification = "既存 DB を消さない。使い捨ての検証 DB が必要なら Yuhei に確認する。",
+    match = ["prisma migrate reset --force"],
+)
+
+prefix_rule(
+    pattern = [["npx", "yarn", "pnpm", "bunx"], "prisma", "migrate", "reset"],
+    decision = "forbidden",
+    justification = "既存 DB を消さない。使い捨ての検証 DB が必要なら Yuhei に確認する。",
+    match = ["yarn prisma migrate reset", "npx prisma migrate reset --force"],
+    not_match = ["yarn prisma migrate status"],
+)
+
+prefix_rule(
+    pattern = [["dropdb", "mysqladmin"]],
+    decision = "forbidden",
+    justification = "DB を drop しない。",
+    match = ["dropdb app", "mysqladmin -u root drop app"],
+)
+
+prefix_rule(
+    pattern = ["gcloud", "auth", ["print-identity-token", "print-access-token", "application-default"]],
+    decision = "forbidden",
+    justification = "認証トークンを表示・取得しない。",
+    match = ["gcloud auth print-identity-token", "gcloud auth print-access-token"],
+    not_match = ["gcloud auth list"],
+)
+
+prefix_rule(
+    pattern = ["gh", "auth", "token"],
+    decision = "forbidden",
+    justification = "認証トークンを表示しない。",
+    match = ["gh auth token"],
+    not_match = ["gh auth status"],
+)
+
+prefix_rule(
+    pattern = ["printenv"],
+    decision = "forbidden",
+    justification = "環境変数の値を表示しない。名前だけ必要なら確認方法を Yuhei に相談する。",
+    match = ["printenv", "printenv DATABASE_URL"],
+)
+
+# --- prompt: org-managed Claude ask parity -----------------------------------
+
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "prompt",
+    justification = "sudo はコマンドごとに確認する。",
+    match = ["sudo darwin-rebuild switch"],
+)
+
+prefix_rule(
+    pattern = [["npx", "bunx"]],
+    decision = "prompt",
+    justification = "未取得のパッケージを落とす可能性があるため確認する。リポジトリの package manager 経由を優先する。",
+    match = ["npx prettier --check .", "bunx foo"],
+)
+
+prefix_rule(
+    pattern = [["npm", "pnpm"], ["install", "i", "ci", "add", "update", "dlx"]],
+    decision = "prompt",
+    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    match = ["npm install", "npm i left-pad", "pnpm add zod"],
+    not_match = ["npm run test"],
+)
+
+prefix_rule(
+    pattern = ["yarn", ["install", "add", "up", "dlx"]],
+    decision = "prompt",
+    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    match = ["yarn install", "yarn add zod", "yarn dlx foo"],
+    not_match = ["yarn test", "yarn eslint ."],
+)
+
+prefix_rule(
+    pattern = [["pip", "pip3", "brew", "apt", "apt-get", "cargo", "go"], "install"],
+    decision = "prompt",
+    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    match = ["pip install requests", "brew install jq", "go install example.com/x@latest"],
+    not_match = ["go test ./..."],
+)
+
+prefix_rule(
+    pattern = ["uv", ["add", "pip", "tool"]],
+    decision = "prompt",
+    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    match = ["uv add httpx", "uv pip install x"],
+    not_match = ["uv run pytest"],
+)
+
+# --- cloud: 読み取りは allow、書き込みは prompt、Secret とトークンは forbidden --
+# 厳しい方が勝つので、広い prompt (例: ["gcloud"]) を置くと下の allow が効かなく
+# なる。そのため読み取りも書き込みも動詞の位置で列挙する。どれにも当たらない
+# cloud コマンドは sandbox 内で動き、外部ネットワークが無いので失敗して昇格を
+# 求め、レビュー役が判断する。
+
+prefix_rule(
+    pattern = ["gcloud", ["alpha", "beta"], "secrets", "versions", "access"],
+    decision = "forbidden",
+    justification = "Secret の値を読まない。",
+    match = ["gcloud beta secrets versions access latest --secret x"],
+)
+
+prefix_rule(
+    pattern = ["gcloud", "secrets", "versions", "access"],
+    decision = "forbidden",
+    justification = "Secret の値を読まない。",
+    match = ["gcloud secrets versions access latest --secret x"],
+    not_match = ["gcloud secrets versions list x"],
+)
+
+prefix_rule(
+    pattern = ["gcloud", "kms", ["decrypt", "asymmetric-decrypt"]],
+    decision = "forbidden",
+    justification = "暗号化された Secret を復号しない。",
+    match = ["gcloud kms decrypt --key k"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", ["get", "describe", "edit"], ["secret", "secrets"]],
+    decision = "forbidden",
+    justification = "Secret の値を読まない。",
+    match = ["kubectl get secret x -o yaml", "kubectl get secrets -o json", "kubectl describe secret x"],
+    not_match = ["kubectl get pods"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "create", "token"],
+    decision = "forbidden",
+    justification = "認証トークンを発行・表示しない。",
+    match = ["kubectl create token default"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "config", "view", "--raw"],
+    decision = "forbidden",
+    justification = "kubeconfig の認証情報を表示しない。",
+    match = ["kubectl config view --raw"],
+    not_match = ["kubectl config get-contexts"],
+)
+
+# gcloud: 読み取り (階層 1〜3 のコマンドグループ + 読み取り動詞)
+
+prefix_rule(
+    pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["list", "describe", "get", "get-iam-policy", "get-value", "read", "tail", "ls", "cat", "du", "log"]],
+    decision = "allow",
+    match = ["gcloud projects describe p", "gcloud logging read 'severity>=ERROR'", "gcloud storage ls gs://b", "gcloud storage cat gs://b/o", "gcloud auth list"],
+    not_match = ["gcloud storage cp a gs://b", "gcloud logging write l m"],
+)
+
+prefix_rule(
+    pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["list", "describe", "get", "get-iam-policy", "get-value", "read", "tail", "ls", "cat", "du", "log"]],
+    decision = "allow",
+    match = ["gcloud run services describe api --region r", "gcloud run services list", "gcloud workflows executions list w", "gcloud secrets versions list s"],
+    not_match = ["gcloud run services update api", "gcloud secrets versions access latest"],
+)
+
+prefix_rule(
+    pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["list", "describe", "get", "get-iam-policy", "get-value", "read", "tail", "ls", "cat", "du", "log"]],
+    decision = "allow",
+    match = ["gcloud run jobs executions list", "gcloud run jobs executions describe e", "gcloud artifacts docker images list r"],
+    not_match = ["gcloud run jobs executions cancel e"],
+)
+
+# gcloud: 書き込み
+
+prefix_rule(
+    pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["deploy", "create", "update", "delete", "patch", "execute", "run", "submit", "replace", "import", "export", "cp", "mv", "rm", "rsync", "write", "enable", "disable", "start", "stop", "restart", "reset", "resize", "set", "unset", "add-iam-policy-binding", "remove-iam-policy-binding", "set-iam-policy", "ssh", "scp", "connect", "rollback", "cancel", "publish", "promote", "call", "get-credentials"]],
+    decision = "prompt",
+    justification = "クラウドへの書き込みはコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    match = ["gcloud run deploy api", "gcloud storage cp a gs://b", "gcloud builds submit ."],
+    not_match = ["gcloud projects list"],
+)
+
+prefix_rule(
+    pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["deploy", "create", "update", "delete", "patch", "execute", "run", "submit", "replace", "import", "export", "cp", "mv", "rm", "rsync", "write", "enable", "disable", "start", "stop", "restart", "reset", "resize", "set", "unset", "add-iam-policy-binding", "remove-iam-policy-binding", "set-iam-policy", "ssh", "scp", "connect", "rollback", "cancel", "publish", "promote", "call", "get-credentials"]],
+    decision = "prompt",
+    justification = "クラウドへの書き込みはコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    match = ["gcloud run services update api", "gcloud run jobs execute j", "gcloud sql instances patch i", "gcloud container clusters get-credentials c"],
+    not_match = ["gcloud run services describe api"],
+)
+
+prefix_rule(
+    pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["deploy", "create", "update", "delete", "patch", "execute", "run", "submit", "replace", "import", "export", "cp", "mv", "rm", "rsync", "write", "enable", "disable", "start", "stop", "restart", "reset", "resize", "set", "unset", "add-iam-policy-binding", "remove-iam-policy-binding", "set-iam-policy", "ssh", "scp", "connect", "rollback", "cancel", "publish", "promote", "call", "get-credentials"]],
+    decision = "prompt",
+    justification = "クラウドへの書き込みはコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    match = ["gcloud run jobs executions cancel e", "gcloud artifacts docker images delete i"],
+)
+
+# kubectl: 読み取り (Secret は上の forbidden。リソース名を列挙するので
+# `kubectl get secret/x` や `-n ns` を先に書いた形は allow に当たらない)
+
+prefix_rule(
+    pattern = ["kubectl", ["get", "describe"], ["pods", "pod", "po", "deployments", "deployment", "deploy", "services", "service", "svc", "nodes", "node", "no", "namespaces", "namespace", "ns", "configmaps", "configmap", "cm", "ingresses", "ingress", "ing", "jobs", "job", "cronjobs", "cronjob", "cj", "replicasets", "rs", "statefulsets", "sts", "daemonsets", "ds", "events", "ev", "endpoints", "ep", "pvc", "pv", "hpa", "serviceaccounts", "sa", "all"]],
+    decision = "allow",
+    match = ["kubectl get pods -A", "kubectl describe deploy api", "kubectl get svc -o wide"],
+    not_match = ["kubectl get secret x", "kubectl get secret/x"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", ["logs", "top", "explain", "api-resources", "api-versions", "version", "cluster-info"]],
+    decision = "allow",
+    match = ["kubectl logs api-123 -c app", "kubectl top pods"],
+    not_match = ["kubectl exec api-123 -- sh"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "config", ["get-contexts", "current-context", "get-clusters"]],
+    decision = "allow",
+    match = ["kubectl config get-contexts", "kubectl config current-context"],
+    not_match = ["kubectl config use-context x", "kubectl config view --raw"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "rollout", ["status", "history"]],
+    decision = "allow",
+    match = ["kubectl rollout status deploy/api"],
+    not_match = ["kubectl rollout restart deploy/api"],
+)
+
+# kubectl: 書き込み
+
+prefix_rule(
+    pattern = ["kubectl", ["apply", "delete", "exec", "edit", "patch", "scale", "create", "replace", "set", "label", "annotate", "cordon", "uncordon", "drain", "taint", "cp", "port-forward", "run", "expose", "autoscale", "debug", "attach"]],
+    decision = "prompt",
+    justification = "クラスタへの書き込み・コンテナ内実行はコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    match = ["kubectl apply -f x.yaml", "kubectl exec -it api -- sh", "kubectl scale deploy api --replicas 2"],
+    not_match = ["kubectl get pods"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "rollout", ["restart", "undo", "pause", "resume"]],
+    decision = "prompt",
+    justification = "クラスタへの書き込みはコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    match = ["kubectl rollout restart deploy/api"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "config", ["use-context", "set-context", "set-credentials", "delete-context"]],
+    decision = "prompt",
+    justification = "接続先のクラスタを切り替える操作は確認する。",
+    match = ["kubectl config use-context x"],
+)
+
+# bq / gsutil
+
+prefix_rule(
+    pattern = ["bq", ["ls", "show", "head"]],
+    decision = "allow",
+    match = ["bq ls", "bq show ds.t"],
+    not_match = ["bq query 'select 1'"],
+)
+
+prefix_rule(
+    pattern = ["bq", ["query", "mk", "rm", "load", "insert", "cp", "update", "extract", "truncate"]],
+    decision = "prompt",
+    justification = "query は DML で書き込めるため、bq の実行・変更系はコマンドごとに確認する。",
+    match = ["bq query 'select 1'", "bq rm -t ds.t", "bq load ds.t f.csv"],
+)
+
+prefix_rule(
+    pattern = ["gsutil", ["ls", "cat", "stat", "du"]],
+    decision = "allow",
+    match = ["gsutil ls gs://b", "gsutil cat gs://b/o"],
+    not_match = ["gsutil cp a gs://b"],
+)
+
+prefix_rule(
+    pattern = ["gsutil", ["cp", "mv", "rm", "rsync", "setmeta", "acl", "iam", "mb", "rb"]],
+    decision = "prompt",
+    justification = "バケットへの書き込みはコマンドごとに確認する。",
+    match = ["gsutil cp a gs://b", "gsutil rm gs://b/o"],
+)
+
+# terraform: apply/destroy/import は上で forbidden。plan などは確認する。
+
+prefix_rule(
+    pattern = ["terraform"],
+    decision = "prompt",
+    justification = "terraform は provider の認証情報を使うため、plan を含めてコマンドごとに確認する。",
+    match = ["terraform plan", "terraform state list"],
+)
+
+# --- prompt: network and local services --------------------------------------
+
+prefix_rule(
+    pattern = ["curl"],
+    decision = "prompt",
+    justification = "curl は宛先と送る内容をコマンドごとに確認する。外部環境への書き込みは対象環境が判断できないときは実行しない。",
+    match = ["curl -sS http://localhost:3000/health", "curl -L https://example.com"],
+)
+
+prefix_rule(
+    pattern = ["docker", ["run", "exec", "rm", "rmi", "stop", "kill", "volume", "system", "build", "network", "start", "restart"]],
+    decision = "prompt",
+    justification = "ローカル docker の変更系はコマンドごとに確認する。",
+    match = ["docker run --rm alpine true", "docker exec app-db-1 mysql", "docker volume rm x"],
+    not_match = ["docker ps"],
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", ["up", "down", "run", "exec", "rm", "stop", "start", "restart", "build", "pull", "kill"]],
+    decision = "prompt",
+    justification = "ローカル docker compose の変更系はコマンドごとに確認する。",
+    match = ["docker compose up -d db", "docker compose exec -T db mysql", "docker compose down -v"],
+    not_match = ["docker compose ps"],
+)
+
+# --- allow: Claude allow parity for read-only commands that need network -----
+# git status/diff/log etc. already run without approval inside the sandbox, so
+# they need no rule. These read GitHub or the Docker socket, which the sandbox
+# blocks, so they run outside it.
+
+prefix_rule(
+    pattern = ["gh", "pr", ["view", "list", "diff", "checks"]],
+    decision = "allow",
+    match = ["gh pr view 12", "gh pr checks 12"],
+    not_match = ["gh pr merge 12", "gh pr create"],
+)
+
+prefix_rule(
+    pattern = ["gh", "run", ["view", "list"]],
+    decision = "allow",
+    match = ["gh run list", "gh run view 123 --log-failed"],
+    not_match = ["gh run rerun 123"],
+)
+
+prefix_rule(
+    pattern = ["docker", ["ps", "logs", "images", "inspect"]],
+    decision = "allow",
+    match = ["docker ps -a", "docker logs app-db-1"],
+    not_match = ["docker exec x sh"],
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", ["ps", "logs", "config", "ls", "images"]],
+    decision = "allow",
+    match = ["docker compose ps", "docker compose logs -f api"],
+    not_match = ["docker compose up"],
+)
+
+# Let the rules above also match absolute paths to these executables.
+# codex.nix substitutes @user@ and @home@ when deploying this file.
+host_executable(name = "git", paths = ["/usr/bin/git", "/run/current-system/sw/bin/git", "/etc/profiles/per-user/@user@/bin/git", "@home@/.nix-profile/bin/git", "/opt/homebrew/bin/git"])
+host_executable(name = "rm", paths = ["/bin/rm", "/usr/bin/rm"])
