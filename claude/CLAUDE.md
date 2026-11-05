@@ -36,3 +36,7 @@ Claude Code は実行前にコマンドを検査し、実行内容を確定で�
 - 独立した手順（format・lint・build・typecheck・test）は `;` や `&&` でつながず、別々の Bash 呼び出しにする。
 - 作業ディレクトリは絶対パスや `yarn workspace <name>` で指定し、`cd <path> &&` を前置しない。
 - ローカルのツールは npx ではなく、そのリポジトリのパッケージマネージャーで呼ぶ（yarn なら `yarn <bin>` か `yarn workspace <name> <bin>`、pnpm なら `pnpm exec <bin>`）。
+
+## クラウド・外部環境
+
+クラウド・外部環境への書き込みは dev 環境なら可、stg と prod は禁止。どの環境か判断できないときは実行しない。読み取りは可だが Secret・トークンは表示しない。

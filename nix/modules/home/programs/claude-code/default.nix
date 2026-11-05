@@ -53,6 +53,15 @@ let
         "Bash(gcloud auth print-*)"
         "Bash(gh auth token*)"
         "Bash(printenv*)"
+        "Bash(gcloud secrets versions access*)"
+        "Bash(gcloud * secrets versions access*)"
+        "Bash(gcloud kms decrypt*)"
+        "Bash(kubectl get secret*)"
+        "Bash(kubectl describe secret*)"
+        "Bash(kubectl edit secret*)"
+        "Bash(kubectl * secret*)"
+        "Bash(kubectl create token*)"
+        "Bash(kubectl config view --raw*)"
       ];
       # Read-only and formatting commands only. `git branch` is limited to listing
       # forms because a bare prefix rule would also match `git branch -D`.
