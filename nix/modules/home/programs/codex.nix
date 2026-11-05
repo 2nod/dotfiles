@@ -89,11 +89,28 @@ let
       "${agmsgSkillDir}/run"
     ];
 
+    # Sandboxed commands may reach local dev servers, but nothing else.
+    # network_access alone opens the whole network, so it is paired with the
+    # managed network proxy: once the proxy runs, seatbelt only lets commands
+    # talk to the proxy port, and the proxy only forwards to the domains below.
+    # allow_local_binding stays false, so NO_PROXY is cleared and loopback
+    # traffic also goes through the proxy's allowlist.
+    sandbox_workspace_write.network_access = true;
+
     features = {
       goals = true;
       js_repl = true;
       multi_agent = true;
       terminal_resize_reflow = true;
+      network_proxy = {
+        enabled = true;
+        allow_local_binding = false;
+        domains = {
+          "localhost" = "allow";
+          "127.0.0.1" = "allow";
+          "::1" = "allow";
+        };
+      };
     };
 
     notice.fast_default_opt_out = false;
