@@ -5,7 +5,7 @@
   "maxSessionBudget": 10.0,
   "models": {
     "sol": {
-      "model": "openai-codex/gpt-6-sol",
+      "model": "openai-codex/gpt-6.1-sol",
       "contextWindow": 272000,
       "maxTokens": 128000
     },
