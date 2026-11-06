@@ -45,6 +45,17 @@ HTMLまたはSite形式のレポートをユーザーが明示的に依頼した
 - 必要な検証を行い、結果と未検証事項をチャットで簡潔に伝える。再確認に必要なログを残す。
 - 明示依頼で作るレポートと画像は製品リポジトリ外へ保存し、stage・commit・push・PRへ含めない。最終回答に保存先を示す。
 
+## Git の push・PR 作成
+
+push・PR 作成はユーザーが明示依頼または承認した範囲で行う。PR 作成の依頼は必要な commit・push の承認を含む。force push・remote branch 削除には、対象と操作への別途明示承認が必要。
+
 ## クラウド・外部環境
 
 クラウド・外部環境への書き込みは dev 環境なら可、stg と prod は禁止。どの環境か判断できないときは実行しない。読み取りは可だが Secret・トークンは表示しない。
+
+### Terraform の反映・破棄
+
+- `terraform apply` / `terraform destroy` は、dev と確認できても、実行前に対象と plan の差分をチャットで提示し、その内容へのユーザーの明示承認を待つ。destroy では `terraform plan -destroy` を使う。Secret・トークンを含む値は提示しない。
+- backend、provider の接続先 project/account、workspace、適用する変数を照合して対象環境を確認する。workspace 名だけで dev と判断しない。stg/prod・環境不明時は、承認があっても実行しない。
+- 承認は提示した対象と plan に限る。対象や plan が変わったら再確認する。一般的な作業依頼やコマンド許可設定の変更を、反映・破棄への承認と解釈しない。
+- この手順は保存済み plan の適用、`-auto-approve`、`-chdir`、ラッパーや別の実行ツール経由でも省略しない。コマンドルールの allow は実行承認の代わりにならない。
