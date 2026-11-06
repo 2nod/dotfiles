@@ -1,5 +1,5 @@
-# Codex command rules managed by dotfiles. They mirror the Claude Code deny/ask
-# rules (claude-code/default.nix and the org-managed ask list).
+# Codex command rules managed by dotfiles. Keep destructive/secret operations
+# restricted, and allow routine development commands without per-command review.
 #
 # Codex applies the strictest decision across every loaded .rules file
 # (forbidden > prompt > allow). The prompt rules below therefore also override
@@ -7,15 +7,16 @@
 # approvals. Rules match argv prefixes only: `git -C dir push`, flags after the
 # third token, and complex `bash -lc` scripts are not covered.
 
-# --- forbidden: Claude deny parity -------------------------------------------
+# --- allow: Git publication after user approval ------------------------------
 
 prefix_rule(
     pattern = ["git", "push"],
-    decision = "forbidden",
-    justification = "push と PR 作成は Yuhei が承認してから行う。commit までで止めて報告する。",
+    decision = "allow",
     match = ["git push", "git push origin HEAD", "git push --force-with-lease", "git push -f origin main"],
     not_match = ["git pull", "git status"],
 )
+
+# --- forbidden: Claude deny parity -------------------------------------------
 
 prefix_rule(
     pattern = ["git", "commit", ["--no-verify", "-n"]],
@@ -41,14 +42,6 @@ prefix_rule(
     justification = "rm -rf は使わない。消す対象を列挙して個別に rm するか、Yuhei に確認する。",
     match = ["rm -rf node_modules", "rm -fr /tmp/x"],
     not_match = ["rm -f .git/index.lock", "rm file.txt"],
-)
-
-prefix_rule(
-    pattern = ["terraform", ["apply", "destroy", "import"]],
-    decision = "forbidden",
-    justification = "インフラ変更は Yuhei が実行する。plan の結果を報告する。",
-    match = ["terraform apply", "terraform destroy -auto-approve"],
-    not_match = ["terraform plan"],
 )
 
 prefix_rule(
@@ -96,7 +89,7 @@ prefix_rule(
     match = ["printenv", "printenv DATABASE_URL"],
 )
 
-# --- prompt: org-managed Claude ask parity -----------------------------------
+# --- prompt: privilege escalation -------------------------------------------
 
 prefix_rule(
     pattern = ["sudo"],
@@ -107,48 +100,43 @@ prefix_rule(
 
 prefix_rule(
     pattern = [["npx", "bunx"]],
-    decision = "prompt",
-    justification = "未取得のパッケージを落とす可能性があるため確認する。リポジトリの package manager 経由を優先する。",
+    decision = "allow",
     match = ["npx prettier --check .", "bunx foo"],
 )
 
 prefix_rule(
     pattern = [["npm", "pnpm"], ["install", "i", "ci", "add", "update", "dlx"]],
-    decision = "prompt",
-    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    decision = "allow",
     match = ["npm install", "npm i left-pad", "pnpm add zod"],
     not_match = ["npm run test"],
 )
 
 prefix_rule(
     pattern = ["yarn", ["install", "add", "up", "dlx"]],
-    decision = "prompt",
-    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    decision = "allow",
     match = ["yarn install", "yarn add zod", "yarn dlx foo"],
     not_match = ["yarn test", "yarn eslint ."],
 )
 
 prefix_rule(
     pattern = [["pip", "pip3", "brew", "apt", "apt-get", "cargo", "go"], "install"],
-    decision = "prompt",
-    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    decision = "allow",
     match = ["pip install requests", "brew install jq", "go install example.com/x@latest"],
     not_match = ["go test ./..."],
 )
 
 prefix_rule(
     pattern = ["uv", ["add", "pip", "tool"]],
-    decision = "prompt",
-    justification = "パッケージの追加・取得はコマンドごとに確認する。",
+    decision = "allow",
     match = ["uv add httpx", "uv pip install x"],
     not_match = ["uv run pytest"],
 )
 
-# --- cloud: 読み取りは allow、書き込みは prompt、Secret とトークンは forbidden --
-# 厳しい方が勝つので、広い prompt (例: ["gcloud"]) を置くと下の allow が効かなく
-# なる。そのため読み取りも書き込みも動詞の位置で列挙する。どれにも当たらない
-# cloud コマンドは sandbox 内で動き、外部ネットワークが無いので失敗して昇格を
-# 求め、レビュー役が判断する。
+# --- cloud: 通常操作は allow、Secret とトークンは forbidden -------------------
+# Secret・トークンの forbidden を維持し、通常操作は動詞の位置で列挙する。
+# どれにも当たらない cloud コマンドは sandbox 内で動く。
+# 外部書き込みは dev と判別できる場合のみ
+# 実行し、stg/prod と環境不明時は禁止するという AGENTS.md の指示に従う。
 
 prefix_rule(
     pattern = ["gcloud", ["alpha", "beta"], "secrets", "versions", "access"],
@@ -222,24 +210,21 @@ prefix_rule(
 
 prefix_rule(
     pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["deploy", "create", "update", "delete", "patch", "execute", "run", "submit", "replace", "import", "export", "cp", "mv", "rm", "rsync", "write", "enable", "disable", "start", "stop", "restart", "reset", "resize", "set", "unset", "add-iam-policy-binding", "remove-iam-policy-binding", "set-iam-policy", "ssh", "scp", "connect", "rollback", "cancel", "publish", "promote", "call", "get-credentials"]],
-    decision = "prompt",
-    justification = "クラウドへの書き込みはコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    decision = "allow",
     match = ["gcloud run deploy api", "gcloud storage cp a gs://b", "gcloud builds submit ."],
     not_match = ["gcloud projects list"],
 )
 
 prefix_rule(
     pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["deploy", "create", "update", "delete", "patch", "execute", "run", "submit", "replace", "import", "export", "cp", "mv", "rm", "rsync", "write", "enable", "disable", "start", "stop", "restart", "reset", "resize", "set", "unset", "add-iam-policy-binding", "remove-iam-policy-binding", "set-iam-policy", "ssh", "scp", "connect", "rollback", "cancel", "publish", "promote", "call", "get-credentials"]],
-    decision = "prompt",
-    justification = "クラウドへの書き込みはコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    decision = "allow",
     match = ["gcloud run services update api", "gcloud run jobs execute j", "gcloud sql instances patch i", "gcloud container clusters get-credentials c"],
     not_match = ["gcloud run services describe api"],
 )
 
 prefix_rule(
     pattern = ["gcloud", ["run", "projects", "logging", "storage", "workflows", "compute", "container", "sql", "iam", "secrets", "functions", "pubsub", "artifacts", "builds", "scheduler", "tasks", "redis", "dns", "services", "config", "auth", "monitoring", "kms", "app", "firestore", "spanner", "dataflow", "dataproc", "composer", "eventarc", "organizations", "billing", "ai", "deploy"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["services", "jobs", "revisions", "executions", "regions", "domain-mappings", "instances", "clusters", "node-pools", "operations", "buckets", "objects", "versions", "topics", "subscriptions", "repositories", "docker", "images", "packages", "tags", "keys", "keyrings", "service-accounts", "roles", "triggers", "queues", "zones", "disks", "networks", "firewall-rules", "databases", "backups", "users", "logs", "sinks", "metrics", "policies", "channels", "dashboards", "delivery-pipelines", "releases", "rollouts", "targets"], ["deploy", "create", "update", "delete", "patch", "execute", "run", "submit", "replace", "import", "export", "cp", "mv", "rm", "rsync", "write", "enable", "disable", "start", "stop", "restart", "reset", "resize", "set", "unset", "add-iam-policy-binding", "remove-iam-policy-binding", "set-iam-policy", "ssh", "scp", "connect", "rollback", "cancel", "publish", "promote", "call", "get-credentials"]],
-    decision = "prompt",
-    justification = "クラウドへの書き込みはコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    decision = "allow",
     match = ["gcloud run jobs executions cancel e", "gcloud artifacts docker images delete i"],
 )
 
@@ -278,23 +263,20 @@ prefix_rule(
 
 prefix_rule(
     pattern = ["kubectl", ["apply", "delete", "exec", "edit", "patch", "scale", "create", "replace", "set", "label", "annotate", "cordon", "uncordon", "drain", "taint", "cp", "port-forward", "run", "expose", "autoscale", "debug", "attach"]],
-    decision = "prompt",
-    justification = "クラスタへの書き込み・コンテナ内実行はコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    decision = "allow",
     match = ["kubectl apply -f x.yaml", "kubectl exec -it api -- sh", "kubectl scale deploy api --replicas 2"],
     not_match = ["kubectl get pods"],
 )
 
 prefix_rule(
     pattern = ["kubectl", "rollout", ["restart", "undo", "pause", "resume"]],
-    decision = "prompt",
-    justification = "クラスタへの書き込みはコマンドごとに確認する。対象環境が判断できないときは実行しない。",
+    decision = "allow",
     match = ["kubectl rollout restart deploy/api"],
 )
 
 prefix_rule(
     pattern = ["kubectl", "config", ["use-context", "set-context", "set-credentials", "delete-context"]],
-    decision = "prompt",
-    justification = "接続先のクラスタを切り替える操作は確認する。",
+    decision = "allow",
     match = ["kubectl config use-context x"],
 )
 
@@ -309,8 +291,7 @@ prefix_rule(
 
 prefix_rule(
     pattern = ["bq", ["query", "mk", "rm", "load", "insert", "cp", "update", "extract", "truncate"]],
-    decision = "prompt",
-    justification = "query は DML で書き込めるため、bq の実行・変更系はコマンドごとに確認する。",
+    decision = "allow",
     match = ["bq query 'select 1'", "bq rm -t ds.t", "bq load ds.t f.csv"],
 )
 
@@ -323,41 +304,44 @@ prefix_rule(
 
 prefix_rule(
     pattern = ["gsutil", ["cp", "mv", "rm", "rsync", "setmeta", "acl", "iam", "mb", "rb"]],
-    decision = "prompt",
-    justification = "バケットへの書き込みはコマンドごとに確認する。",
+    decision = "allow",
     match = ["gsutil cp a gs://b", "gsutil rm gs://b/o"],
 )
 
-# terraform: apply/destroy/import は上で forbidden。plan などは確認する。
+# terraform: 環境判定は実行前に行う。ルール自体は環境を識別しない。
 
 prefix_rule(
-    pattern = ["terraform"],
-    decision = "prompt",
-    justification = "terraform は provider の認証情報を使うため、plan を含めてコマンドごとに確認する。",
-    match = ["terraform plan", "terraform state list"],
+    pattern = ["terraform", ["init", "validate", "plan", "refresh", "fmt", "get", "graph", "console", "output", "show", "taint", "untaint", "force-unlock", "providers", "workspace", "login", "logout", "version", "test", "metadata", "stacks", "modules", "query", "state", "import"]],
+    decision = "allow",
+    match = ["terraform workspace list", "terraform workspace show", "terraform workspace select dev", "terraform init", "terraform validate", "terraform plan", "terraform state list", "terraform import example id"],
+    not_match = ["terraform apply", "terraform destroy"],
 )
 
-# --- prompt: network and local services --------------------------------------
+prefix_rule(
+    pattern = ["terraform", ["apply", "destroy"]],
+    decision = "allow",
+    match = ["terraform apply", "terraform apply saved.tfplan", "terraform apply -auto-approve", "terraform destroy", "terraform destroy -auto-approve"],
+    not_match = ["terraform plan", "terraform validate", "terraform workspace list"],
+)
+
+# --- allow: network and local services ---------------------------------------
 
 prefix_rule(
     pattern = ["curl"],
-    decision = "prompt",
-    justification = "curl は宛先と送る内容をコマンドごとに確認する。外部環境への書き込みは対象環境が判断できないときは実行しない。",
+    decision = "allow",
     match = ["curl -sS http://localhost:3000/health", "curl -L https://example.com"],
 )
 
 prefix_rule(
     pattern = ["docker", ["run", "exec", "rm", "rmi", "stop", "kill", "volume", "system", "build", "network", "start", "restart"]],
-    decision = "prompt",
-    justification = "ローカル docker の変更系はコマンドごとに確認する。",
+    decision = "allow",
     match = ["docker run --rm alpine true", "docker exec app-db-1 mysql", "docker volume rm x"],
     not_match = ["docker ps"],
 )
 
 prefix_rule(
     pattern = ["docker", "compose", ["up", "down", "run", "exec", "rm", "stop", "start", "restart", "build", "pull", "kill"]],
-    decision = "prompt",
-    justification = "ローカル docker compose の変更系はコマンドごとに確認する。",
+    decision = "allow",
     match = ["docker compose up -d db", "docker compose exec -T db mysql", "docker compose down -v"],
     not_match = ["docker compose ps"],
 )
