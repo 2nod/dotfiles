@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-cleanup-reference-order",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-cleanup-reference-order",
+  "prompt": "Cleanup preview reports the expected two detachments and two deletions, but execution sometimes fails with a resource still referenced or assigned error. Operations in each phase may run in any order; phases complete in sequence. Diagnose and fix cleanup.py with the smallest change that completes all four operations and preserves unrelated resources. The local reproduction command is python3 check_cleanup.py. Do not change the supplied checker. Use only this anonymous local fixture, without network or dependencies.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic enumeration of parallel operation orders catches a correct-diff cleanup with unsafe reference/deletion ordering. Synthetic in-memory resources only; no network, credentials, clock, external SDK, or project data."
+  },
+  "rubric": [
+    {
+      "id": "reproduce-ordering",
+      "criterion": "Run a red-capable reproduction that catches unsafe execution order rather than accepting correct action counts."
+    },
+    {
+      "id": "detach-before-delete",
+      "criterion": "Detach every reference before its resource can be deleted, while retaining all cleanup actions and unrelated resources."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-cleanup-reference-order-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-cleanup-reference-order"
+    ]
+  ]
+}
