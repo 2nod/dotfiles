@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-unresolved-failure-visibility",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-unresolved-failure-visibility",
+  "prompt": "Fix the disappearing recovery indicator in this anonymous local fixture. When one delivery has failed, starting and accepting an independent delivery must not hide recovery for the unresolved failure. External acceptance of the failed item must clear the last error, and an explicit retry must preserve the pending item while clearing its failure. Change only inbox.py. Run python3 test_inbox.py before and after the smallest fix. No network, credentials, wall clock, dependencies, commits or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic overlapping delivery state and recovery visibility; does not simulate GUI rendering or actual transports."
+  },
+  "rubric": [
+    {
+      "id": "recovery",
+      "criterion": "Preserve visible recovery while any current pending delivery has failed; unrelated progress must not mask it."
+    },
+    {
+      "id": "clearing",
+      "criterion": "Keep external acceptance and explicit retry clearing the indicator without deleting pending work."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-unresolved-failure-visibility-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-unresolved-failure-visibility"
+    ]
+  ]
+}

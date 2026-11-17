@@ -1,0 +1,30 @@
+{
+  "id": "asd-ste100-prerequisite-before-action",
+  "skill": "asd-ste100",
+  "skill_path": "../skills/writing/asd-ste100/SKILL.md",
+  "fixture": "fixtures/asd-ste100-prerequisite-before-action",
+  "prompt": "guide.mdを読みやすい操作手順に直してください。実行前の確認、実行、結果確認の順序を守り、元の3つの文の文言はそのまま残してください。確認文をリストの前へ移しても、番号手順の先頭へ移しても構いません。新しい条件や操作は追加せず、このファイルだけ編集してください。外部通信は禁止です。",
+  "expected_behavior": "番号化によって実行後に置かれた前提確認を、実行より前へ移す。3文を保持するだけでは操作順の正しさを保証しないことを扱う。",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "匿名化した合成手順の文書修正。外部環境・認証・時刻に依存しない。"
+  },
+  "rubric": [
+    {
+      "id": "prerequisite",
+      "criterion": "対象期間と列の確認が、出力処理の実行より前にある。"
+    },
+    {
+      "id": "preservation",
+      "criterion": "元の3文を各1回保持し、実行後のファイル名確認を残す。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/asd-ste100-prerequisite-before-action-verify.py",
+      "{workspace}"
+    ]
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-stalled-hold-expiry",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-stalled-hold-expiry",
+  "prompt": "Fix the indefinite background link retention in this anonymous synthetic fixture. An unanswered hold may retain a hidden link for fewer than 10 logical units, then it must stop retaining it. Preserve the hold for a late acknowledgement, which starts running work and reopens the link. Repeated observation of the same hold must not extend the deadline; a different hold starts a new deadline. An active local operation must retain the hidden link even past the deadline. Finishing that operation without an acknowledgement starts a fresh 10-unit wait. Visible links, running work and separate instances must remain independent. Change only link.py and run python3 test_link.py before and after the smallest fix. Use only the supplied logical counter. No wall clock, network, credentials, dependencies, commits or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Logical counter only; separate stalled holds from active operations, retain late acknowledgement recovery, and preserve instance isolation."
+  },
+  "rubric": [
+    {
+      "id": "expiry",
+      "criterion": "Reproduce the unbounded hold, then bound retention without deleting the unresolved hold."
+    },
+    {
+      "id": "recovery",
+      "criterion": "Keep late acknowledgement, live work, visible links and instance isolation working."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-stalled-hold-expiry-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-stalled-hold-expiry"
+    ]
+  ]
+}

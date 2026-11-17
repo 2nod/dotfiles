@@ -1,0 +1,14 @@
+{
+  "id": "ponytail-owner-counter-lifetime",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-owner-counter-lifetime",
+  "prompt": "Fix the epoch lifetime in this anonymous synthetic workspace. A caller retains an owner while the reader module can be re-evaluated. That owner's next epoch must keep increasing across module re-evaluation, and independent owners must count independently. Preserve the owner's key. Modify only reader.py and run the supplied tests before and after the smallest fix. Do not add persistence, reload-specific handlers, dependencies, network, credentials, clocks, commits or external posts.",
+  "scenario": "boundary",
+  "evaluation": { "status": "ready", "scope": "Deterministic retained-owner state across Python module re-evaluation; does not model a browser or framework hot reload." },
+  "rubric": [
+    { "id": "ownership", "criterion": "Place the epoch state under the retained owner so its lifetime matches that identity." },
+    { "id": "minimality", "criterion": "Preserve independent sequences with a small state change instead of reload-specific recovery or persistence." }
+  ],
+  "verifiers": [["python3", "{case_dir}/ponytail-owner-counter-lifetime-verify.py", "{workspace}", "{case_dir}/fixtures/ponytail-owner-counter-lifetime"]]
+}

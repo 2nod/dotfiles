@@ -1,0 +1,15 @@
+{
+  "id": "ponytail-cli-pwd-lock",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-cli-pwd-lock",
+  "prompt": "A deployment wrapper sets a child CLI's cwd to the package directory, but running it from another directory creates a duplicate resource instead of reusing the locked ID. Diagnose and fix deploy.py only. Preserve the inherited environment, the CLI, and the package layout. Run python3 test_deploy.py. Use no network, credentials or additional dependencies.",
+  "scenario": "boundary",
+  "evaluation": { "status": "ready", "scope": "Synthetic CLI whose relative lock keys use inherited PWD; checks identity retention and retries without a hosted service." },
+  "rubric": [
+    { "id": "directory", "criterion": "Align the child process PWD with its package working directory." },
+    { "id": "identity", "criterion": "Reuse the existing locked resource across retries without duplicate keys or IDs." },
+    { "id": "scope", "criterion": "Fix the wrapper without rewriting the CLI, lockfile, or inherited environment." }
+  ],
+  "verifiers": [["python3", "{case_dir}/ponytail-cli-pwd-lock-verify.py", "{workspace}", "{case_dir}/fixtures/ponytail-cli-pwd-lock"]]
+}
