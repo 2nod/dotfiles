@@ -1,23 +1,66 @@
-{ pkgs }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
-  version = "0.9.79-dotfiles.1";
-  source = pkgs.fetchFromGitHub {
-    owner = "michael-denyer";
-    repo = "pstack-claude";
-    rev = "60ae9e25610744bccd45bd405c211413a471aaf8";
-    hash = "sha256-VBi1L9u4HoRWhiVw1B1ZZ56MqBEchLdTpwojVRT3sWo=";
-  };
+  pstackDir = "${config.xdg.dataHome}/pstack";
 in
-# Keep skills and references intact without session-wide routing in either host.
-pkgs.runCommand "pstack-marketplace-${version}" { } ''
-  cp -R ${source}/. "$out"
-  chmod -R u+w "$out"
-  # Hosts cache by version; keep an existing upstream install from retaining hooks.
-  substituteInPlace "$out/.claude-plugin/marketplace.json" \
-    "$out/plugins/pstack/.claude-plugin/plugin.json" \
-    "$out/plugins/pstack/.codex-plugin/plugin.json" \
-    --replace-fail '"version": "0.9.79"' '"version": "${version}"'
-  for hook in hooks.json codex-hooks.json; do
-    printf '%s\n' '{"hooks": {}}' > "$out/plugins/pstack/hooks/$hook"
-  done
-''
+{
+  # Fetch at activation, not evaluation: main stays current without a flake lock pin.
+  home.activation.updatePstack = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    (
+      set -euo pipefail
+      pstackDir="${pstackDir}"
+      mkdir -p "$pstackDir"
+      pstackStage=$(mktemp -d)
+      trap 'rm -rf "$pstackStage"' EXIT
+
+      fetch_pstack() {
+        name="$1"
+        repo="$2"
+        cache="$pstackDir/$name.git"
+        if [ ! -d "$cache" ]; then
+          ${pkgs.git}/bin/git init --bare "$cache"
+        fi
+        ${pkgs.git}/bin/git --git-dir="$cache" fetch --depth 1 "$repo" main
+        mkdir -p "$pstackStage/$name"
+        ${pkgs.git}/bin/git --git-dir="$cache" archive FETCH_HEAD | tar -x -C "$pstackStage/$name"
+      }
+
+      fetch_pstack marketplace https://github.com/michael-denyer/pstack-claude.git
+      fetch_pstack cursor https://github.com/cursor/plugins.git
+
+      # Hosts cache by version. Include the fetched commit and the local hook policy.
+      revision=$(${pkgs.git}/bin/git --git-dir="$pstackDir/marketplace.git" rev-parse --short FETCH_HEAD)
+      for manifest in .claude-plugin/plugin.json .codex-plugin/plugin.json; do
+        file="$pstackStage/marketplace/plugins/pstack/$manifest"
+        ${pkgs.jq}/bin/jq --arg suffix "-dotfiles.$revision" '.version += $suffix' "$file" > "$file.tmp"
+        mv "$file.tmp" "$file"
+      done
+      file="$pstackStage/marketplace/.claude-plugin/marketplace.json"
+      ${pkgs.jq}/bin/jq --arg suffix "-dotfiles.$revision" \
+        '(.plugins[] | select(.name == "pstack").version) += $suffix' "$file" > "$file.tmp"
+      mv "$file.tmp" "$file"
+      for hook in hooks.json codex-hooks.json; do
+        printf '%s\n' '{"hooks": {}}' > "$pstackStage/marketplace/plugins/pstack/hooks/$hook"
+      done
+
+      mkdir -p "$pstackStage/portable"
+      cp -R "$pstackStage/marketplace/plugins/pstack/." "$pstackStage/portable/"
+      for skill in "$pstackStage"/portable/skills/*/SKILL.md; do
+        sed '2s/^name: /name: pstack-/' "$skill" > "$skill.tmp"
+        mv "$skill.tmp" "$skill"
+      done
+
+      mkdir -p "$pstackDir/marketplace" "$pstackDir/portable" "$pstackDir/cursor"
+      ${pkgs.rsync}/bin/rsync -r --checksum --delete "$pstackStage/marketplace/" "$pstackDir/marketplace/"
+      ${pkgs.rsync}/bin/rsync -r --checksum --delete "$pstackStage/portable/" "$pstackDir/portable/"
+      ${pkgs.rsync}/bin/rsync -r --checksum --delete "$pstackStage/cursor/pstack/" "$pstackDir/cursor/"
+
+      rm -rf "$pstackStage"
+      trap - EXIT
+    )
+  '';
+}

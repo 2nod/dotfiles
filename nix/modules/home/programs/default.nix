@@ -10,6 +10,7 @@
 {
   imports = [
     ./ai-tools.nix
+    ./pstack.nix
     (import ./agent-observability.nix {
       inherit
         config

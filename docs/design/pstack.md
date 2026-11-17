@@ -1,19 +1,21 @@
 # pstack
 
-Home Manager は [pstack 0.9.79](https://github.com/michael-denyer/pstack-claude/tree/60ae9e25610744bccd45bd405c211413a471aaf8) を commit と内容ハッシュで固定し、Codex・Claude Code・Pi・OpenCodeへ配布する。取得元と配布パッケージは `nix/modules/home/programs/pstack.nix` で共通管理する。Cursorにはtool名が合う[専用版0.15.15](https://github.com/cursor/plugins/tree/df581122cde17e6e27686b5a448bde23e4ad4318/pstack)を別途固定して配布する。両方のライセンスは MIT。
+Home Manager は activation のたびに [michael-denyer/pstack-claude](https://github.com/michael-denyer/pstack-claude) の `main` を取得し、Codex・Claude Code・Pi・OpenCodeへ配布する。Cursorには [cursor/plugins](https://github.com/cursor/plugins/tree/main/pstack) の `main` から専用版を取得する。version・commit・内容ハッシュは固定しない。取得と配布前の加工は `nix/modules/home/programs/pstack.nix` で共通管理する。両方のライセンスは MIT。
+
+`statechart` などの追加skillも、pstackの更新とともに配布する。
 
 | 実行環境 | 配布方式と配置先 |
 | --- | --- |
 | Codex | native plugin、`~/.codex` |
 | OrcaのCodex | activation時に存在する `~/Library/Application Support/orca/codex-accounts/*/home` へnative pluginを登録 |
 | Claude Code | native plugin、`~/.config/claude` |
-| Pi | `~/.pi/agent/skills/pstack` と `extensions/pstack` へskillsと専用extensionをリンク |
-| OpenCode | `~/.config/opencode/skills/pstack` へskillsをリンク。tool・agentの追加は行わない |
+| Pi | `~/.pi/agent/skills/pstack` と `extensions/pstack` へ更新可能なskillsと専用extensionをリンク |
+| OpenCode | `~/.config/opencode/skills/pstack` へ更新可能なskillsをリンク。tool・agentの追加は行わない |
 | Cursor | `~/.cursor/plugins/local/pstack` へ専用版の実ファイルをコピー |
 
-配布版は `0.9.79-dotfiles.1` として登録する。上流版と同じバージョンではClaude Codeのcacheに旧hookが残るため、pluginのmanifestとmarketplaceのversionを分ける。配布内容を変える場合はこの配布版番号も更新する。
+取得した内容は `${XDG_DATA_HOME:-$HOME/.local/share}/pstack` に置く。`marketplace` はnative plugin用、`portable` はPi・OpenCode用、`cursor` はCursor用の配布元となる。native pluginの配布版は上流versionに `-dotfiles.<取得commitの短縮形>` を付ける。同じ上流versionのまま内容が更新されても、Codex・Claude Codeのcacheを更新できる。
 
-`nix run .#switch -- <profile>` で反映した後、新しいセッションで個別skillを指定する。たとえば「pstackのinterrogateでこの差分をレビューして」と依頼する。Codex・Claude Code・Cursorでは実行時カタログのplugin名を含む名称を使う。Pi・OpenCodeでは `pstack-interrogate` のように接頭辞を付ける。両環境向けの `pstack-portable.nix` は名前の衝突を避けるためfrontmatterの `name` だけを変更し、本文と相対パスを保持する。
+`nix run .#switch -- <profile>` で最新版を取得・反映した後、新しいセッションで個別skillを指定する。更新にはGitHubへの接続が必要で、取得に失敗した場合は既存の配布内容を保持してactivationを失敗させる。たとえば「pstackのinterrogateでこの差分をレビューして」と依頼する。Codex・Claude Code・Cursorでは実行時カタログのplugin名を含む名称を使う。Pi・OpenCodeでは `pstack-interrogate` のように接頭辞を付ける。両環境向けには名前の衝突を避けるためfrontmatterの `name` だけを変更し、本文と相対パスを保持する。
 
 Piのextensionはagent・質問・wake-upのtoolと `/loop` を登録する。初期sheetはopus／sonnet、effortはsessionで、モデルaliasは上流extensionが現在のproviderに応じて解決する。既存のPi package一覧は変更しない。OpenCodeはskillの検出までを導入範囲とし、委譲・複数モデルの実行は未検証。現在のtoolとmodelへ対応付ける指示をglobalのAGENTS.mdに置く。
 

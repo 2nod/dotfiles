@@ -6,7 +6,7 @@
 }:
 let
   jsonFormat = pkgs.formats.json { };
-  pstack = import ./pstack-cursor.nix { inherit pkgs; };
+  pstack = "${config.xdg.dataHome}/pstack/cursor";
 
   settings = {
     permissions = {
@@ -47,7 +47,7 @@ in
   };
 
   # Cursor skips external symlinks in plugins/local, so deploy a real directory.
-  home.activation.installCursorPstack = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.installCursorPstack = lib.hm.dag.entryAfter [ "updatePstack" ] ''
     pstackDir="${config.home.homeDirectory}/.cursor/plugins/local/pstack"
     if [ -L "$pstackDir" ] || { [ -e "$pstackDir" ] && [ ! -f "$pstackDir/.dotfiles-managed" ]; }; then
       echo "Refusing to overwrite unmanaged Cursor plugin: $pstackDir" >&2
@@ -55,7 +55,7 @@ in
     fi
     mkdir -p "$pstackDir"
     ${pkgs.rsync}/bin/rsync -r --checksum --delete --chmod=u+w \
-      --exclude=.dotfiles-managed ${pstack}/ "$pstackDir/"
+      --exclude=.dotfiles-managed "${pstack}/" "$pstackDir/"
     printf '%s\n' '${pstack}' > "$pstackDir/.dotfiles-managed"
   '';
 }

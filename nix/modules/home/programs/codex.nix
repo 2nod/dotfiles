@@ -47,7 +47,7 @@ let
         } "$out/codex-package.json"
       '';
 
-  pstackMarketplace = import ./pstack.nix { inherit pkgs; };
+  pstackMarketplace = "${config.xdg.dataHome}/pstack/marketplace";
 
   # Command rules shared by every Codex home. Codex loads every rules/*.rules
   # file and applies the strictest match, so this file also overrides broad
@@ -216,18 +216,29 @@ in
       done
     '';
 
-    activation.installCodexPstack = lib.hm.dag.entryAfter [ "writeCodexConfig" ] ''
-      for pstackHome in "${codexHomeDir}" \
-        "${config.home.homeDirectory}/Library/Application Support/orca/codex-accounts/"*/home; do
-        [ -d "$pstackHome" ] || continue
-        if [ ! -e "$pstackHome/pstack-models.md" ]; then
-          cp ${../../../../codex/pstack-models.md} "$pstackHome/pstack-models.md"
-          chmod 600 "$pstackHome/pstack-models.md"
-        fi
-        CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin marketplace add ${pstackMarketplace}
-        CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin add pstack@pstack-claude
-      done
-    '';
+    activation.installCodexPstack =
+      lib.hm.dag.entryAfter
+        [
+          "writeCodexConfig"
+          "updatePstack"
+        ]
+        ''
+          for pstackHome in "${codexHomeDir}" \
+            "${config.home.homeDirectory}/Library/Application Support/orca/codex-accounts/"*/home; do
+            [ -d "$pstackHome" ] || continue
+            if [ ! -e "$pstackHome/pstack-models.md" ]; then
+              cp ${../../../../codex/pstack-models.md} "$pstackHome/pstack-models.md"
+              chmod 600 "$pstackHome/pstack-models.md"
+            fi
+            if CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin marketplace list --json \
+              | ${pkgs.jq}/bin/jq -e --arg source "${pstackMarketplace}" \
+                '.marketplaces[] | select(.name == "pstack-claude" and .marketplaceSource.source != $source)' > /dev/null; then
+              CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin marketplace remove pstack-claude
+            fi
+            CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin marketplace add "${pstackMarketplace}"
+            CODEX_HOME="$pstackHome" ${codexPackage}/bin/codex plugin add pstack@pstack-claude
+          done
+        '';
 
     file = {
       "${codexHomeDir}/AGENTS.md".source =
