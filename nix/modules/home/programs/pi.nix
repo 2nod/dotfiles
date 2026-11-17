@@ -7,7 +7,7 @@
 }:
 let
   piDotfilesDir = "${dotfilesDir}/pi";
-  pstack = import ./pstack-portable.nix { inherit pkgs; };
+  pstack = "${config.xdg.dataHome}/pstack/portable";
   piAgentDir = "${config.home.homeDirectory}/.pi/agent";
 in
 {
@@ -24,8 +24,7 @@ in
       config.lib.file.mkOutOfStoreSymlink "${piDotfilesDir}/system-append.md";
     ".pi/agent/model-router.json".source =
       config.lib.file.mkOutOfStoreSymlink "${piDotfilesDir}/model-router.json";
-    ".pi/agent/skills/pstack".source = "${pstack}/plugins/pstack/skills";
-    ".pi/agent/extensions/pstack".source = "${pstack}/plugins/pstack/pi";
+    ".pi/agent/skills/pstack".source = config.lib.file.mkOutOfStoreSymlink "${pstack}/skills";
   };
 
   home.activation.installPiPstack = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
