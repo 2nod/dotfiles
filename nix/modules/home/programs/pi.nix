@@ -25,7 +25,6 @@ in
     ".pi/agent/model-router.json".source =
       config.lib.file.mkOutOfStoreSymlink "${piDotfilesDir}/model-router.json";
     ".pi/agent/skills/pstack".source = config.lib.file.mkOutOfStoreSymlink "${pstack}/skills";
-    ".pi/agent/extensions/pstack".source = config.lib.file.mkOutOfStoreSymlink "${pstack}/pi";
   };
 
   home.activation.installPiPstack = lib.hm.dag.entryAfter [ "linkGeneration" ] ''

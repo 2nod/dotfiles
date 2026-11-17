@@ -19,6 +19,8 @@ agentの説明文に "Proactively use" とあっても、行き詰まり・難�
 
 Before using a pstack plugin skill, read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/pstack-models.md` if it exists. Use that sheet's role models and `default effort` for pstack agent dispatch. These overrides apply only to pstack; if CLAUDE.md also contains pstack model rows, the sheet takes precedence.
 
+When using official pstack, read `docs/harness/claude-code.md` in the plugin root once per session to map Cursor tools to Claude Code. The model sheet above takes precedence over the adapter's model paths and defaults.
+
 ## 実装・実験レポート
 
 HTMLまたはSite形式のレポートをユーザーが明示的に依頼した場合だけ、実装は `software-development/build-implementation-report-site`、比較実験は `software-development/build-experiment-report-site` を使う。

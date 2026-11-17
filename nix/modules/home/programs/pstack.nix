@@ -17,38 +17,34 @@ in
       pstackStage=$(mktemp -d)
       trap 'rm -rf "$pstackStage"' EXIT
 
-      fetch_pstack() {
-        name="$1"
-        repo="$2"
-        cache="$pstackDir/$name.git"
-        if [ ! -d "$cache" ]; then
-          ${pkgs.git}/bin/git init --bare "$cache"
-        fi
-        ${pkgs.git}/bin/git --git-dir="$cache" fetch --depth 1 "$repo" main
-        mkdir -p "$pstackStage/$name"
-        ${pkgs.git}/bin/git --git-dir="$cache" archive FETCH_HEAD | tar -x -C "$pstackStage/$name"
-      }
+      cache="$pstackDir/cursor.git"
+      if [ ! -d "$cache" ]; then
+        ${pkgs.git}/bin/git init --bare "$cache"
+      fi
+      ${pkgs.git}/bin/git --git-dir="$cache" fetch --depth 1 https://github.com/cursor/plugins.git main
+      mkdir -p "$pstackStage/upstream"
+      ${pkgs.git}/bin/git --git-dir="$cache" archive FETCH_HEAD pstack | tar -x -C "$pstackStage/upstream"
 
-      fetch_pstack marketplace https://github.com/michael-denyer/pstack-claude.git
-      fetch_pstack cursor https://github.com/cursor/plugins.git
-
-      # Hosts cache by version. Include the fetched commit and the local hook policy.
-      revision=$(${pkgs.git}/bin/git --git-dir="$pstackDir/marketplace.git" rev-parse --short FETCH_HEAD)
-      for manifest in .claude-plugin/plugin.json .codex-plugin/plugin.json; do
-        file="$pstackStage/marketplace/plugins/pstack/$manifest"
+      plugin="$pstackStage/marketplace/plugins/pstack"
+      mkdir -p "$plugin"
+      cp -R "$pstackStage/upstream/pstack/." "$plugin/"
+      mkdir -p "$plugin/.claude-plugin" "$plugin/.codex-plugin" "$pstackStage/marketplace/.claude-plugin"
+      # Hosts cache by version, so include the commit even when upstream keeps its version.
+      revision=$(${pkgs.git}/bin/git --git-dir="$cache" rev-parse --short FETCH_HEAD)
+      for manifest in plugin.json .cursor-plugin/plugin.json; do
+        file="$plugin/$manifest"
         ${pkgs.jq}/bin/jq --arg suffix "-dotfiles.$revision" '.version += $suffix' "$file" > "$file.tmp"
         mv "$file.tmp" "$file"
       done
-      file="$pstackStage/marketplace/.claude-plugin/marketplace.json"
-      ${pkgs.jq}/bin/jq --arg suffix "-dotfiles.$revision" \
-        '(.plugins[] | select(.name == "pstack").version) += $suffix' "$file" > "$file.tmp"
-      mv "$file.tmp" "$file"
-      for hook in hooks.json codex-hooks.json; do
-        printf '%s\n' '{"hooks": {}}' > "$pstackStage/marketplace/plugins/pstack/hooks/$hook"
-      done
+      cp "$plugin/plugin.json" "$plugin/.claude-plugin/plugin.json"
+      ${pkgs.jq}/bin/jq '{name, version, description, author, homepage, repository, license, skills: "./skills/"}' \
+        "$plugin/.claude-plugin/plugin.json" > "$plugin/.codex-plugin/plugin.json"
+      # Retain the installed marketplace ID while replacing its contents with official pstack.
+      ${pkgs.jq}/bin/jq '{name: "pstack-claude", owner: .author, plugins: [{name, version, source: "./plugins/pstack"}]}' \
+        "$plugin/.claude-plugin/plugin.json" > "$pstackStage/marketplace/.claude-plugin/marketplace.json"
 
       mkdir -p "$pstackStage/portable"
-      cp -R "$pstackStage/marketplace/plugins/pstack/." "$pstackStage/portable/"
+      cp -R "$plugin/." "$pstackStage/portable/"
       for skill in "$pstackStage"/portable/skills/*/SKILL.md; do
         sed '2s/^name: /name: pstack-/' "$skill" > "$skill.tmp"
         mv "$skill.tmp" "$skill"
@@ -57,7 +53,7 @@ in
       mkdir -p "$pstackDir/marketplace" "$pstackDir/portable" "$pstackDir/cursor"
       ${pkgs.rsync}/bin/rsync -r --checksum --delete "$pstackStage/marketplace/" "$pstackDir/marketplace/"
       ${pkgs.rsync}/bin/rsync -r --checksum --delete "$pstackStage/portable/" "$pstackDir/portable/"
-      ${pkgs.rsync}/bin/rsync -r --checksum --delete "$pstackStage/cursor/pstack/" "$pstackDir/cursor/"
+      ${pkgs.rsync}/bin/rsync -r --checksum --delete "$pstackStage/upstream/pstack/" "$pstackDir/cursor/"
 
       rm -rf "$pstackStage"
       trap - EXIT
