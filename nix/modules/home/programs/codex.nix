@@ -97,10 +97,11 @@ let
     # traffic also goes through the proxy's allowlist.
     sandbox_workspace_write.network_access = true;
 
+    agents.enabled = true;
+
     features = {
       goals = true;
       js_repl = true;
-      multi_agent = true;
       terminal_resize_reflow = true;
       network_proxy = {
         enabled = true;
