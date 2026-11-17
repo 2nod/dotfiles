@@ -471,7 +471,7 @@
     },
     "domain-modeling": {
       "purpose": "曖昧な用語と決定を境界例で解消し正本へ記録する",
-      "evidence": "用語の矛盾を発見し境界例を通してCONTEXTとADRに一貫して反映する",
+      "evidence": "用語の矛盾を発見し境界例を通してGLOSSARYとADRに一貫して反映する",
       "script_candidate": "用語参照、ADR連番とリンク検査",
       "decision": "unassessed",
       "decision_reason": "共有台帳は評価設計を管理する。利用・改善の判断と実測根拠は各環境のround/decision.jsonに記録する。",
