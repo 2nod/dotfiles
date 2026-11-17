@@ -1,0 +1,34 @@
+{
+  "id": "async-deploy-platform-image-identity",
+  "skill": "async-workflow-operations",
+  "skill_path": "../skills/software-development/async-workflow-operations/SKILL.md",
+  "fixture": "fixtures/async-deploy-platform-image-identity",
+  "prompt": "The rollout verifier reports an image mismatch for a healthy deployment. Diagnose and repair verify.cjs using the captured artifact metadata exercised by test.cjs. Keep rejecting wrong-platform images, unrelated images, and metadata from another release. Change only verify.cjs, run node test.cjs before and after the repair, and record the cause and verification in report.md. Do not modify the checker, add dependencies, access the network, use credentials or clocks, commit, or post externally.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Anonymous dependency-free OCI index and runtime-image identity fixture. No project data, network, credential, or clock."
+  },
+  "rubric": [
+    {
+      "id": "artifact-identity",
+      "criterion": "Match the runtime platform image to a descriptor of the exact release index, rather than comparing index and image digests directly."
+    },
+    {
+      "id": "reject-unrelated",
+      "criterion": "Reject other-platform descriptors, unknown digests, the index itself as a concrete runtime image, and a manifest from another release."
+    },
+    {
+      "id": "verify",
+      "criterion": "Run the unchanged behavioral checks and report the observed result."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/async-deploy-platform-image-identity-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/async-deploy-platform-image-identity"
+    ]
+  ]
+}

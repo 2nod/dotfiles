@@ -1,0 +1,36 @@
+{
+  "id": "ponytail-strict-adapter-boundary",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-strict-adapter-boundary",
+  "prompt": "The public label and quantity routes are advertised as strict, but requests with extra keys are accepted. Fix the shared service adapter with the smallest complete change. Preserve valid requests and the deliberately permissive open route. Reject invalid strict requests before their handler runs. Do not edit framework.py, add dependencies, or use network. A direct schema.parse check alone is not the public boundary. Add a small behavior check if useful.",
+  "expected_behavior": "The shared adapter registers the full schema object so strictness survives framework normalization, both strict routes reject unknown input before the handler, normal requests work, and the permissive route still strips extra fields.",
+  "failure_conditions": [
+    "unknown keys on either strict route are accepted",
+    "validation only happens after handler side effects",
+    "framework-wide policy changes break the permissive route",
+    "an individual-route workaround leaves the shared adapter broken"
+  ],
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Anonymous local fixture for public boundary semantics after adapter normalization. No network or credentials."
+  },
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-strict-adapter-boundary-verify.py",
+      "{workspace}"
+    ]
+  ],
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "Both public strict routes reject every unknown key before handler invocation, while valid requests succeed."
+    },
+    {
+      "id": "scope",
+      "criterion": "Fix the shared adapter without editing framework.py or changing intentionally permissive route semantics."
+    }
+  ]
+}

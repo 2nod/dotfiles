@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-receipt-resume-gap",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-receipt-resume-gap",
+  "prompt": "Fix the hidden connection interruption in this anonymous synthetic workspace. A receipt event can arrive before both the next running status and the publisher callback. The existing connection must stay open through this interval, and close only when hidden work finishes. Visible transitions must not reopen it. Replayed or unrelated receipts must not create work, and channels must stay independent. Change only channel.py. Run the supplied test before and after the smallest fix. No clocks, network, credentials, dependencies, commits or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic event ordering across receipt and resume; does not test native browser visibility or transport reliability."
+  },
+  "rubric": [
+    {
+      "id": "ordering",
+      "criterion": "Reproduce and preserve the receipt-before-resume interval without connection churn."
+    },
+    {
+      "id": "preservation",
+      "criterion": "Keep idle disconnection, replay handling and independent channels."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-receipt-resume-gap-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-receipt-resume-gap"
+    ]
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-pending-publish-visibility",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-pending-publish-visibility",
+  "prompt": "Fix the connection interruption while publishing in this anonymous synthetic workspace. Hiding the view before the HTTP result must keep the existing pipe. Definite rejection must release waiting, unknown delivery must preserve observation, and a live completion arriving before the unknown result must not start waiting again. Keep visible behavior and independent pipes unchanged. Modify only pipe.py. Run the supplied tests before and after the smallest fix. No network, credentials, clocks, dependencies, commits or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic pre-acceptance publishing gap and uncertain HTTP outcome; does not test native visibility or a real server."
+  },
+  "rubric": [
+    {
+      "id": "pending",
+      "criterion": "Preserve liveness before HTTP acceptance, rather than testing only accepted or running work."
+    },
+    {
+      "id": "outcome",
+      "criterion": "Separate confirmed rejection, uncertain delivery and an already observed completion."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-pending-publish-visibility-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-pending-publish-visibility"
+    ]
+  ]
+}

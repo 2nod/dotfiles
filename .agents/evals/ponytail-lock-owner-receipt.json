@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-lock-owner-receipt",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-lock-owner-receipt",
+  "prompt": "Fix the receipt race in this anonymous synthetic workspace. Two callers share one non-blocking save lease and a receiver accepts the first receipt. A caller that cannot acquire the lease must neither save nor report a result; the owner must report its actual result, including false. Preserve lease release on errors and independence between runners. Change only runner.cjs. Run node test.cjs before and after the smallest fix, and write report.md with the cause and verification. No network, credentials, clocks, dependencies, commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Dependency-free deterministic ownership of a save and its first-accepted receipt."
+  },
+  "rubric": [
+    {
+      "id": "ownership",
+      "criterion": "Distinguish lease contention from a completed negative save result; only the lease owner publishes."
+    },
+    {
+      "id": "preservation",
+      "criterion": "Keep real false results, release the lease after errors, and keep independent runners independent."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-lock-owner-receipt-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-lock-owner-receipt"
+    ]
+  ]
+}

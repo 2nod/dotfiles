@@ -1,0 +1,34 @@
+{
+  "id": "ponytail-recovery-without-preview",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-recovery-without-preview",
+  "prompt": "Simplify recovery storage in this anonymous local fixture. A preview duplicates a private draft and is no longer needed. Persist only the receipt. After reload there may be no review, but a saved receipt must still expose Retry and record the same receipt without saving again. Keep fresh-review application and record-failure recovery working. Change only drafts.cjs, run node test.cjs before and after the smallest complete change, and write report.md with the cause and verification. Do not modify the checker, add dependencies, access the network, use credentials or clocks, commit, or post externally.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic caller checks catch a cache simplification that hides Retry or returns early when the preview is removed. Anonymous dependency-free fixture; no project data, network, credentials or clock."
+  },
+  "rubric": [
+    {
+      "id": "complete-removal",
+      "criterion": "Remove the duplicate preview from storage and restoration."
+    },
+    {
+      "id": "retry-without-review",
+      "criterion": "Update both action availability and retry handling so an existing receipt needs no review."
+    },
+    {
+      "id": "preserve-safety",
+      "criterion": "Never save again while retrying a receipt, and retain the receipt when recording fails."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-recovery-without-preview-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-recovery-without-preview"
+    ]
+  ]
+}

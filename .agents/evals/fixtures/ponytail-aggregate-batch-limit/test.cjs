@@ -1,0 +1,11 @@
+const assert = require('node:assert/strict');
+const { complete, restore } = require('./receipts.cjs');
+const items = ['a', 'b', 'c', 'd', 'e', 'f'];
+assert.throws(() => complete([['a', 'b', 'c', 'd']]));
+assert.throws(() => complete([['a', 7]]));
+assert.throws(() => restore('{"items":[7]}'));
+const receipt = complete([['a', 'b', 'c'], ['d', 'e', 'f']]);
+assert.deepEqual(JSON.parse(receipt).items, items);
+assert.deepEqual(restore(receipt), items);
+assert.deepEqual(restore(JSON.stringify({ items })), items);
+console.log('Per-batch limits and aggregated receipt restoration pass.');

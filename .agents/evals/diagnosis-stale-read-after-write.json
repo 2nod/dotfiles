@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-stale-read-after-write",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-stale-read-after-write",
+  "prompt": "Fix the race in this anonymous synthetic completion ledger. IDs are append-only. A delayed refresh must preserve writes that finished while it was pending, preserve known completions throughout refresh, and ignore canceled or already finished requests. New work must wait until the initial or current refresh is complete. Keep independent ledgers independent. Modify only ledger.py. Run the supplied tests before and after the smallest fix. No network, credentials, clocks, dependencies, commits or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic request/write ordering and canceled result handling; no browser or persistence integration."
+  },
+  "rubric": [
+    {
+      "id": "stale-read",
+      "criterion": "Reproduce stale read after successful write without retries or timing-based waits."
+    },
+    {
+      "id": "preservation",
+      "criterion": "Preserve append-only facts and ignore inactive request results without weakening readiness checks."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-stale-read-after-write-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-stale-read-after-write"
+    ]
+  ]
+}

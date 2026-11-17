@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-aggregate-batch-limit",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-aggregate-batch-limit",
+  "prompt": "Fix receipt creation and restoration for accumulated batches in this anonymous synthetic workspace. A producer may provide multiple valid batches, each with at most three strings. Preserve that producer limit and malformed-input validation, while allowing a combined receipt to contain all accepted items. Change only receipts.cjs. Run node test.cjs before and after the smallest fix, and write report.md with the cause and verification. No network, credentials, clocks, dependencies, commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Dependency-free validation of a per-batch cap versus an aggregated receipt contract, including restoration."
+  },
+  "rubric": [
+    {
+      "id": "boundary",
+      "criterion": "Keep the three-item limit at the producer batch boundary; do not reuse it for the combined receipt."
+    },
+    {
+      "id": "restoration",
+      "criterion": "Fix both writing and reading combined receipts while retaining malformed-item validation."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-aggregate-batch-limit-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-aggregate-batch-limit"
+    ]
+  ]
+}

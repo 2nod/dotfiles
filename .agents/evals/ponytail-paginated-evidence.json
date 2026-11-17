@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-paginated-evidence",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-paginated-evidence",
+  "prompt": "The evidence checker reports that the latest message revision does not match saved data even when they match. Fix the capture behavior in this anonymous workspace using existing modules. Preserve real mismatches and empty histories. Do not change client.cjs or test.cjs. Run node test.cjs before and after the fix. No network, credentials, clocks, dependencies, commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Dependency-free complete-history evidence capture."
+  },
+  "rubric": [
+    {
+      "id": "complete-history",
+      "criterion": "Use the complete event history before deciding which message is latest."
+    },
+    {
+      "id": "reuse",
+      "criterion": "Make the smallest complete correction using the existing client, without duplicating transport logic."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-paginated-evidence-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-paginated-evidence"
+    ]
+  ]
+}

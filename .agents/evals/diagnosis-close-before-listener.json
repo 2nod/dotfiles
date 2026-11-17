@@ -1,0 +1,17 @@
+{
+  "id": "diagnosis-close-before-listener",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-close-before-listener",
+  "prompt": "Fix the resource lifecycle in this anonymous synthetic workspace. Disconnecting during authorization must not open an upstream resource afterward. Disconnecting after startup must still stop that resource once. Normal response completion must not count as a client disconnect. Keep independent connections working. Modify only relay.py and run the supplied tests before and after the smallest fix. No network, credentials, wall clocks, dependencies, commits or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic disconnect before lifecycle listener registration and normal close classification; does not test real sockets or proxy disconnect propagation."
+  },
+  "rubric": [
+    { "id": "early-close", "criterion": "Check the already closed state after asynchronous authorization, rather than relying only on future close events." },
+    { "id": "classification", "criterion": "Distinguish normal response completion from premature client disconnection and preserve post-start cancellation." }
+  ],
+  "verifiers": [["python3", "{case_dir}/diagnosis-close-before-listener-verify.py", "{workspace}", "{case_dir}/fixtures/diagnosis-close-before-listener"]]
+}

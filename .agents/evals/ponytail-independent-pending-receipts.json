@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-independent-pending-receipts",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-independent-pending-receipts",
+  "prompt": "Fix lost pending receipts in this anonymous synthetic workspace. Independent callers stage receipts in the same channel. Every receipt must remain recoverable with its original contents until that receipt is acknowledged. A duplicate late acknowledgement must not erase another receipt. Explicit discard removes all pending receipts only for its channel. Change only outbox.cjs, keep the public functions and test.cjs unchanged, run node test.cjs before and after the smallest complete fix, and write report.md with the cause and verification. No dependencies, clocks, network, credentials, commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic interleavings of staging and acknowledgements using in-memory storage; no native browser or network."
+  },
+  "rubric": [
+    {
+      "id": "isolation",
+      "criterion": "Preserve multiple pending receipts and remove only the confirmed receipt ID."
+    },
+    {
+      "id": "preservation",
+      "criterion": "Keep receipt contents unchanged and explicit discard isolated to its channel."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-independent-pending-receipts-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-independent-pending-receipts"
+    ]
+  ]
+}

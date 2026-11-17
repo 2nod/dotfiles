@@ -1,0 +1,14 @@
+{
+  "id": "ponytail-generational-subscription-cleanup",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-generational-subscription-cleanup",
+  "prompt": "Fix stale cleanup in this anonymous synthetic workspace. A newer epoch replaces an older registration for the same key. Late releases or leave messages from the old epoch must preserve the new registration. A leave can arrive before its join and must block that epoch from starting afterward. Reject older or duplicate joins and preserve independent keys. Modify only pool.py. Run the supplied tests before and after the smallest fix. No network, credentials, clocks, dependencies, commits or external posts.",
+  "scenario": "boundary",
+  "evaluation": { "status": "ready", "scope": "Deterministic process-local registration ownership and out-of-order cleanup, without transport, expiry or distributed coordination." },
+  "rubric": [
+    { "id": "fencing", "criterion": "Compare epoch and registration identity before cleanup so a stale caller cannot retire its successor." },
+    { "id": "ordering", "criterion": "Preserve leave-before-join tombstones and independent keys without infrastructure or unrelated abstractions." }
+  ],
+  "verifiers": [["python3", "{case_dir}/ponytail-generational-subscription-cleanup-verify.py", "{workspace}", "{case_dir}/fixtures/ponytail-generational-subscription-cleanup"]]
+}
