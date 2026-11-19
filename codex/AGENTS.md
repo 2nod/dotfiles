@@ -1,3 +1,7 @@
+## UI copy
+
+Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.
+
 ## Skills
 
 These skills are discovered at startup from multiple local sources. Each entry includes a name, description, and file path so you can open the source for full instructions.
