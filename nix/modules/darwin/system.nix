@@ -23,8 +23,13 @@ in
   homebrew = {
     enable = true;
     taps = [
+      "anthropics/tap"
       "stablyai/orca"
     ];
+    # nix-darwin's cask options do not expose Homebrew's per-cask trust setting.
+    extraConfig = ''
+      cask "anthropics/tap/ant", trusted: true
+    '';
     onActivation = {
       # Homebrew 7 disables `brew bundle install --cleanup`.  Keep the
       # declarative cleanup behaviour through the supported --force-cleanup
