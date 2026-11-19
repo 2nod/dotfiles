@@ -1,0 +1,30 @@
+{
+  "id": "ponytail-cli-assertion-per-invocation",
+  "skill": "ponytail",
+  "skill_path": "../installed-skills/software-development/ponytail/SKILL.md",
+  "fixture": "fixtures/ponytail-cli-assertion-per-invocation",
+  "prompt": "Fix this anonymous release runner: each CLI process exchanges a single-use identity assertion, and a release runs multiple commands including cleanup. Refresh immediately before every invocation and stop that invocation if refresh fails. Use the smallest shared-runner change. Keep provider.cjs, release.cjs and test.cjs unchanged, run node test.cjs, and write report.md with verification. No network, real credentials, clocks, dependencies, commits, or external posts.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "Deterministic single-use assertion simulation across deployment and cleanup; no real service, token, network or clock."
+  },
+  "rubric": [
+    {
+      "id": "per-invocation",
+      "criterion": "Refresh in the shared runner before every command, including cleanup after a command error."
+    },
+    {
+      "id": "refresh-failure",
+      "criterion": "Propagate refresh failure without invoking the CLI with a stale assertion."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/ponytail-cli-assertion-per-invocation-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/ponytail-cli-assertion-per-invocation"
+    ]
+  ]
+}
