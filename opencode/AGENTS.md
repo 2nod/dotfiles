@@ -1,3 +1,7 @@
+# UI copy
+
+Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.
+
 # pstack
 
 - pstackのskill名は `pstack-` で始まる。skill内の別skillへの参照も、この接頭辞を付けた名前で読み込む。

@@ -10,6 +10,10 @@ When using a skill, briefly state which skill is being used and why. Keep it to 
 
 Use `~/dotfiles/.agents/README.md` as the source of truth for the current shared skill list and management workflow.
 
+## UI copy
+
+Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.
+
 ## codex-rescue
 
 `codex:codex-rescue` agent と `codex:rescue` skill は、ユーザーが名前を出して明示的に依頼したときだけ使う。
