@@ -282,9 +282,11 @@ in
         AppleLanguages = [ "en" ];
       };
 
-      # Mission Control / Spaces shortcuts
+      # Spotlight / Mission Control / Spaces shortcuts
       "com.apple.symbolichotkeys" = {
         AppleSymbolicHotKeys = {
+          # Spotlight (Cmd + Space)
+          "64".enabled = false;
           # Mission Control (Ctrl + Up)
           "32" = {
             enabled = true;
