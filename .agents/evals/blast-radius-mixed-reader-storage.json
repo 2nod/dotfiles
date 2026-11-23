@@ -1,0 +1,25 @@
+{
+  "id": "blast-radius-mixed-reader-storage",
+  "skill": "pstack:blast-radius",
+  "skill_path": "~/.local/share/pstack/marketplace/plugins/pstack/skills/blast-radius/SKILL.md",
+  "fixture": "fixtures/blast-radius-mixed-reader-storage",
+  "prompt": "A web app has changed its local draft format. Its new build opens old drafts, but a user reports that a draft saved in the new build disappeared with an older tab open. Trace the version mix and fix it without editing released.cjs. Existing drafts must still open. Reproduce the report by executing both implementations on one shared store and rerun the same check after your change. Use the synthetic files only.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "An unchanged reader with cleanup behavior can delete a new writer's entries in shared storage. The scenario runs in Node without dependencies."
+  },
+  "rubric": [
+    {
+      "id": "version-mix",
+      "criterion": "Execute the two implementations against the same store and show the difference before and after the fix."
+    },
+    {
+      "id": "durability",
+      "criterion": "Preserve the new draft across a released tab opening and preserve the ability to load existing drafts."
+    }
+  ],
+  "verifiers": [
+    ["node", "{case_dir}/blast-radius-mixed-reader-storage-verify.cjs", "{workspace}", "{case_dir}/fixtures/blast-radius-mixed-reader-storage"]
+  ]
+}

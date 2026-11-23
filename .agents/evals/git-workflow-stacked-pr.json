@@ -1,0 +1,35 @@
+{
+  "id": "git-workflow-stacked-pr",
+  "skill": "git-workflow",
+  "skill_path": "../skills/software-development/git-workflow/SKILL.md",
+  "fixture": "fixtures/git-workflow-stacked-pr",
+  "prompt": "python3 setup.pyで合成Gitリポジトリrepoを初期化してください。activationはpreparationをbaseにした既存PRです。mainの保守変更がactivationにだけ取り込まれ、PR相当の差分に混ざっています。両PRに固有の差分が出るよう既存ブランチを更新し、実際のmerge-baseとファイル差分を確認してください。main、既存ブランチ名とコミット履歴、タグ、setup.pyを保持してください。変更はこのローカルrepoだけで行ってください。",
+  "expected_behavior": "親ブランチをmainに追従させ、その更新を子ブランチへ取り込む。両方のPR相当の三点差分を検証し、既存コミットとブランチを保持する。",
+  "evaluation": {
+    "status": "ready",
+    "scope": "ローカルGitで親子PRの比較差分と履歴保持を確認する。外部接続は不要。"
+  },
+  "scenario": "boundary",
+  "rubric": [
+    {
+      "id": "purpose",
+      "criterion": "親PRと子PRの三点差分には、それぞれの機能に必要なファイルだけが含まれる。"
+    },
+    {
+      "id": "grounding",
+      "criterion": "両PRに相当するmerge-baseとGitのファイル差分を実際に確認する。"
+    },
+    {
+      "id": "scope",
+      "criterion": "既存のブランチ、コミット、タグ、合成fixtureを保持する。"
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/git-workflow-stacked-pr-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/git-workflow-stacked-pr"
+    ]
+  ]
+}
