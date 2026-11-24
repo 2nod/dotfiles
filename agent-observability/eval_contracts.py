@@ -35,7 +35,7 @@ def tree_version(path):
 
 
 def resolve(case_path, value):
-    return (case_path.parent / value).resolve()
+    return (case_path.parent / pathlib.Path(value).expanduser()).resolve()
 
 
 def dependency_paths(case, case_path, skill_path):
