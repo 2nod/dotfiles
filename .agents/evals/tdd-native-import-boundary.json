@@ -1,0 +1,19 @@
+{
+  "id": "tdd-native-import-boundary",
+  "skill": "pstack:tdd",
+  "skill_path": "~/.local/share/pstack/marketplace/plugins/pstack/skills/tdd/SKILL.md",
+  "fixture": "fixtures/tdd-native-import-boundary",
+  "prompt": "A stock report crashes on startup on machines without the optional label engine, even though it only performs arithmetic. Fix the local modules while preserving both report names and label rendering in the full catalog. Keep label.cjs unchanged. Use this synthetic workspace only.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "A report's import of a full catalog eagerly loads an unrelated optional module. Two fresh Node processes verify the report and complete catalog with each simulated installation state."
+  },
+  "rubric": [
+    {"id": "regression-check", "criterion": "Run a check that demonstrates the import failure and rerun the check after the fix."},
+    {"id": "dependency-boundary", "criterion": "Let stock reporting run without loading the engine and preserve both stock names and real label rendering when installed."}
+  ],
+  "verifiers": [
+    ["node", "{case_dir}/tdd-native-import-boundary-verify.cjs", "{workspace}", "{case_dir}/fixtures/tdd-native-import-boundary"]
+  ]
+}
