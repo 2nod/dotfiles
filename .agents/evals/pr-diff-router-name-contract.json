@@ -1,0 +1,11 @@
+{
+  "id": "pr-diff-router-name-contract",
+  "skill": "pr-diff-findings",
+  "skill_path": "../skills/software-development/pr-diff-findings/SKILL.md",
+  "fixture": "fixtures/pr-diff-router-name-contract",
+  "prompt": "Review new dispatch support in registry.py. Leave the fixture unchanged and write findings.md. For a blocking compatibility finding, also write evidence.json with the fields file, line, alias, expected, and actual. The two result fields must contain the route values (use null for no match).",
+  "expected_behavior": "Find that aliases with an underscore can be registered but the introduced dispatch parser rejects their commands. Show the failure with an accepted alias and recommend preserving the accepted name contract.",
+  "verifiers": [
+    ["python3", "{case_dir}/pr-diff-router-name-contract-verify.py", "{workspace}", "{case_dir}/fixtures/pr-diff-router-name-contract"]
+  ]
+}

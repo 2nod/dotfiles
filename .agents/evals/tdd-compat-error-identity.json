@@ -1,0 +1,19 @@
+{
+  "id": "tdd-compat-error-identity",
+  "skill": "pstack:tdd",
+  "skill_path": "~/.local/share/pstack/marketplace/plugins/pstack/skills/tdd/SKILL.md",
+  "fixture": "fixtures/tdd-compat-error-identity",
+  "prompt": "In this synthetic compatibility runtime, a missing chart crashes the preview instead of offering to create it. The compatibility constructor must keep working as an ordinary callable Error constructor that returns an Error object. Preserve unexpected errors and successful reads. Fix the fixture and execute a check on the compatibility code before and after the change.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "A compatibility-style Error constructor can lose subtype identity at runtime. The verifier exercises the actual exported constructor and caller without a compiler, packages or external state."
+  },
+  "rubric": [
+    {"id": "runtime-reproduction", "criterion": "Run the defective preview path with the compatibility constructor, then rerun the same check after fixing it."},
+    {"id": "error-identity", "criterion": "Restore the custom error identity while preserving its payload and keeping unexpected failures visible."}
+  ],
+  "verifiers": [
+    ["node", "{case_dir}/tdd-compat-error-identity-verify.cjs", "{workspace}"]
+  ]
+}

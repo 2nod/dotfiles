@@ -1,0 +1,16 @@
+{
+  "id": "pr-diff-incomplete-inventory",
+  "skill": "pr-diff-findings",
+  "skill_path": "../skills/software-development/pr-diff-findings/SKILL.md",
+  "fixture": "fixtures/pr-diff-incomplete-inventory",
+  "prompt": "Review the change from before.py to after.py using the contract in contract.md and the read model in index_view.py. Leave the fixture unchanged. Write your review to findings.md. If you find a regression, also write evidence.json with the fields file, line, catalog (a list of item IDs), indexed (an object mapping IDs to labels), expected (the desired list of missing IDs), and actual (the candidate's result). Use input that demonstrates the finding.",
+  "expected_behavior": "Identify that using only the index view drops catalog items without an index entry, falsely reporting no missing items. Explain that the catalog must drive enumeration and give executable counterexample data.",
+  "failure_conditions": [
+    "the review omits the previously visible catalog items without an index entry",
+    "the counterexample does not fail on the candidate and pass on the contract-preserving version",
+    "the review modifies the fixture"
+  ],
+  "verifiers": [
+    ["python3", "{case_dir}/pr-diff-incomplete-inventory-verify.py", "{workspace}", "{case_dir}/fixtures/pr-diff-incomplete-inventory"]
+  ]
+}
