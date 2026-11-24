@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-dialog-keyboard-boundary",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-dialog-keyboard-boundary",
+  "prompt": "The keyboard-driven picker in this synthetic app leaks keys to the workspace. Keys originating in the open picker must stay within it, Esc must dismiss it, and keys outside it must still reach the workspace. Change only picker.py. Use the supplied executable checks to reproduce the bug and verify the fix.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "An explicit model of keyboard event propagation across nested handlers."
+  },
+  "rubric": [
+    {
+      "id": "modal-keyboard",
+      "criterion": "Prevent background key handling while preserving internal Escape dismissal."
+    },
+    {
+      "id": "reproduction",
+      "criterion": "Show the initial leaking path and keep the outside-shortcut check passing."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-dialog-keyboard-boundary-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-dialog-keyboard-boundary"
+    ]
+  ]
+}

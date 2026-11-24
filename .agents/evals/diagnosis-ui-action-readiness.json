@@ -1,0 +1,30 @@
+{
+  "id": "diagnosis-ui-action-readiness",
+  "skill": "diagnosing-bugs",
+  "skill_path": "../installed-skills/engineering/diagnosing-bugs/SKILL.md",
+  "fixture": "fixtures/diagnosis-ui-action-readiness",
+  "prompt": "The export check in this synthetic workspace passes when the details panel opens immediately and fails when it opens later. Change only export_check.py. Run the supplied tests to reproduce the failure, then fix the check so it still performs a real export and reports failure if the export control never appears.",
+  "scenario": "boundary",
+  "evaluation": {
+    "status": "ready",
+    "scope": "A heading is present in both views, while the export control appears after a separately advanced UI transition."
+  },
+  "rubric": [
+    {
+      "id": "reproduction",
+      "criterion": "Reproduce the delayed-panel failure and identify the heading shared by the two views."
+    },
+    {
+      "id": "action-readiness",
+      "criterion": "Wait for the export control, click it once, and preserve failure when the control is absent."
+    }
+  ],
+  "verifiers": [
+    [
+      "python3",
+      "{case_dir}/diagnosis-ui-action-readiness-verify.py",
+      "{workspace}",
+      "{case_dir}/fixtures/diagnosis-ui-action-readiness"
+    ]
+  ]
+}
